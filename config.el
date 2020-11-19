@@ -65,10 +65,13 @@
                                          (mapconcat 'identity x ",")
                                          "}")) ""))))
 
-(setq doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
+(setq  doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
 (setq doom-theme 'doom-one)
 (setq display-line-numbers-type t)
 (cua-mode +1)
+;;(setq org-support-shift-select t)
+(require 'ox-extra)
+(ox-extras-activate '(ignore-headlines)) ;; https://emacs.stackexchange.com/questions/38184/org-mode-ignore-heading-when-exporting-to-latex
 
 (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
 (setq org-reveal-mathjax t)

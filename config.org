@@ -184,10 +184,13 @@ This is the jumping off point in my workflow inside emacs. The config gives the 
 * Editor
 
 #+BEGIN_SRC elisp
-  (setq doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
+(setq  doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
 (setq doom-theme 'doom-one)
 (setq display-line-numbers-type t)
 (cua-mode +1)
+;;(setq org-support-shift-select t)
+(require 'ox-extra)
+(ox-extras-activate '(ignore-headlines)) ;; https://emacs.stackexchange.com/questions/38184/org-mode-ignore-heading-when-exporting-to-latex
 #+END_SRC
 
 * Elfeed
