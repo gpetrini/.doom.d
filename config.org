@@ -1,0 +1,351 @@
+#+TITLE: My Doom Config
+#+PROPERTY: header-args :tangle "config.el"
+
+
+* Introduction
+
+This is my config file for Doom Emacs. It reflects my primary needs for an
+academic writing environment, with some coding.
+
+Note: I work at the border of the social sciences and humanities, with
+qualitative data. So I have no need to integrate, say, statistics support. But
+that should be easy enough to do (see, for example, the [[https://github.com/hlissner/doom-emacs/tree/develop/modules/lang/ess][ESS module]]).
+
+** Inspirations
+
+- [[https://github.com/sunnyhasija/Academic-Doom-Emacs-Config]]
+- [[https://gist.github.com/bdarcus/4c50f5c0eb49656298a9bb4c73e725ac]]
+
+
+
+* Me
+
+#+BEGIN_SRC elisp
+(setq user-full-name "Gabriel Petrini"
+      user-mail-address "gpetrinidasilveira@gmail.com")
+#+END_SRC
+
+#+RESULTS:
+: gpetrinidasilveira@gmail.com
+
+
+* Rudimentary Settings
+
+#+BEGIN_SRC elisp
+(setq-default
+ delete-by-moving-to-trash t                      ; Delete files to trash
+ tab-width 4                                                         ; Set width for tabs
+ uniquify-buffer-name-style 'forward      ; Uniquify buffer names
+ window-combination-resize t                    ; take new window space from all other windows (not just current)
+ x-stretch-cursor t)                                           ; Stretch cursor to the glyph width
+
+(setq undo-limit 80000000                          ; Raise undo-limit to 80Mb
+      evil-want-fine-undo t                             ; By default while in insert all changes are one big blob. Be more granular
+      auto-save-default t                                    ; Nobody likes to loose work, I certainly don't
+      inhibit-compacting-font-caches t      ; When there are lots of glyphs, keep them in memory
+      truncate-string-ellipsis "…")               ; Unicode ellispis are nicer than "...", and also save /precious/ space
+
+(delete-selection-mode 1)                             ; Replace selection when inserting text
+(display-time-mode 1)                                   ; Enable time in the mode-line
+(global-subword-mode 1)                           ; Iterate through CamelCase words
+(setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
+#+END_SRC
+
+#+RESULTS:
+: 0.3
+
+* Battery Display
+I use the same emacs config on my desktop and my laptop. I added a little snippet that shows battery level on my laptop.
+#+BEGIN_SRC elisp
+(unless (equal "Battery status not available"
+               (battery))
+  (display-battery-mode 1))                           ; On laptops it's nice to know how much power you have
+#+END_SRC
+
+#+RESULTS:
+: t
+
+
+* Full Screen Emacs
+I like to emacs to be fullscreen when I open it for the first time.
+#+BEGIN_SRC elisp
+(if (eq initial-window-system 'x)                 ; if started by emacs command or desktop file
+    (toggle-frame-maximized)
+  (toggle-frame-fullscreen))
+#+END_SRC
+
+#+RESULTS:
+
+* Windows Behavior
+The following code allows me to choose which buffer I want to see when I split a window. It first does a split to the right, and then opens Ivy and and shows me a preview.
+#+BEGIN_SRC elisp
+(setq evil-vsplit-window-right t
+      evil-split-window-below t)
+(defadvice! prompt-for-buffer (&rest _)
+  :after '(evil-window-split evil-window-vsplit)
+  (+ivy/switch-buffer))
+(setq +ivy-buffer-preview t)
+#+END_SRC
+
+#+RESULTS:
+: t
+
+* Modeline
+I expect most of the documents I work on to be UTF - 8, So I don't want to see that taking up space unless the encoding is something different
+#+BEGIN_SRC elisp
+(defun doom-modeline-conditional-buffer-encoding ()
+  (setq-local doom-modeline-buffer-encoding
+              (unless (or (eq buffer-file-coding-system 'utf-8-unix)
+                          (eq buffer-file-coding-system 'utf-8)))))
+(add-hook 'after-change-major-mode-hook #'doom-modeline-conditional-buffer-encoding)
+#+END_SRC
+
+#+RESULTS:
+
+* An Integrated Academic Environment
+
+This sets up Doom Emacs for an academic research and writing workflow, with
+integrated bibliographic management, note-taking and document authoring.
+
+Almost all of the initial work on this is now incorporated into Doom modules,
+and you can install and set it all up with the following Doom modules and flags
+in your ~init.el~ file:
+
+ - :completion ivy or helm (I use ivy)
+ - :lang org (+roamom+noter)
+ - :tools biblio
+
+ The above will give you the following:
+
+  - ~ivy-bibtex~ or ~helm-bibtex~ and ~org-ref~ for bibliographic management
+  - ~org-roam~ for zettlekasten-inspired note-taking, including of bibliographic
+    notes (~org-roam-bibtex~ provides the glue here); also incorporates
+    ~org-noter~ for notes synced to PDF files, so that you have a consistent
+    environment to create, link, manage and access your notes
+  - document authoring in either markdown mode (if you activate the ~markdown~
+    module) or ~org~, including integrated citation access and insertion.
+
+What follows is simply my customization of the above, which for now is
+configuring the following variables.
+
+The ~+biblio~ module provides these path directory and file variables and passes
+them on to the relevant packages, so that one only has to set them once. There
+is no need to set the path for bibliographic notes, as ~org-roam-bibtex~ will
+handle that.
+
+#+BEGIN_SRC elisp
+(setq! +biblio-pdf-library-dir "/HDD/PDFs/")
+#+END_SRC
+
+While we're at it, let's set the default BibTeX dialect to BibLaTeX, which is
+more appropriate for social sciences and humanities.
+
+#+BEGIN_SRC
+(setq org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "biber %b"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+#+END_SRC
+
+** Org-Ref
+I initially started using this package in order to manage my citations. However, I soon found that this package required a lot of manual work for my liking. I still keep it in my config as it allows me to use citations in org-documents, if I am working on them directly. I can output these org-documents later to pdf or .docx later.
+#+BEGIN_SRC elisp
+(use-package! org-ref
+    :after org
+    :init
+    ; code to run before loading org-ref
+    :config
+    ; code to run after loading org-ref
+    )
+(setq org-ref-pdf-directory "/HDD/PDFs/")
+#+END_SRC
+
+** Helm-Bibtex
+This is the jumping off point in my workflow inside emacs. The config gives the directory of where the PDFs are stored, where I want my notes to be stored, and where the Bibtex file is.
+#+BEGIN_SRC elisp
+(use-package! helm-bibtex
+  :after org
+  :init
+  ; blah blah
+  :config
+  ;blah blah
+  )
+
+(setq bibtex-format-citation-functions
+      '((org-mode . (lambda (x) (insert (concat
+                                         "\\cite{"
+                                         (mapconcat 'identity x ",")
+                                         "}")) ""))))
+
+#+END_SRC
+
+
+* Editor
+
+#+BEGIN_SRC elisp
+  (setq doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
+(setq doom-theme 'doom-one)
+(setq display-line-numbers-type t)
+(cua-mode +1)
+#+END_SRC
+
+* Elfeed
+
+* Presentations
+
+** Reveal.Js
+#+BEGIN_SRC elisp :async t
+(setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
+(setq org-reveal-mathjax t)
+#+END_SRC
+
+
+* Grammar and Spelling
+
+This just configures spelling and grammar checking support.
+
+#+BEGIN_SRC elisp
+(add-to-list 'ispell-aspell-dictionary-alist (ispell-aspell-find-dictionary "en_US"))
+(setq ispell-program-name (executable-find "hunspell")
+      ispell-dictionary "en_US")
+(setq flyspell-correct-popup t)
+(setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
+#+END_SRC
+
+* Paragraph Folding
+
+Ideally, I want paragraph folding integrated into org visibility cycling. But
+this is close enough for now; folds all paragraphs in a document to the first
+line. This is helpful to visualize the argument structure of long documents.
+
+#+BEGIN_SRC elisp
+(use-package! origami
+  :commands (origami-toggle-node origami-toggle-all-nodes)
+  :hook (text-mode . origami-mode)
+  :init
+  :config
+  (map! :leader
+        :prefix "t"
+        :desc "Origami-Toggle All Nodes" "O" #'origami-toggle-all-nodes
+        :desc "Origami-Toggle Node" "o" #'origami-toggle-node))
+#+END_SRC
+
+
+* Programming languages
+* Data Science
+#+begin_src elisp
+(when (memq window-system '(mac ns x))
+  (require 'exec-path-from-shell)
+  (setq-default exec-path-from-shell-shell-name "/usr/bin/zsh")
+  (exec-path-from-shell-initialize))
+#+end_src
+** Stata
+
+[[https://www.louabill.org/Stata/ado-mode_install.html][Instalation instruction]]
+
+Git repo was cloned, ~.git~ folder was removed and then moved to ~/scimax/user/~ folder.
+
+ado-cus.el changed to include fake time
+
+ Once you have setup the python environment following the steps above, do this in emacs:
+
+    Install and load emacs-jupyter.el
+    Ensure that you have activated the python environment where stata_kernel is available
+
+    Add the following lines to your init.el:
+
+#+BEGIN_SRC elisp
+;; (when (functionp 'module-load)
+;; associated jupyter-stata with stata (fixes fontification if using pygmentize for html export)
+;;   (add-to-list 'org-src-lang-modes '("jupyter-stata" . stata))
+;;   (add-to-list 'org-src-lang-modes '("Jupyter-Stata" . stata))
+;; you **may** need this for latex output syntax highlighting
+;; (add-to-list 'org-latex-minted-langs '(stata "stata"))
+;;  (setq inferior-STA-program-name "/usr/local/bin/jupyter-console")
+#+END_SRC
+
+#+RESULTS:
+: /usr/local/bin/jupyter-console
+
+
+
+** Julia
+
+
+
+#+BEGIN_SRC elisp :async t
+;;(add-to-list 'org-structure-template-alist
+;;	     '("j" . "src ess-julia :results output :session *julia* :exports both"))
+;;(add-to-list 'org-structure-template-alist
+;;	     '("jfig" . "src ess-julia :results output graphics file :file FILENAME.png :session *julia* :exports both"))
+;;(add-to-list 'org-structure-template-alist
+;;	     '("jtab" . "src ess-julia :results value table :session *julia* :exports both :colnames yes"))
+#+END_SRC
+
+#+RESULTS:
+: ((jupyter-R . r) (jupyter-python . python) (jupyter-julia . julia) (jupyter-R . R) (jupyter-hy . hy) (ipython . python) (arduino . arduino) (redis . redis) (php . php) (C . c) (C++ . c++) (asymptote . asy) (bash . sh) (beamer . latex) (calc . fundamental) (cpp . c++) (ditaa . artist) (dot . fundamental) (elisp . emacs-lisp) (ocaml . tuareg) (screen . shell-script) (shell . sh) (sqlite . sql) (ess-julia . ess-julia))
+
+[[https://discourse.julialang.org/t/working-setup-for-emacs-org-mode/41574/4][Source]]
+
+** Python
+
+In order to install dependencies, run ([[https://github.com/gjstein/emacs.d/blob/master/config/init-44-coding-python.el][Source]])
+
+~pip install jedi flake8 importmagic autopep8 yapf~
+
+
+
+
+Display inline images after running code
+
+#+BEGIN_SRC elisp
+(use-package! elpy)
+(setq elpy-rpc-python-command "/usr/bin/python3")
+(setq py-python-command "/usr/bin/python3")
+(setq python-shell-interpreter "/usr/bin/python3")
+#+END_SRC
+
+#+RESULTS:
+** Dynare
+
+#+BEGIN_SRC elisp
+(load! "dynare.el")
+#+END_SRC
+
+*
+
+* LaTeX
+
+** Latex Process
+
+#+BEGIN_SRC elisp
+(load! "scimax-org-latex.el")
+
+(setq org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "biber %b"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+#+END_SRC
+
+** Labels
+
+#+BEGIN_SRC elisp
+(setq org-latex-prefer-user-labels t)
+#+END_SRC
+
+
+** Citeproc
+
+Using citeproc-org currently requires adding its main rendering function (citeproc-org-render-references) to org-mode’s org-export-before-parsing-hook. This makes it incompatible with org-ref’s own citeproc, which also uses this hook. Org-ref’s citeproc is not activated by default, but if you have added its renderer function, orcp-citeproc, to your org-export-before-parsing-hook then it has to be removed before setting up citeproc-org.
+
+citeproc-org provides the Emacs command citeproc-org-setup to add its renderer to org-export-before-parsing-hook, which can be used interactively by invoking
+
+~M-x citeproc-org-setup~
+
+during an Emacs session. After the command’s execution citeproc-org will remain active until the end of the session. If you want to use it on a permanent basis then add the following line to your .emacs or init.el file:
+
+#+BEGIN_SRC elisp
+(citeproc-org-setup)
+#+END_SRC
