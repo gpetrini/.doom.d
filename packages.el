@@ -93,5 +93,5 @@
 (package! hungry-delete)
 (package! elpy)
 ;;(package! ox-extra)
-(package! org-plus-contrib :recipe (:host github :repo "emacs-straight/org-mode"))
-(package! org :recipe (:local-repo nil))
+;;(package! org-plus-contrib :recipe (:host github :repo "emacs-straight/org-mode"))
+;;(package! org :recipe (:local-repo nil))
