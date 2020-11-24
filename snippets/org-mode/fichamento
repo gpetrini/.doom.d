@@ -1,0 +1,51 @@
+# -*- mode: snippet -*-
+# name: fichamento
+# key: _fichamento_
+# --
+#+TITLE: ${1:Title}
+#+AUTHOR: Gabriel Petrini
+#+ARCHIVE: %s_read::
+#+TODO: READ SKIM PARTIAL WAIT MAYBE | REF REPORT DONE ARCH
+#+PROPERTY: header-args:bibtex :tangle ${2:bibfile}.bib :exports none
+#+PROPERTY: COLUMNS %TYPE %PRIORITY %7TODO(Decision) %20ITEM(Title) %4YEAR %COUNTRY(ISO3) %8STATUS %4CITE
+#+PROPERTY: TYPE_ALL Theory Method Case Manual Other Thechnical Review Empirical
+#+PROPERTY: DECISION_ALL Read File Skip PartialRead
+#+PROPERTY: ZOTERO_ALL Yes No Partial Entry
+#+PROPERTY: STATUS_ALL Reading Searching Abandoned Finished Skimmed NotFound 404 Downloaded Filed
+#+PROPERTY: RELEVANCE_ALL High Regular Low None
+#+PROPERTY: IMPACT_ALL High Regular Low None
+#+PROPERTY: CITE_ALL Yes No Wait
+#+PROPERTY: YEAR
+#+PROPERTY: COUNTRY
+
+
+* HTML headers                                              :noexport:ignore:
+
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="http://www.pirilampo.org/styles/readtheorg/css/htmlize.css"/>
+#+HTML_HEAD: <link rel="stylesheet" type="text/css" href="http://www.pirilampo.org/styles/readtheorg/css/readtheorg.css"/>
+
+#+HTML_HEAD: <script src="https://ajax.googleapis.com/ajax/libs/jquery/2.1.3/jquery.min.js"></script>
+#+HTML_HEAD: <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.4/js/bootstrap.min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="http://www.pirilampo.org/styles/lib/js/jquery.stickytableheaders.min.js"></script>
+#+HTML_HEAD: <script type="text/javascript" src="http://www.pirilampo.org/styles/readtheorg/js/readtheorg.js"></script>
+#+HTML_HEAD: <style> #content{max-width:1800px;}</style>
+#+CSL_STYLE: associacao-brasileira-de-normas-tecnicas-ipea.csl
+
+
+
+
+* [#A] Survey 
+:PROPERTIES:
+:UNNUMBERED: t
+:END:
+
+
+#+BEGIN: columnview :maxlevel 2 :id global
+#+END
+
+
+* References                                                         :ignore:
+
+
+bibliography:$2.bib
+

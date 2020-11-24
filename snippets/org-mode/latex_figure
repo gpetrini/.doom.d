@@ -1,0 +1,13 @@
+# name: latex_figure
+# key: <fig
+# --
+
+#+begin_export latex
+\\begin{figure}[htb]
+\\centering
+\\caption{${1:Title}} 
+\\includegraphics[width = 0.65\\textwidth]{./figs/${2:fig}.png}
+\\label{fig:cycles}
+\\caption*{\\textbf{Source:} ${3:Source}}
+\\end{figure}
+#+end_export

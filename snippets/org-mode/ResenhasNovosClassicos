@@ -1,0 +1,20 @@
+# -*- mode: snippet -*-
+# name: Resenhas Novos Classicos
+# key: NvC
+# --
+
+* Resenha 2: Novos Clássicos                                        :private:
+  :PROPERTIES:
+  :TAREFA:
+  :OBJETIVO:
+  :ARGUMENTO:
+  :CONCEITOS:
+  :DESENVOLVIMENTO:
+  :CONCLUSAO:
+  :CLAREZA:
+  :NOTA:
+  :END:
+
+** Comentários individuais
+
+Foram includos no documento enviado.

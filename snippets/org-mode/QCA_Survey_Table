@@ -1,0 +1,20 @@
+# -*- mode: snippet -*-
+# name: QCA Survey Table
+# key: _qcat_
+# --
+
+:PROPERTIES:
+   :COLUMNS:  %6TYPE %7TODO(Decision) %20ITEM(Title) %4YEAR %8STATUS %7RELEVANCE %7IMPACT %4CITE
+   :TYPE_ALL: Theory Method Case Manual Other Thechnical Review
+   :DECISION_ALL: Read File Skip PartialRead
+   :ZOTERO_ALL: Yes No Partial Entry
+   :STATUS_ALL: Reading Searching Abandoned Finished Skimmed NotFound 404 Downloaded Filed
+   :RELEVANCE_ALL: High Regular Low None
+   :IMPACT_ALL: High Regular Low None
+   :CITE_ALL: Yes No Wait
+   :YEAR: 
+   :UNNUMBERED: t
+:END:  
+
+#+BEGIN: columnview :maxlevel 3 :id local
+#+END

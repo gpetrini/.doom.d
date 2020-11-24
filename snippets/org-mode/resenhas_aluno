@@ -1,0 +1,22 @@
+# key: _resenhas_
+# name: resenhas
+# --
+#+OPTIONS: toc:nil num:nil
+#+TITLE: ${1:RA} - ${2: Nome do Aluno}
+#+AUTHOR: Gabriel Petrini (PED)
+#+PROPERTY: RA $1
+#+PROPERTY: NOME $2
+#+INCLUDE_TAGS: private
+
+* Resenha ${3: Numero resenha} :private:
+:PROPERTIES:
+:TAREFA:
+:OBJETIVO:
+:ARGUMENTO:
+:CONCEITOS:
+:DESENVOLVIMENTO:
+:CONCLUSAO:
+:CLAREZA:
+:END:
+
+** Comentários individuais 

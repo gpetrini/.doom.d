@@ -1,0 +1,23 @@
+# key: <mpl
+# name: matplot_padrao
+# --
+fig, ax = plt.subplots(figsize=(8,5))
+
+${1:df}.plot(ax=ax,
+	lw=2.5,
+	color='black',
+	ls='-',
+	title = "${2:Titulo}"
+	)
+
+ax.text(
+	0.95, -0.2,
+	f'\nAtualizado em {datetime.datetime.now():%Y-%m-%d %H:%M}',
+        verticalalignment='bottom', horizontalalignment='right',
+        transform=ax.transAxes,
+        color='black', fontsize=10)
+
+
+sns.despine()
+plt.show()
+fig.savefig("./figs/${3:file}.png", transparent = True, dpi = 300)
