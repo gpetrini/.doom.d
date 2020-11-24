@@ -43,12 +43,12 @@
 (setq! +biblio-pdf-library-dir "/HDD/PDFs/")
 
 (use-package! org-ref
-    :after org
-    :init
-    ; code to run before loading org-ref
-    :config
-    ; code to run after loading org-ref
-    )
+  :after org
+  :init
+                                        ; code to run before loading org-ref
+  :config
+  (setq org-ref-completion-library 'org-ref-ivy-cite)
+  )
 (setq org-ref-pdf-directory "/HDD/PDFs/")
 
 (use-package! helm-bibtex
@@ -70,8 +70,106 @@
 (setq display-line-numbers-type t)
 (cua-mode +1)
 ;;(setq org-support-shift-select t)
-(require 'ox-extra)
-(ox-extras-activate '(ignore-headlines)) ;; https://emacs.stackexchange.com/questions/38184/org-mode-ignore-heading-when-exporting-to-latex
+(after! ox
+  (require 'ox-extra)
+  (ox-extras-activate '(ignore-headlines)))
+(setq display-line-numbers-type t)
+(map! :leader
+      :desc "Toggle truncate lines"
+      "t t" #'toggle-truncate-lines)
+
+(setq display-line-numbers-type 'relative)
+
+(require 'sublimity-scroll)
+(require 'sublimity-map)
+(require 'sublimity-attractive)
+(sublimity-mode 0)
+
+(use-package! hungry-delete
+  :config
+  (add-hook! 'after-init-hook #'global-hungry-delete-mode)
+  )
+
+(after! org
+  (require 'org-bullets)  ; Nicer bullets in org-mode
+  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
+  (setq org-directory "/HDD/Org/"
+        org-agenda-files '("/HDD/Org/agenda.org")
+        org-ellipsis " ▼ "
+        org-log-done 'time
+        org-hide-emphasis-markers t))
+
+(setq org-babel-default-header-args
+      '((:session . "yes")
+        (:results . "output")
+        (:exports . "results")
+        (:cache . "no")
+        (:noweb . "no")
+        (:hlines . "no")
+        (:tangle . "no")
+        ))
+
+(use-package! graphviz-dot-mode
+  :commands graphviz-dot-mode
+  :mode ("\\.dot\\'" "\\.gz\\'"))
+
+(use-package! elfeed-org
+  :after org
+  :config
+  (setq rmh-elfeed-org-files (list "~/Dropbox/Emacs/elfeed.org")))
+
+(map! :map elfeed-search-mode-map
+      :after elfeed-search
+      [remap kill-this-buffer] "q"
+      [remap kill-buffer] "q"
+      :n doom-leader-key nil
+      :n "q" #'+rss/quit
+      :n "e" #'elfeed-update
+      :n "r" #'elfeed-search-untag-all-unread
+      :n "u" #'elfeed-search-tag-all-unread
+      :n "s" #'elfeed-search-live-filter
+      :n "RET" #'elfeed-search-show-entry
+      :n "p" #'elfeed-show-pdf
+      :n "+" #'elfeed-search-tag-all
+      :n "-" #'elfeed-search-untag-all
+      :n "S" #'elfeed-search-set-filter
+      :n "b" #'elfeed-search-browse-url
+      :n "y" #'elfeed-search-yank)
+(map! :map elfeed-show-mode-map
+      :after elfeed-show
+      [remap kill-this-buffer] "q"
+      [remap kill-buffer] "q"
+      :n doom-leader-key nil
+      :nm "q" #'+rss/delete-pane
+      :nm "o" #'ace-link-elfeed
+      :nm "RET" #'org-ref-elfeed-add
+      :nm "n" #'elfeed-show-next
+      :nm "N" #'elfeed-show-prev
+      :nm "p" #'elfeed-show-pdf
+      :nm "+" #'elfeed-show-tag
+      :nm "-" #'elfeed-show-untag
+      :nm "s" #'elfeed-show-new-live-search
+      :nm "y" #'elfeed-show-yank)
+
+(defun gps/elfeed-load-db-and-open ()
+  "Load the elfeed db from disk before updating."
+  (interactive)
+  (elfeed)
+  (elfeed-db-load)
+  (elfeed-search-update--force)
+  (elfeed-update))
+
+;;write to disk when quiting
+(defun gps/elfeed-save-db-and-bury ()
+  "Wrapper to save the elfeed db to disk before burying buffer"
+  (interactive)
+  (elfeed-db-save)
+  (quit-window))
+
+(defun gps/elfeed-mark-all-as-read ()
+  (interactive)
+  (mark-whole-buffer)
+  (elfeed-search-untag-all-unread))
 
 (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
 (setq org-reveal-mathjax t)
@@ -103,21 +201,72 @@
 ;;   (add-to-list 'org-src-lang-modes '("Jupyter-Stata" . stata))
 ;; you **may** need this for latex output syntax highlighting
 ;; (add-to-list 'org-latex-minted-langs '(stata "stata"))
-;;  (setq inferior-STA-program-name "/usr/local/bin/jupyter-console")
+(setq inferior-STA-program-name "/usr/local/bin/jupyter-console")
 
-;;(add-to-list 'org-structure-template-alist
-;;	     '("j" . "src ess-julia :results output :session *julia* :exports both"))
-;;(add-to-list 'org-structure-template-alist
-;;	     '("jfig" . "src ess-julia :results output graphics file :file FILENAME.png :session *julia* :exports both"))
-;;(add-to-list 'org-structure-template-alist
-;;	     '("jtab" . "src ess-julia :results value table :session *julia* :exports both :colnames yes"))
-
-(use-package! elpy)
-(setq elpy-rpc-python-command "/usr/bin/python3")
-(setq py-python-command "/usr/bin/python3")
 (setq python-shell-interpreter "/usr/bin/python3")
+(setq org-babel-python-command "/usr/bin/python3")
+;; Fix Warning "readline" message
+(setq python-shell-completion-native-enable nil)
+(setq flycheck-python-pylint-executable "pylint")
+
+(after! company
+  (setq company-idle-delay 0.5
+        company-minimum-prefix-length 2)
+  (setq company-show-numbers t)
+  (add-hook 'evil-normal-state-entry-hook #'company-abort)) ;; make aborting less annoying.
+(add-hook 'after-init-hook 'global-company-mode)
+(setq-default history-length 1000)
+(setq-default prescient-history-length 1000)
+
+(set-company-backend! '(julia-mode)
+  '(:separate company-lsp
+    company-tabnine
+    company-files
+    company-yasnippet
+    ))
+
+(set-company-backend! '(lisp-mode
+                        sh-mode
+                        python-mode
+                        css-mode
+                        org-mode
+                        )
+  '(:separate company-tabnine
+    company-files
+    company-yasnippet))
+
+(setq +lsp-company-backend '(company-lsp :with company-tabnine :separate))
 
 (load! "dynare.el")
+
+(cl-defmacro lsp-org-babel-enable (lang)
+  "Support LANG in org source code block."
+  (setq centaur-lsp 'lsp-mode)
+  (cl-check-type lang stringp)
+  (let* ((edit-pre (intern (format "org-babel-edit-prep:%s" lang)))
+         (intern-pre (intern (format "lsp--%s" (symbol-name edit-pre)))))
+    `(progn
+       (defun ,intern-pre (info)
+         (let ((file-name (->> info caddr (alist-get :file))))
+           (unless file-name
+             (setq file-name (make-temp-file "babel-lsp-")))
+           (setq buffer-file-name file-name)
+           (lsp-deferred)))
+       (put ',intern-pre 'function-documentation
+            (format "Enable lsp-mode in the buffer of org source block (%s)."
+                    (upcase ,lang)))
+       (if (fboundp ',edit-pre)
+           (advice-add ',edit-pre :after ',intern-pre)
+         (progn
+           (defun ,edit-pre (info)
+             (,intern-pre info))
+           (put ',edit-pre 'function-documentation
+                (format "Prepare local buffer environment for org source block (%s)."
+                        (upcase ,lang))))))))
+(defvar org-babel-lang-list
+  '("julia" "python" "ipython" "bash" "sh"))
+(dolist (lang org-babel-lang-list)
+  (eval `(lsp-org-babel-enable ,lang)))
 
 (load! "scimax-org-latex.el")
 
