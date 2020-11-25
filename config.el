@@ -18,6 +18,7 @@
 (display-time-mode 1)                                   ; Enable time in the mode-line
 (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
+(setq org-roam-directory "/HDD/Org/notes/")
 
 (unless (equal "Battery status not available"
                (battery))
@@ -42,28 +43,11 @@
 
 (setq! +biblio-pdf-library-dir "/HDD/PDFs/")
 
-(use-package! org-ref
-  :after org
-  :init
-                                        ; code to run before loading org-ref
-  :config
-  (setq org-ref-completion-library 'org-ref-ivy-cite)
-  )
-(setq org-ref-pdf-directory "/HDD/PDFs/")
-
-(use-package! helm-bibtex
-  :after org
-  :init
-  ; blah blah
-  :config
-  ;blah blah
-  )
-
-(setq bibtex-format-citation-functions
-      '((org-mode . (lambda (x) (insert (concat
-                                         "\\cite{"
-                                         (mapconcat 'identity x ",")
-                                         "}")) ""))))
+(setq org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "biber %b"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 
 (setq  doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
 (setq doom-theme 'doom-one)
@@ -85,23 +69,17 @@
 (require 'sublimity-attractive)
 (sublimity-mode 0)
 
-(use-package! hungry-delete
-  :config
-  (add-hook! 'after-init-hook #'global-hungry-delete-mode)
-  )
-
 (after! org
   (require 'org-bullets)  ; Nicer bullets in org-mode
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-  (setq org-directory "/HDD/Org/"
-        org-agenda-files '("/HDD/Org/agenda.org")
+  (setq org-agenda-files '("/HDD/Org/agenda.org")
         org-ellipsis " ▼ "
         org-log-done 'time
         org-hide-emphasis-markers t))
 
 (setq org-babel-default-header-args
       '((:session . "yes")
-        (:results . "output")
+        (:results . "output replace")
         (:exports . "results")
         (:cache . "no")
         (:noweb . "no")
@@ -111,10 +89,12 @@
 
 (use-package! graphviz-dot-mode
   :commands graphviz-dot-mode
+  :defer t
   :mode ("\\.dot\\'" "\\.gz\\'"))
 
 (use-package! elfeed-org
   :after org
+  :defer t
   :config
   (setq rmh-elfeed-org-files (list "~/Dropbox/Emacs/elfeed.org")))
 
@@ -179,16 +159,6 @@
       ispell-dictionary "en_US")
 (setq flyspell-correct-popup t)
 (setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
-
-(use-package! origami
-  :commands (origami-toggle-node origami-toggle-all-nodes)
-  :hook (text-mode . origami-mode)
-  :init
-  :config
-  (map! :leader
-        :prefix "t"
-        :desc "Origami-Toggle All Nodes" "O" #'origami-toggle-all-nodes
-        :desc "Origami-Toggle Node" "o" #'origami-toggle-node))
 
 (when (memq window-system '(mac ns x))
   (require 'exec-path-from-shell)
@@ -279,3 +249,130 @@
 (setq org-latex-prefer-user-labels t)
 
 (citeproc-org-setup)
+
+(use-package! org-ref
+  :defer t
+  :after (org bibtex)
+  :init
+  (setq org-ref-default-bibliography '("/HDD/Org/all_my_refs.bib"))
+  (setq bibtex-completion-bibliography org-ref-default-bibliography)
+  :config
+  (setq org-ref-pdf-directory "/HDD/PDFs/"
+        org-ref-notes-function #'org-ref-notes-function-one-file)
+
+  (defun get-pdf-filename (key)
+    (let ((results (bibtex-completion-find-pdf key)))
+      (if (equal 0 (length results))
+          (org-ref-get-pdf-filename key)
+        (car results))))
+
+  (add-hook 'org-ref-create-notes-hook
+            (lambda ()
+              (org-entry-put
+               nil
+               "NOTER_DOCUMENT"
+               (get-pdf-filename (org-entry-get
+                                  (point) "Custom_ID")))) )
+
+  (defun my/org-ref-noter-at-point ()
+    (interactive)
+    (let* ((results (org-ref-get-bibtex-key-and-file))
+           (key (car results))
+           (pdf-file (funcall org-ref-get-pdf-filename-function key))
+           (orig-bibtex-dialect bibtex-dialect))
+      (if (file-exists-p pdf-file)
+          (save-window-excursion
+            ;; using the local flag for bibtex-set-dialect doesn't work
+            ;; likely because org-ref-open-notes-at-point loses the buffer context
+            (bibtex-set-dialect 'BibTeX)
+            (org-ref-open-notes-at-point)
+            (bibtex-set-dialect orig-bibtex-dialect)
+            (find-file-other-window pdf-file)
+            (org-noter))
+        (message "no pdf found for %s" key))))
+
+  (map! :leader
+        :map org-mode-map
+        :desc "org-noter from ref"
+        "n p" 'my/org-ref-noter-at-point))
+
+(use-package! org-roam-bibtex
+  :defer t
+  :after (org-roam)
+  :hook (org-roam-mode . org-roam-bibtex-mode)
+  :config
+  (setq org-roam-capture-templates
+        '(("d" "default" plain (function org-roam--capture-get-point)
+           "%?"
+           :file-name "${slug}"
+           :head "#+title: ${title}\n"
+           :immediate-finish t
+           :unnarrowed t)
+          ("p" "private" plain (function org-roam-capture--get-point)
+           "%?"
+           :file-name "private/${slug}"
+           :head "#+title: ${title}\n"
+           :immediate-finish t
+           :unnarrowed t)))
+  (setq org-roam-capture-ref-templates
+        '(("r" "ref" plain (function org-roam-capture--get-point)
+           "%?"
+           :file-name "${slug}"
+           :head "#+roam_key: ${ref}
+#+roam_tags: website
+#+title: ${title}
+- source :: ${ref}"
+           :unnarrowed t)))
+  (setq org-roam-bibtex-preformat-keywords
+   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+  (setq orb-templates
+        '(("r" "ref" plain (function org-roam-capture--get-point)
+           ""
+           :file-name "${slug}"
+           :head "#+TITLE: ${=key=}: ${title}\n#+ROAM_KEY: ${ref}\n#+ROAM_TAGS: 
+
+- keywords :: ${keywords}
+
+\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n  :NOTER_PAGE: \n  :END:\n\n"
+
+           :unnarrowed t))))
+
+(after! org-ref
+  (setq
+   bibtex-completion-notes-path "/HDD/Org/notes/"
+   bibtex-completion-bibliography "/HDD/Org/all_my_refs.bib"
+   bibtex-completion-pdf-field "file"
+   bibtex-completion-notes-template-multiple-files
+   (concat
+    "#+TITLE: ${title}\n"
+    "#+ROAM_KEY: cite:${=key=}\n"
+    "#+ROAM_TAGS: ${keywords}\n"
+    "* TODO Notes\n"
+    ":PROPERTIES:\n"
+    ":Custom_ID: ${=key=}\n"
+    ":NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n"
+    ":AUTHOR: ${author-abbrev}\n"
+    ":JOURNAL: ${journaltitle}\n"
+    ":DATE: ${date}\n"
+    ":YEAR: ${year}\n"
+    ":DOI: ${doi}\n"
+    ":URL: ${url}\n"
+    ":END:\n\n"
+    )
+   )
+  )
+
+(use-package! org-roam-server
+  :defer t
+  :config
+  (setq org-roam-server-host "127.0.0.1"
+        org-roam-server-port 8080
+        org-roam-server-authenticate nil
+        org-roam-server-export-inline-images t
+        org-roam-server-serve-files nil
+        org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
+        org-roam-server-network-poll t
+        org-roam-server-network-arrows nil
+        org-roam-server-network-label-truncate t
+        org-roam-server-network-label-truncate-length 60
+        org-roam-server-network-label-wrap-length 20))

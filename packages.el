@@ -53,20 +53,14 @@
 (package! helm-bibtex)
 (package! zotxt)
 (package! ox-pandoc)
-(package! org-roam-bibtex)
 (package! org-noter)
-(package! org-roam-server :recipe (:host github :repo "org-roam/org-roam-server" :files ("*")))
-(unpin! org-roam)
 (package! org-download)
 (package! org-super-agenda)
-(package! doct
-  :recipe (:host github :repo "progfolio/doct"))
 (package! org-pretty-table-mode
   :recipe (:host github :repo "Fuco1/org-pretty-table"))
 (package! org-pretty-tags)
 ;(package! centaur-tabs)
 (package! org-fancy-priorities)
-(package! origami)
 (package! info-colors) ; pretty colors
 (package! beacon) ; global minor mode for a blinking highliter to find where the cursor is.
 (package! exec-path-from-shell)
@@ -86,12 +80,19 @@
 (package! ox-reveal)
 (package! academic-phrases)
 (package! citeproc-org)
-(package! ergoemacs-mode)
 (package! org-superstar)
 (package! synosaurus)
 (package! async)
-(package! hungry-delete)
 (package! elpy)
-;;(package! ox-extra)
-;;(package! org-plus-contrib :recipe (:host github :repo "emacs-straight/org-mode"))
-;;(package! org :recipe (:local-repo nil))
+(package! org-roam-server
+  :recipe (:host github :repo "org-roam/org-roam-server"))
+;;(package! org-roam)
+(package! org-roam-bibtex
+  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; When using org-roam via the `+roam` flag
+(unpin! org-roam company-org-roam)
+;; When using bibtex-completion via the `biblio` module
+(unpin! bibtex-completion helm-bibtex ivy-bibtex)
+(package! org-roam
+  :recipe (:host github :repo "org-roam/org-roam"))
+(package! php-cs-fixer) ;; https://github.com/hlissner/doom-emacs/issues/1350

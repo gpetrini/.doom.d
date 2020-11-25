@@ -155,7 +155,8 @@
        (org                         ; organize your plain life in plain text
         +pretty                     ; yessss my pretties! (nice unicode symbols)
         +dragndrop                  ; drag & drop files/images into org buffers
-        ;;+hugo                     ; use Emacs for hugo blogging
+        +deft                     ; use Emacs for hugo blogging
+        ;;+roam
         +jupyter                    ; ipython/jupyter support for babel
         +pandoc                     ; export-with-pandoc support
         +gnuplot                    ; who doesn't like pretty pictures
