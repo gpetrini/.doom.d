@@ -51,31 +51,22 @@
 (package! org-ref)
 ;(package! interleave)                                        not using anymore as org-noter is far superior.
 (package! helm-bibtex)
-(package! zotxt)
 (package! ox-pandoc)
-(package! org-noter)
 (package! org-download)
-(package! org-super-agenda)
 (package! org-pretty-table-mode
   :recipe (:host github :repo "Fuco1/org-pretty-table"))
 (package! org-pretty-tags)
 ;(package! centaur-tabs)
+(package! sublimity)
 (package! org-fancy-priorities)
 (package! info-colors) ; pretty colors
 (package! beacon) ; global minor mode for a blinking highliter to find where the cursor is.
 (package! exec-path-from-shell)
-(package! all-the-icons-dired)
-(package! dired-open)
 (package! elfeed)
 (package! evil-tutor)
-(package! ivy-posframe)
 (package! org-bullets)
 (package! peep-dired)
 (package! rainbow-mode)
-(package! sublimity)
-(package! tldr)
-(package! virtualenvwrapper)
-(package! wc-mode)
 (package! writeroom-mode)
 (package! ox-reveal)
 (package! academic-phrases)
@@ -84,8 +75,6 @@
 (package! synosaurus)
 (package! async)
 (package! elpy)
-(package! org-roam-server
-  :recipe (:host github :repo "org-roam/org-roam-server"))
 ;;(package! org-roam)
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
@@ -96,3 +85,4 @@
 (package! org-roam
   :recipe (:host github :repo "org-roam/org-roam"))
 (package! php-cs-fixer) ;; https://github.com/hlissner/doom-emacs/issues/1350
+(package! org-roam-server)

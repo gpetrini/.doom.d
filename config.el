@@ -63,6 +63,7 @@
       "t t" #'toggle-truncate-lines)
 
 (setq display-line-numbers-type 'relative)
+(setq org-support-shift-select t)
 
 (require 'sublimity-scroll)
 (require 'sublimity-map)
@@ -258,108 +259,66 @@
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
   :config
   (setq org-ref-pdf-directory "/HDD/PDFs/"
-        org-ref-notes-function #'org-ref-notes-function-one-file)
+        org-ref-completion-library 'org-ref-helm-cite
+        org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
+        org-ref-default-bibliography (list "/HDD/Org/all_my_refs.bib")
+        org-ref-note-title-format "* NOTES %y - %t\n :PROPERTIES:\n  :Custom_ID: %k\n  :NOTER_DOCUMENT: %F\n :ROAM_KEY: cite:%k\n  :AUTHOR: %9a\n  :JOURNAL: %j\n  :YEAR: %y\n  :VOLUME: %v\n  :PAGES: %p\n  :DOI: %D\n  :URL: %U\n :END:\n\n"
+        org-ref-notes-directory "/HDD/Org/notes/"
+        org-ref-notes-function 'orb-edit-notes
+        ))
 
-  (defun get-pdf-filename (key)
-    (let ((results (bibtex-completion-find-pdf key)))
-      (if (equal 0 (length results))
-          (org-ref-get-pdf-filename key)
-        (car results))))
-
-  (add-hook 'org-ref-create-notes-hook
-            (lambda ()
-              (org-entry-put
-               nil
-               "NOTER_DOCUMENT"
-               (get-pdf-filename (org-entry-get
-                                  (point) "Custom_ID")))) )
-
-  (defun my/org-ref-noter-at-point ()
-    (interactive)
-    (let* ((results (org-ref-get-bibtex-key-and-file))
-           (key (car results))
-           (pdf-file (funcall org-ref-get-pdf-filename-function key))
-           (orig-bibtex-dialect bibtex-dialect))
-      (if (file-exists-p pdf-file)
-          (save-window-excursion
-            ;; using the local flag for bibtex-set-dialect doesn't work
-            ;; likely because org-ref-open-notes-at-point loses the buffer context
-            (bibtex-set-dialect 'BibTeX)
-            (org-ref-open-notes-at-point)
-            (bibtex-set-dialect orig-bibtex-dialect)
-            (find-file-other-window pdf-file)
-            (org-noter))
-        (message "no pdf found for %s" key))))
-
-  (map! :leader
-        :map org-mode-map
-        :desc "org-noter from ref"
-        "n p" 'my/org-ref-noter-at-point))
+(use-package! org-roam
+  :defer t
+  :hook
+  (after-init . org-roam-mode)
+  :custom
+  (org-roam-directory "/HDD/Org/notes/")
+  :bind (:map org-roam-mode-map
+         (("C-c n l" . org-roam)
+          ("C-c n f" . org-roam-find-file)
+          ("C-c n g" . org-roam-graph))
+         :map org-mode-map
+         (("C-c n i" . org-roam-insert))
+         (("C-c n I" . org-roam-insert-immediate))))
 
 (use-package! org-roam-bibtex
   :defer t
-  :after (org-roam)
+  :after org-roam
   :hook (org-roam-mode . org-roam-bibtex-mode)
   :config
-  (setq org-roam-capture-templates
-        '(("d" "default" plain (function org-roam--capture-get-point)
-           "%?"
-           :file-name "${slug}"
-           :head "#+title: ${title}\n"
-           :immediate-finish t
-           :unnarrowed t)
-          ("p" "private" plain (function org-roam-capture--get-point)
-           "%?"
-           :file-name "private/${slug}"
-           :head "#+title: ${title}\n"
-           :immediate-finish t
-           :unnarrowed t)))
-  (setq org-roam-capture-ref-templates
-        '(("r" "ref" plain (function org-roam-capture--get-point)
-           "%?"
-           :file-name "${slug}"
-           :head "#+roam_key: ${ref}
-#+roam_tags: website
-#+title: ${title}
-- source :: ${ref}"
-           :unnarrowed t)))
-  (setq org-roam-bibtex-preformat-keywords
-   '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+  (setq orb-preformat-keywords
+        '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
   (setq orb-templates
         '(("r" "ref" plain (function org-roam-capture--get-point)
            ""
-           :file-name "${slug}"
-           :head "#+TITLE: ${=key=}: ${title}\n#+ROAM_KEY: ${ref}\n#+ROAM_TAGS: 
+           :file-name "%<%Y-%m-%d-%H-%M-%S>-${=key=}"
+           :head "#+TITLE: ${=key=}: ${title}
+#+ROAM_KEY: ${ref}
+#+ROAM_TAGS:
+Time-stamp: %<%Y-%m-%d>
+- tags :: ${keywords}
 
-- keywords :: ${keywords}
+\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: %a\n  :END:
+\n** FISH-5SS
+\n
+|---------------------------------------------+-----|
+| *Background*                                  |     |
+| *Supporting Ideas*                            |     |
+| *Purpose*                                     |     |
+| *Originality/value (Contribution)*            |     |
+| *Relevance*                                   |     |
+| *Design/methodology/approach*                 |     |
+| *Results*                                     |     |
+| *(Interesting) Findings*                      |     |
+| *Research limitations/implications (Critics)* |     |
+| *Uncategorized stuff*                         |     |
+| *5SS*                                         |     |
+|---------------------------------------------+-----|
+\n** Backlinks\n
+\n* Specifics comments
+"
+           :unnarrowed t)))
 
-\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: ${author-or-editor}\n  :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n  :NOTER_PAGE: \n  :END:\n\n"
-
-           :unnarrowed t))))
-
-(after! org-ref
-  (setq
-   bibtex-completion-notes-path "/HDD/Org/notes/"
-   bibtex-completion-bibliography "/HDD/Org/all_my_refs.bib"
-   bibtex-completion-pdf-field "file"
-   bibtex-completion-notes-template-multiple-files
-   (concat
-    "#+TITLE: ${title}\n"
-    "#+ROAM_KEY: cite:${=key=}\n"
-    "#+ROAM_TAGS: ${keywords}\n"
-    "* TODO Notes\n"
-    ":PROPERTIES:\n"
-    ":Custom_ID: ${=key=}\n"
-    ":NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n"
-    ":AUTHOR: ${author-abbrev}\n"
-    ":JOURNAL: ${journaltitle}\n"
-    ":DATE: ${date}\n"
-    ":YEAR: ${year}\n"
-    ":DOI: ${doi}\n"
-    ":URL: ${url}\n"
-    ":END:\n\n"
-    )
-   )
   )
 
 (use-package! org-roam-server
@@ -372,7 +331,13 @@
         org-roam-server-serve-files nil
         org-roam-server-served-file-extensions '("pdf" "mp4" "ogv")
         org-roam-server-network-poll t
-        org-roam-server-network-arrows nil
+        org-roam-server-network-arrows 'from
         org-roam-server-network-label-truncate t
         org-roam-server-network-label-truncate-length 60
         org-roam-server-network-label-wrap-length 20))
+
+(after! org-roam
+  (unless (server-running-p)
+    (smartparens-global-mode -1)
+    (org-roam-server-mode 1)
+    (smartparens-global-mode 1)))

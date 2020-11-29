@@ -3,6 +3,6 @@
 # key: <el
 # contributor: John Kitchin <jkitchin@andrew.cmu.edu>
 # --
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC elisp
 $0
 #+END_SRC

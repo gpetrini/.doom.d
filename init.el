@@ -21,9 +21,9 @@
 
        :completion
        company           ; the ultimate code completion backend
-       ;;(helm +fuzzy)
+       (helm +fuzzy)
        ;;ido               ; the other *other* search engine...
-       (ivy +fuzzy +prescient)
+       ;;(ivy +fuzzy +prescient)
        ;;ivy               ; a search engine for love and life
 
        :ui
@@ -156,7 +156,7 @@
         +pretty                     ; yessss my pretties! (nice unicode symbols)
         +dragndrop                  ; drag & drop files/images into org buffers
         +deft                     ; use Emacs for hugo blogging
-        ;;+roam
+        +roam
         +jupyter                    ; ipython/jupyter support for babel
         +pandoc                     ; export-with-pandoc support
         +gnuplot                    ; who doesn't like pretty pictures
