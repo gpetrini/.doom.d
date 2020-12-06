@@ -51,19 +51,15 @@
 
 (setq  doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
 (setq doom-theme 'doom-one)
-(setq display-line-numbers-type t)
 (cua-mode +1)
 ;;(setq org-support-shift-select t)
 (after! ox
   (require 'ox-extra)
   (ox-extras-activate '(ignore-headlines)))
 (setq display-line-numbers-type t)
-(map! :leader
-      :desc "Toggle truncate lines"
-      "t t" #'toggle-truncate-lines)
-
 (setq display-line-numbers-type 'relative)
 (setq org-support-shift-select t)
+(setq org-image-actual-width '(300))
 
 (require 'sublimity-scroll)
 (require 'sublimity-map)
@@ -362,23 +358,33 @@ Time-stamp: %<%Y-%m-%d>
 
   )
 
-(use-package org-roam-server
+;; (require 'simple-httpd)
+;; (setq httpd-root "/var/www")
+;; (httpd-start)
+(use-package! org-roam-server
+  ;; :defer t
   :after (org-roam server)
   :config
   (setq org-roam-server-host "127.0.0.1"
-        org-roam-server-port 8078
+        org-roam-server-port 8080
         org-roam-server-export-inline-images t
         org-roam-server-authenticate nil
+        org-roam-server-network-arrows "to"
         org-roam-server-network-label-truncate t
         org-roam-server-network-label-truncate-length 60
         org-roam-server-network-label-wrap-length 20)
   (defun org-roam-server-open ()
     "Ensure the server is active, then open the roam graph."
     (interactive)
-    (org-roam-server-mode 1)
-    (browse-url-xdg-open (format "http://localhost:%d" org-roam-server-port))))
-(after! org-roam
-  (unless (server-running-p)
     (smartparens-global-mode -1)
-    (org-roam-server-mode 1)
-    (smartparens-global-mode 1)))
+    (org-roam-server-mode)
+    (smartparens-global-mode +1)
+    (browse-url-xdg-open (format "http://localhost:%d" org-roam-server-port))
+    )
+  )
+
+;; (after! org-roam
+;;  (smartparens-global-mode -1)
+;;  (org-roam-server-mode +1)
+;;  (smartparens-global-mode +1)
+;;  )

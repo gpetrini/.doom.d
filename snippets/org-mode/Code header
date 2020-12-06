@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Code header
+# uuid: 
+# key: <cheader
+# condition: t
+# --
+
+#+PROPERTY: header-args:$1  :session *$2* :results output replace :exports results :eval no-export :tangle no

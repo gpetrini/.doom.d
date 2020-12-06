@@ -75,6 +75,7 @@
 (package! synosaurus)
 (package! async)
 (package! elpy)
+(package! nose) ;; Trying to fix nosetests warnings
 ;;(package! org-roam)
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
