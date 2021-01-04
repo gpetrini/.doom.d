@@ -1,6 +1,5 @@
 # -*- mode: snippet -*-
-# name: import matplotlib inline for ipython
+# name: import matplotlib inline for python
 # key: plt
 # --
-%matplotlib inline
 import matplotlib.pyplot as plt

@@ -1,12 +1,11 @@
 # -*- mode: snippet -*-
 # name: Notes Template
-# key: _notes_
+# key: <notes
 # group: notes lectures
 # --
 #+TITLE: ${1:Title}
 #+AUTHOR: Gabriel Petrini
-#+DATE: ${2:Date}
-#+LANG: ${3:en}
+#+LANG: ${2:en}
 
 * LaTeX headers                                         :noexport:ignore:
 

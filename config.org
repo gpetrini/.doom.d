@@ -194,7 +194,7 @@ The sublimity extension offers Sublime-like smooth scrolling and an experimental
 
 #+begin_src elisp
 (setq org-babel-default-header-args
-      '((:session . "yes")
+      '((:session . "none")
         (:results . "output replace")
         (:exports . "results")
         (:cache . "no")
@@ -380,28 +380,6 @@ Display inline images after running code
 (setq-default prescient-history-length 1000)
 #+end_src
 
-*** Company-backend
-
-#+begin_src elisp
-(set-company-backend! '(julia-mode)
-  '(:separate company-lsp
-    company-tabnine
-    company-files
-    company-yasnippet
-    ))
-
-(set-company-backend! '(lisp-mode
-                        sh-mode
-                        python-mode
-                        css-mode
-                        org-mode
-                        )
-  '(:separate company-tabnine
-    company-files
-    company-yasnippet))
-
-(setq +lsp-company-backend '(company-lsp :with company-tabnine :separate))
-#+end_src
 ** Dynare
 
 #+BEGIN_SRC elisp
@@ -486,8 +464,8 @@ during an Emacs session. After the command’s execution citeproc-org will remai
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
   :config
   (setq org-ref-pdf-directory "/HDD/PDFs/"
-        org-ref-completion-library 'org-ref-helm-cite
-        org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
+        org-ref-completion-library 'org-ref-ivy-cite
+        org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-ivy-bibtex
         org-ref-default-bibliography (list "/HDD/Org/all_my_refs.bib")
         org-ref-note-title-format "* NOTES %y - %t\n :PROPERTIES:\n  :Custom_ID: %k\n  :NOTER_DOCUMENT: %F\n :ROAM_KEY: cite:%k\n  :AUTHOR: %9a\n  :JOURNAL: %j\n  :YEAR: %y\n  :VOLUME: %v\n  :PAGES: %p\n  :DOI: %D\n  :URL: %U\n :END:\n\n"
         org-ref-notes-directory "/HDD/Org/notes/"
@@ -636,3 +614,4 @@ Time-stamp: %<%Y-%m-%d>
 ;;  (smartparens-global-mode +1)
 ;;  )
 #+end_src
+

@@ -50,7 +50,7 @@
 ;(unpin! t)
 (package! org-ref)
 ;(package! interleave)                                        not using anymore as org-noter is far superior.
-(package! helm-bibtex)
+(package! ivy-bibtex)
 (package! ox-pandoc)
 (package! org-download)
 (package! org-pretty-table-mode
@@ -70,6 +70,7 @@
 (package! writeroom-mode)
 (package! ox-reveal)
 (package! academic-phrases)
+(package! org-fragtog)
 (package! citeproc-org)
 (package! org-superstar)
 (package! synosaurus)
@@ -87,3 +88,5 @@
   :recipe (:host github :repo "org-roam/org-roam"))
 (package! php-cs-fixer) ;; https://github.com/hlissner/doom-emacs/issues/1350
 (package! org-roam-server)
+(package! ess-view)
+(package! company)

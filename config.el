@@ -75,7 +75,7 @@
         org-hide-emphasis-markers t))
 
 (setq org-babel-default-header-args
-      '((:session . "yes")
+      '((:session . "none")
         (:results . "output replace")
         (:exports . "results")
         (:cache . "no")
@@ -185,25 +185,6 @@
 (setq-default history-length 1000)
 (setq-default prescient-history-length 1000)
 
-(set-company-backend! '(julia-mode)
-  '(:separate company-lsp
-    company-tabnine
-    company-files
-    company-yasnippet
-    ))
-
-(set-company-backend! '(lisp-mode
-                        sh-mode
-                        python-mode
-                        css-mode
-                        org-mode
-                        )
-  '(:separate company-tabnine
-    company-files
-    company-yasnippet))
-
-(setq +lsp-company-backend '(company-lsp :with company-tabnine :separate))
-
 (load! "dynare.el")
 
 (cl-defmacro lsp-org-babel-enable (lang)
@@ -255,8 +236,8 @@
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
   :config
   (setq org-ref-pdf-directory "/HDD/PDFs/"
-        org-ref-completion-library 'org-ref-helm-cite
-        org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
+        org-ref-completion-library 'org-ref-ivy-cite
+        org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-ivy-bibtex
         org-ref-default-bibliography (list "/HDD/Org/all_my_refs.bib")
         org-ref-note-title-format "* NOTES %y - %t\n :PROPERTIES:\n  :Custom_ID: %k\n  :NOTER_DOCUMENT: %F\n :ROAM_KEY: cite:%k\n  :AUTHOR: %9a\n  :JOURNAL: %j\n  :YEAR: %y\n  :VOLUME: %v\n  :PAGES: %p\n  :DOI: %D\n  :URL: %U\n :END:\n\n"
         org-ref-notes-directory "/HDD/Org/notes/"
