@@ -93,3 +93,18 @@
 
 (package! company-box)
 (package! company-prescient)
+
+
+(package! polymode :recipe
+  (:host github :repo "polymode/polymode"))
+(package! poly-markdown :recipe
+  (:host github :repo "polymode/poly-markdown"))
+(package! poly-R :recipe
+  (:host github :repo "polymode/poly-R"))
+(package! poly-org :recipe
+  (:host github :repo "polymode/poly-org"))
+;; (package! poly-rst :recipe
+;;   (:host github :repo "polymode/poly-rst"))
+(package! poly-noweb :recipe
+  (:host github :repo "polymode/poly-noweb"))
+(package! ess-view-data)

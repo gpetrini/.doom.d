@@ -67,6 +67,7 @@
 (require 'sublimity-attractive)
 (sublimity-mode 0)
 
+(setq org-src-window-setup 'current-window)
 (after! org
   (require 'org-bullets)  ; Nicer bullets in org-mode
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
@@ -163,6 +164,39 @@
   (setq-default exec-path-from-shell-shell-name "/usr/bin/zsh")
   (exec-path-from-shell-initialize))
 
+;; (use-package! lsp
+;;   :after company
+;;   :hook
+;;   (python-mode . lsp)
+;;   (ess-r-mode  . lsp)
+;;   (sh-mode     . lsp)
+;;   :config
+;;   (lsp-register-client
+;;    (make-lsp-client :new-connection (lsp-stdio-connection "reason-language-server")
+;;                     :major-modes '(reason-mode)
+;;                     :notification-handlers (ht ("client/registerCapability" 'ignore))
+;;                     :priority 1
+;;                     :server-id 'reason-ls))
+;;   (setq lsp-idle-delay 0.5
+;;         lsp-links-check-internal 0.9
+;;         lsp-prefer-capf t
+;;         lsp-ui-sideline-delay 0.9)
+;;   :commands
+;;   lsp)
+
+;; (use-package! lsp-ui
+;;   :config
+;;   (setq lsp-ui-doc-position 'at-point)
+;;   :commands lsp-ui-mode
+;;   :hook (lsp-mode . lsp-ui-mode)
+;;   )
+
+;; (use-package! company-lsp
+;;   :commands company-lsp)
+
+;; (use-package! company-box
+;;   :hook (company-mode . company-box-mode))
+
 ;; (when (functionp 'module-load)
 ;; associated jupyter-stata with stata (fixes fontification if using pygmentize for html export)
 ;;   (add-to-list 'org-src-lang-modes '("jupyter-stata" . stata))
@@ -170,6 +204,8 @@
 ;; you **may** need this for latex output syntax highlighting
 ;; (add-to-list 'org-latex-minted-langs '(stata "stata"))
 (setq inferior-STA-program-name "/usr/local/bin/jupyter-console")
+
+(load! "+ess.el")
 
 (setq python-shell-interpreter "/usr/bin/python3")
 (setq org-babel-python-command "/usr/bin/python3")
@@ -204,34 +240,34 @@
 
 (load! "dynare.el")
 
-(cl-defmacro lsp-org-babel-enable (lang)
-  "Support LANG in org source code block."
-  (setq centaur-lsp 'lsp-mode)
-  (cl-check-type lang stringp)
-  (let* ((edit-pre (intern (format "org-babel-edit-prep:%s" lang)))
-         (intern-pre (intern (format "lsp--%s" (symbol-name edit-pre)))))
-    `(progn
-       (defun ,intern-pre (info)
-         (let ((file-name (->> info caddr (alist-get :file))))
-           (unless file-name
-             (setq file-name (make-temp-file "babel-lsp-")))
-           (setq buffer-file-name file-name)
-           (lsp-deferred)))
-       (put ',intern-pre 'function-documentation
-            (format "Enable lsp-mode in the buffer of org source block (%s)."
-                    (upcase ,lang)))
-       (if (fboundp ',edit-pre)
-           (advice-add ',edit-pre :after ',intern-pre)
-         (progn
-           (defun ,edit-pre (info)
-             (,intern-pre info))
-           (put ',edit-pre 'function-documentation
-                (format "Prepare local buffer environment for org source block (%s)."
-                        (upcase ,lang))))))))
-(defvar org-babel-lang-list
-  '("julia" "python" "ipython" "bash" "sh"))
-(dolist (lang org-babel-lang-list)
-  (eval `(lsp-org-babel-enable ,lang)))
+;; (cl-defmacro lsp-org-babel-enable (lang)
+;;   "Support LANG in org source code block."
+;;   (setq centaur-lsp 'lsp-mode)
+;;   (cl-check-type lang stringp)
+;;   (let* ((edit-pre (intern (format "org-babel-edit-prep:%s" lang)))
+;;          (intern-pre (intern (format "lsp--%s" (symbol-name edit-pre)))))
+;;     `(progn
+;;        (defun ,intern-pre (info)
+;;          (let ((file-name (->> info caddr (alist-get :file))))
+;;            (unless file-name
+;;              (setq file-name (make-temp-file "babel-lsp-")))
+;;            (setq buffer-file-name file-name)
+;;            (lsp-deferred)))
+;;        (put ',intern-pre 'function-documentation
+;;             (format "Enable lsp-mode in the buffer of org source block (%s)."
+;;                     (upcase ,lang)))
+;;        (if (fboundp ',edit-pre)
+;;            (advice-add ',edit-pre :after ',intern-pre)
+;;          (progn
+;;            (defun ,edit-pre (info)
+;;              (,intern-pre info))
+;;            (put ',edit-pre 'function-documentation
+;;                 (format "Prepare local buffer environment for org source block (%s)."
+;;                         (upcase ,lang))))))))
+;; (defvar org-babel-lang-list
+;;   '("julia" "python" "ipython" "bash" "sh" "R"))
+;; (dolist (lang org-babel-lang-list)
+;;   (eval `(lsp-org-babel-enable ,lang)))
 
 (load! "scimax-org-latex.el")
 
