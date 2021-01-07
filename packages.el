@@ -90,3 +90,6 @@
 (package! org-roam-server)
 (package! ess-view)
 (package! company)
+
+(package! company-box)
+(package! company-prescient)

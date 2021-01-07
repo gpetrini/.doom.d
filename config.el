@@ -19,6 +19,7 @@
 (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
 (setq org-roam-directory "/HDD/Org/notes/")
+(setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 22))
 
 (unless (equal "Battery status not available"
                (battery))
@@ -176,14 +177,30 @@
 (setq python-shell-completion-native-enable nil)
 (setq flycheck-python-pylint-executable "pylint")
 
-(after! company
-  (setq company-idle-delay 0.5
-        company-minimum-prefix-length 2)
-  (setq company-show-numbers t)
-  (add-hook 'evil-normal-state-entry-hook #'company-abort)) ;; make aborting less annoying.
+(require 'company)
+(setq company-idle-delay 0.2
+      company-minimum-prefix-length 3)
+(setq company-show-numbers t)
+(add-hook 'evil-normal-state-entry-hook #'company-abort) ;; make aborting less annoying.
 (add-hook 'after-init-hook 'global-company-mode)
 (setq-default history-length 1000)
 (setq-default prescient-history-length 1000)
+
+(after! company-box
+  (setq company-box-max-candidates 5))
+(use-package! company-prescient
+  :defer t
+  :after company
+  :hook (company-mode . company-prescient-mode))
+
+
+(after! company
+  (setq company-tooltip-limit 5
+        company-tooltip-minimum-width 80
+        company-tooltip-minimum 5
+        company-backends
+        '(company-capf company-dabbrev company-files company-yasnippet)
+        company-global-modes '(not comint-mode erc-mode message-mode help-mode gud-mode)))
 
 (load! "dynare.el")
 
