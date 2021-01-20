@@ -50,7 +50,7 @@
 ;(unpin! t)
 (package! org-ref)
 ;(package! interleave)                                        not using anymore as org-noter is far superior.
-(package! helm-bibtex)
+(package! ivy-bibtex)
 (package! ox-pandoc)
 (package! org-download)
 (package! org-pretty-table-mode
@@ -77,14 +77,14 @@
 (package! elpy)
 ;; (package! nose) ;; Trying to fix nosetests warnings
 
-(package! org-roam-bibtex
-  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; (package! org-roam-bibtex
+;;   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 ;; When using org-roam via the `+roam` flag
 (unpin! org-roam company-org-roam)
 ;; When using bibtex-completion via the `biblio` module
 (unpin! bibtex-completion helm-bibtex ivy-bibtex)
-(package! org-roam
-  :recipe (:host github :repo "org-roam/org-roam"))
+;; (package! org-roam
+;;   :recipe (:host github :repo "org-roam/org-roam"))
 ;; (package! php-cs-fixer) ;; https://github.com/hlissner/doom-emacs/issues/1350
 (package! org-roam-server)
 (package! ess-view)

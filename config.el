@@ -402,107 +402,12 @@
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
   :config
   (setq org-ref-pdf-directory "/HDD/PDFs/"
-        org-ref-completion-library 'org-ref-helm-cite
+        org-ref-completion-library 'org-ref-ivy-cite
         org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-ivy-bibtex
         org-ref-default-bibliography (list "/HDD/Org/all_my_refs.bib")
         org-ref-notes-directory "/HDD/Org/notes/"
         org-ref-notes-function 'orb-edit-notes
         ))
-
-(use-package! org-roam
-  :defer t
-  :hook
-  (after-init . org-roam-mode)
-  :custom
-  (org-roam-directory "/HDD/Org/notes/")
-  :bind (:map org-roam-mode-map
-         (("C-c n l" . org-roam)
-          ("C-c n f" . org-roam-find-file)
-          ("C-c n g" . org-roam-graph))
-         :map org-mode-map
-         (("C-c n i" . org-roam-insert))
-         (("C-c n I" . org-roam-insert-immediate))))
-
-(after! org-roam
-  (setq org-roam-graph-node-extra-config
-        '(("shape"      . "underline")
-          ("style"      . "rounded,filled")
-          ("fillcolor"  . "#EEEEEE")
-          ("color"      . "#C9C9C9")
-          ("fontcolor"  . "#111111")
-          ("fontname"   . "Overpass")))
-
-  (setq +org-roam-graph--html-template
-        (replace-regexp-in-string "%\\([^s]\\)" "%%\\1"
-                                  (f-read-text "~/.doom.d/misc/org-roam-template.html")))
-
-  (defadvice! +org-roam-graph--build-html (&optional node-query callback)
-    "Generate a graph showing the relations between nodes in NODE-QUERY. HTML style."
-    :override #'org-roam-graph--build
-    (unless (stringp org-roam-graph-executable)
-      (user-error "`org-roam-graph-executable' is not a string"))
-    (unless (executable-find org-roam-graph-executable)
-      (user-error (concat "Cannot find executable %s to generate the graph.  "
-                          "Please adjust `org-roam-graph-executable'")
-                  org-roam-graph-executable))
-    (let* ((node-query (or node-query
-                           `[:select [file titles] :from titles
-                             ,@(org-roam-graph--expand-matcher 'file t)]))
-           (graph      (org-roam-graph--dot node-query))
-           (temp-dot   (make-temp-file "graph." nil ".dot" graph))
-           (temp-graph (make-temp-file "graph." nil ".svg"))
-           (temp-html  (make-temp-file "graph." nil ".html")))
-      (org-roam-message "building graph")
-      (make-process
-       :name "*org-roam-graph--build-process*"
-       :buffer "*org-roam-graph--build-process*"
-       :command `(,org-roam-graph-executable ,temp-dot "-Tsvg" "-o" ,temp-graph)
-       :sentinel (progn
-                   (lambda (process _event)
-                     (when (= 0 (process-exit-status process))
-                       (write-region (format +org-roam-graph--html-template (f-read-text temp-graph)) nil temp-html)
-                       (when callback
-                         (funcall callback temp-html)))))))))
-
-(use-package! org-roam-bibtex
-  :defer t
-  :after org-roam
-  :hook (org-roam-mode . org-roam-bibtex-mode)
-  :config
-  (setq orb-preformat-keywords
-        '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
-  (setq orb-templates
-        '(("r" "ref" plain (function org-roam-capture--get-point)
-           ""
-           :file-name "%<%Y-%m-%d-%H-%M-%S>-${=key=}"
-           :head "#+TITLE: ${=key=}: ${title}
-#+ROAM_KEY: ${ref}
-#+ROAM_TAGS:
-Time-stamp: %<%Y-%m-%d>
-- tags :: ${keywords}
-
-\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: %a\n  :END:
-\n** FISH-5SS
-\n
-|---------------------------------------------+-----|
-| *Background*                                  |     |
-| *Supporting Ideas*                            |     |
-| *Purpose*                                     |     |
-| *Originality/value (Contribution)*            |     |
-| *Relevance*                                   |     |
-| *Design/methodology/approach*                 |     |
-| *Results*                                     |     |
-| *(Interesting) Findings*                      |     |
-| *Research limitations/implications (Critics)* |     |
-| *Uncategorized stuff*                         |     |
-| *5SS*                                         |     |
-|---------------------------------------------+-----|
-\n** Backlinks\n
-\n* Specifics comments
-"
-           :unnarrowed t)))
-
-  )
 
 ;; (require 'simple-httpd)
 ;; (setq httpd-root "/var/www")

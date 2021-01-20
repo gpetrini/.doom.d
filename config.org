@@ -619,7 +619,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
   :config
   (setq org-ref-pdf-directory "/HDD/PDFs/"
-        org-ref-completion-library 'org-ref-helm-cite
+        org-ref-completion-library 'org-ref-ivy-cite
         org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-ivy-bibtex
         org-ref-default-bibliography (list "/HDD/Org/all_my_refs.bib")
         org-ref-notes-directory "/HDD/Org/notes/"
@@ -629,7 +629,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
 
 
 * Org-roam
-#+BEGIN_SRC elisp
+#+BEGIN_SRC elisp :tangle no
 (use-package! org-roam
   :defer t
   :hook
@@ -646,7 +646,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
 #+END_SRC
 ** Graph appearance
 
-#+BEGIN_SRC elisp
+#+BEGIN_SRC elisp :tangle no
 (after! org-roam
   (setq org-roam-graph-node-extra-config
         '(("shape"      . "underline")
@@ -691,7 +691,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
 
 * Org-roam-bibtex
 
-#+begin_src elisp
+#+begin_src elisp :tangle no
 (use-package! org-roam-bibtex
   :defer t
   :after org-roam
