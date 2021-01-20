@@ -21,7 +21,7 @@
 
        :completion
        (company +childframe +auto)                     ; the ultimate code completion backend
-       ;;(helm +fuzzy)
+       ;; (helm +fuzzy)
        ;;ido               ; the other *other* search engine...
        (ivy +fuzzy +prescient)
        ;;ivy               ; a search engine for love and life
@@ -40,11 +40,11 @@
        ;;minimap           ; show a map of the code on the side
        modeline          ; snazzy, Atom-inspired modeline, plus API
        ;;nav-flash         ; blink cursor line after big motions
-       neotree           ; a project drawer, like NERDTree for vim
+       ;; neotree           ; a project drawer, like NERDTree for vim
        ophints           ; highlight the region an operation acts on
        (popup +defaults)   ; tame sudden yet inevitable temporary windows
        ;;tabs              ; a tab bar for Emacs
-       treemacs          ; a project drawer, like neotree but cooler
+       ;; treemacs          ; a project drawer, like neotree but cooler
        unicode           ; extended unicode support for various languages
        vc-gutter         ; vcs diff in the fringe
        vi-tilde-fringe   ; fringe tildes to mark beyond EOB
@@ -99,7 +99,7 @@
        magit             ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
        pass              ; password manager for nerds
-       pdf               ; pdf enhancements
+       ;; pdf               ; pdf enhancements
        ;;prodigy           ; FIXME managing external services & code builders
        rgb               ; creating color strings
        ;;taskrunner        ; taskrunner for all your projects
@@ -155,7 +155,7 @@
        (org                         ; organize your plain life in plain text
         +pretty                     ; yessss my pretties! (nice unicode symbols)
         +dragndrop                  ; drag & drop files/images into org buffers
-        +deft                     ; use Emacs for hugo blogging
+        ;; +deft                     ; use Emacs for hugo blogging
         +roam
         +jupyter                    ; ipython/jupyter support for babel
         +pandoc                     ; export-with-pandoc support

@@ -50,13 +50,12 @@
 ;(unpin! t)
 (package! org-ref)
 ;(package! interleave)                                        not using anymore as org-noter is far superior.
-(package! ivy-bibtex)
+(package! helm-bibtex)
 (package! ox-pandoc)
 (package! org-download)
 (package! org-pretty-table-mode
   :recipe (:host github :repo "Fuco1/org-pretty-table"))
 (package! org-pretty-tags)
-;(package! centaur-tabs)
 (package! sublimity)
 (package! org-fancy-priorities)
 (package! info-colors) ; pretty colors
@@ -73,11 +72,11 @@
 (package! org-fragtog)
 (package! citeproc-org)
 (package! org-superstar)
-(package! synosaurus)
+;; (package! synosaurus)
 (package! async)
 (package! elpy)
-(package! nose) ;; Trying to fix nosetests warnings
-;;(package! org-roam)
+;; (package! nose) ;; Trying to fix nosetests warnings
+
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 ;; When using org-roam via the `+roam` flag
@@ -86,25 +85,10 @@
 (unpin! bibtex-completion helm-bibtex ivy-bibtex)
 (package! org-roam
   :recipe (:host github :repo "org-roam/org-roam"))
-(package! php-cs-fixer) ;; https://github.com/hlissner/doom-emacs/issues/1350
+;; (package! php-cs-fixer) ;; https://github.com/hlissner/doom-emacs/issues/1350
 (package! org-roam-server)
 (package! ess-view)
-(package! company)
-
-(package! company-box)
-(package! company-prescient)
-
-
-(package! polymode :recipe
-  (:host github :repo "polymode/polymode"))
-(package! poly-markdown :recipe
-  (:host github :repo "polymode/poly-markdown"))
-(package! poly-R :recipe
-  (:host github :repo "polymode/poly-R"))
-(package! poly-org :recipe
-  (:host github :repo "polymode/poly-org"))
-;; (package! poly-rst :recipe
-;;   (:host github :repo "polymode/poly-rst"))
-(package! poly-noweb :recipe
-  (:host github :repo "polymode/poly-noweb"))
 (package! ess-view-data)
+(package! company)
+;; (package! company-box)
+;; (package! company-prescient)

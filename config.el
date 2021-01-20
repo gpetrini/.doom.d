@@ -2,11 +2,12 @@
       user-mail-address "gpetrinidasilveira@gmail.com")
 
 (setq-default
- delete-by-moving-to-trash t                      ; Delete files to trash
- tab-width 4                                                         ; Set width for tabs
- uniquify-buffer-name-style 'forward      ; Uniquify buffer names
- window-combination-resize t                    ; take new window space from all other windows (not just current)
- x-stretch-cursor t)                                           ; Stretch cursor to the glyph width
+    delete-by-moving-to-trash t                      ; Delete files to trash
+    tab-width 4                                                         ; Set width for tabs
+    uniquify-buffer-name-style 'forward      ; Uniquify buffer names
+    window-combination-resize t                    ; take new window space from all other windows (not just current)
+    x-stretch-cursor t
+ )                                           ; Stretch cursor to the glyph width
 
 (setq undo-limit 80000000                          ; Raise undo-limit to 80Mb
       evil-want-fine-undo t                             ; By default while in insert all changes are one big blob. Be more granular
@@ -19,7 +20,6 @@
 (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
 (setq org-roam-directory "/HDD/Org/notes/")
-(setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 22))
 
 (unless (equal "Battery status not available"
                (battery))
@@ -28,13 +28,6 @@
 (if (eq initial-window-system 'x)                 ; if started by emacs command or desktop file
     (toggle-frame-maximized)
   (toggle-frame-fullscreen))
-
-(setq evil-vsplit-window-right t
-      evil-split-window-below t)
-(defadvice! prompt-for-buffer (&rest _)
-  :after '(evil-window-split evil-window-vsplit)
-  (+ivy/switch-buffer))
-(setq +ivy-buffer-preview t)
 
 (defun doom-modeline-conditional-buffer-encoding ()
   (setq-local doom-modeline-buffer-encoding
@@ -50,22 +43,16 @@
         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 
+;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
 (setq  doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
 (setq doom-theme 'doom-one)
 (cua-mode +1)
-;;(setq org-support-shift-select t)
 (after! ox
   (require 'ox-extra)
   (ox-extras-activate '(ignore-headlines)))
 (setq display-line-numbers-type t)
-(setq display-line-numbers-type 'relative)
 (setq org-support-shift-select t)
 (setq org-image-actual-width '(300))
-
-(require 'sublimity-scroll)
-(require 'sublimity-map)
-(require 'sublimity-attractive)
-(sublimity-mode 0)
 
 (setq org-src-window-setup 'current-window)
 (after! org
@@ -164,39 +151,6 @@
   (setq-default exec-path-from-shell-shell-name "/usr/bin/zsh")
   (exec-path-from-shell-initialize))
 
-;; (use-package! lsp
-;;   :after company
-;;   :hook
-;;   (python-mode . lsp)
-;;   (ess-r-mode  . lsp)
-;;   (sh-mode     . lsp)
-;;   :config
-;;   (lsp-register-client
-;;    (make-lsp-client :new-connection (lsp-stdio-connection "reason-language-server")
-;;                     :major-modes '(reason-mode)
-;;                     :notification-handlers (ht ("client/registerCapability" 'ignore))
-;;                     :priority 1
-;;                     :server-id 'reason-ls))
-;;   (setq lsp-idle-delay 0.5
-;;         lsp-links-check-internal 0.9
-;;         lsp-prefer-capf t
-;;         lsp-ui-sideline-delay 0.9)
-;;   :commands
-;;   lsp)
-
-;; (use-package! lsp-ui
-;;   :config
-;;   (setq lsp-ui-doc-position 'at-point)
-;;   :commands lsp-ui-mode
-;;   :hook (lsp-mode . lsp-ui-mode)
-;;   )
-
-;; (use-package! company-lsp
-;;   :commands company-lsp)
-
-;; (use-package! company-box
-;;   :hook (company-mode . company-box-mode))
-
 ;; (when (functionp 'module-load)
 ;; associated jupyter-stata with stata (fixes fontification if using pygmentize for html export)
 ;;   (add-to-list 'org-src-lang-modes '("jupyter-stata" . stata))
@@ -205,7 +159,195 @@
 ;; (add-to-list 'org-latex-minted-langs '(stata "stata"))
 (setq inferior-STA-program-name "/usr/local/bin/jupyter-console")
 
-(load! "+ess.el")
+(use-package! ess
+  :defer t
+  :demand t
+  :init
+  (require 'ess-site)
+  :config
+  (setq display-buffer-alist
+        `(("*R Dired"
+           (display-buffer-reuse-window display-buffer-in-side-window)
+           (side . right)
+           (slot . -1)
+           (window-width . 0.33)
+           (reusable-frames . nil))
+          ("*R"
+           (display-buffer-reuse-window display-buffer-in-side-window)
+           (side . right)
+           (window-width . 0.5)
+           (reusable-frames . nil))
+          ("*Help"
+           (display-buffer-reuse-window display-buffer-below-selected)
+           (side . left)
+           (slot . 1)
+           (window-width . 0.33)
+           (reusable-frames . nil)))
+        )
+  (setq ess-style 'RStudio
+        ;; auto-width
+        ess-auto-width 'window
+        ;; let lsp manage lintr
+        ess-use-flymake nil
+        ;; Stop R repl eval from blocking emacs.
+        ess-eval-visibly 'nowait
+        ess-use-eldoc nil
+        ess-use-company nil
+        )
+
+(setq ess-use-flymake nil)
+(setq ess-r--no-company-meta t)
+
+  (setq ess-ask-for-ess-directory t
+        ess-local-process-name "R"
+        ansi-color-for-comint-mode 'filter
+        comint-scroll-to-bottom-on-input t
+        comint-scroll-to-bottom-on-output t
+        comint-move-point-for-output t)
+
+  ;; insert pipes etc...
+  (defun tide-insert-assign ()
+    "Insert an assignment <-"
+    (interactive)
+    (insert " <- "))
+  (defun tide-insert-pipe ()
+    "Insert a %>% and newline"
+    (interactive)
+    (insert " %>%"))
+  ;; set keybindings
+  ;; insert pipe
+  (define-key ess-r-mode-map (kbd "M-s-'") 'tide-insert-assign)
+  (define-key inferior-ess-r-mode-map (kbd "M-s-'") 'tide-insert-assign)
+  ;; insert assign
+  (define-key ess-r-mode-map (kbd "M-s-\"") 'tide-insert-pipe)
+  (define-key inferior-ess-r-mode-map (kbd "M-s-\"") 'tide-insert-pipe)
+  )
+
+;; ess-view
+;; open a df in an external app
+;; TODO need to find out how to display options vertically
+(use-package! ess-view
+  ;; :ensure t
+  :after ess
+  :diminish
+  :config
+  (setq ess-view--spreadsheet-program "open") ; open in system default on macos
+  (setq ess-view-inspect-and-save-df t)
+  ;; enable ess-view package to be triggered from the source doc
+  ;; see: <https://github.com/GioBo/ess-view/issues/9>
+  (defun ess-view-extract-R-process ()
+    "Return the name of R running in current buffer."
+    (let*
+        ((proc (ess-get-process))         ; Modified from (proc (get-buffer-process (current-buffer)))
+         (string-proc (prin1-to-string proc))
+         (selected-proc (s-match "^#<process \\(R:?[0-9]*\\)>$" string-proc)))
+      (nth 1 (-flatten selected-proc))
+      )
+    )
+  :bind
+  (
+   ("C-c C-e C-v" . ess-view-inspect-df)
+   ;; the below doesn't work on osx
+   ;; see <https://github.com/GioBo/ess-view/issues/5>
+   ;; ("C-x q" . ess-view-inspect-and-save-df)
+   )
+  )
+
+(map! :leader
+      :prefix "m"
+      "cv"      #'ess-view-inspect-df
+      "cc"       'ess-tide-insert-chunk
+      "w"        'ess-eval-word
+      )
+
+(use-package! ess-view-data
+  :load-path "./ess-view-data"
+  :after ess
+  :init
+  (require 'ess-view-data))
+
+;; ===========================================================
+;; IDE Functions
+;; ===========================================================
+
+;; Bring up empty R script and R console for quick calculations
+(defun ess-tide-scratch ()
+  (interactive)
+  (progn
+    (delete-other-windows)
+    (setq new-buf (get-buffer-create "scratch.R"))
+    (switch-to-buffer new-buf)
+    (R-mode)
+    (setq w1 (selected-window))
+    (setq w1name (buffer-name))
+    (setq w2 (split-window w1 nil t))
+    (if (not (member "*R*" (mapcar (function buffer-name) (buffer-list))))
+        (R))
+    (set-window-buffer w2 "*R*")
+    (set-window-buffer w1 w1name)))
+
+(global-set-key (kbd "C-x 9") 'ess-tide-R-scratch)
+
+;; Graphics device management ;;
+(defun ess-tide-new-gdev ()
+  "create a new graphics device"
+  (interactive)
+  (ess-eval-linewise "dev.new()"))
+
+(defun ess-tide-cur-gdev ()
+  "return current graphics device"
+  (interactive)
+  (ess-eval-linewise "dev.cur()"))
+
+(defun ess-tide-list-all-gdev ()
+  "list all graphics devices"
+  (interactive)
+  (ess-eval-linewise "dev.list()"))
+
+(defun ess-tide-switch-to-gdev ()
+  "Prompt for the number of the graphics device to make current"
+  (interactive)
+  (setq dev-num
+        (read-from-minibuffer "Select R graphics device: "
+                              nil nil t t "1"))
+  (ess-eval-linewise
+   (format "dev.set(%s)" dev-num)))
+
+(defun ess-tide-switch-next-gdev ()
+  "switch to next available graphics device"
+  (interactive)
+  (ess-eval-linewise "dev.set(dev.next())"))
+
+(defun ess-tide-switch-prev-gdev ()
+  "switch to previous available graphics device"
+  (interactive)
+  (ess-eval-linewise "dev.set(dev.prev())"))
+
+(defun ess-tide-save-gdev-pdf ()
+  "Save current graphics device as pdf"
+  (interactive)
+  (ess-eval-linewise "dev.copy2pdf()"))
+
+(defun ess-tide-capture-gdev ()
+  "Capture current graphics device as image"
+  (interactive)
+  (ess-eval-linewise "dev.capture()"))
+
+;; Devtools
+(defun ess-tide-devtools-setup ()
+  "setup R package in current working directory"
+  (interactive)
+  (ess-eval-linewise "devtools::setup()"))
+
+;; eval any word where the cursor is (objects, functions, etc)
+(defun ess-eval-word ()
+  (interactive)
+  (let ((x (ess-edit-word-at-point)))
+    (ess-eval-linewise (concat x)))
+  )
+;; key binding
+(define-key ess-mode-map (kbd "C-c r") 'ess-eval-word)
+;; (load! "+ess.el")
 
 (setq python-shell-interpreter "/usr/bin/python3")
 (setq org-babel-python-command "/usr/bin/python3")
@@ -224,10 +366,10 @@
 
 (after! company-box
   (setq company-box-max-candidates 5))
-(use-package! company-prescient
-  :defer t
-  :after company
-  :hook (company-mode . company-prescient-mode))
+;; (use-package! company-prescient
+;;   :defer t
+;;   :after company
+;;   :hook (company-mode . company-prescient-mode))
 
 
 (after! company
@@ -238,36 +380,7 @@
         '(company-capf company-dabbrev company-files company-yasnippet)
         company-global-modes '(not comint-mode erc-mode message-mode help-mode gud-mode)))
 
-(load! "dynare.el")
-
-;; (cl-defmacro lsp-org-babel-enable (lang)
-;;   "Support LANG in org source code block."
-;;   (setq centaur-lsp 'lsp-mode)
-;;   (cl-check-type lang stringp)
-;;   (let* ((edit-pre (intern (format "org-babel-edit-prep:%s" lang)))
-;;          (intern-pre (intern (format "lsp--%s" (symbol-name edit-pre)))))
-;;     `(progn
-;;        (defun ,intern-pre (info)
-;;          (let ((file-name (->> info caddr (alist-get :file))))
-;;            (unless file-name
-;;              (setq file-name (make-temp-file "babel-lsp-")))
-;;            (setq buffer-file-name file-name)
-;;            (lsp-deferred)))
-;;        (put ',intern-pre 'function-documentation
-;;             (format "Enable lsp-mode in the buffer of org source block (%s)."
-;;                     (upcase ,lang)))
-;;        (if (fboundp ',edit-pre)
-;;            (advice-add ',edit-pre :after ',intern-pre)
-;;          (progn
-;;            (defun ,edit-pre (info)
-;;              (,intern-pre info))
-;;            (put ',edit-pre 'function-documentation
-;;                 (format "Prepare local buffer environment for org source block (%s)."
-;;                         (upcase ,lang))))))))
-;; (defvar org-babel-lang-list
-;;   '("julia" "python" "ipython" "bash" "sh" "R"))
-;; (dolist (lang org-babel-lang-list)
-;;   (eval `(lsp-org-babel-enable ,lang)))
+;; (load! "dynare.el")
 
 (load! "scimax-org-latex.el")
 
@@ -289,10 +402,9 @@
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
   :config
   (setq org-ref-pdf-directory "/HDD/PDFs/"
-        org-ref-completion-library 'org-ref-ivy-cite
+        org-ref-completion-library 'org-ref-helm-cite
         org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-ivy-bibtex
         org-ref-default-bibliography (list "/HDD/Org/all_my_refs.bib")
-        org-ref-note-title-format "* NOTES %y - %t\n :PROPERTIES:\n  :Custom_ID: %k\n  :NOTER_DOCUMENT: %F\n :ROAM_KEY: cite:%k\n  :AUTHOR: %9a\n  :JOURNAL: %j\n  :YEAR: %y\n  :VOLUME: %v\n  :PAGES: %p\n  :DOI: %D\n  :URL: %U\n :END:\n\n"
         org-ref-notes-directory "/HDD/Org/notes/"
         org-ref-notes-function 'orb-edit-notes
         ))
@@ -422,3 +534,8 @@ Time-stamp: %<%Y-%m-%d>
 ;;  (org-roam-server-mode +1)
 ;;  (smartparens-global-mode +1)
 ;;  )
+
+(defun doom-buffer-has-long-lines-p ()
+  (when comment-use-syntax
+    (so-long-detected-long-line-p)))
+(setq so-long-predicate #'doom-buffer-has-long-lines-p)

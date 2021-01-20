@@ -109,6 +109,9 @@
         ess-use-company nil
         )
 
+(setq ess-use-flymake nil)
+(setq ess-r--no-company-meta t)
+
   (setq ess-ask-for-ess-directory t
         ess-local-process-name "R"
         ansi-color-for-comint-mode 'filter

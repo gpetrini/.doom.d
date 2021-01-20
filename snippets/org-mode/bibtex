@@ -1,8 +1,0 @@
-# -*- mode: snippet -*-
-# name: bibtex
-# key: _bib_
-# --
-
-#+BEGIN_SRC bibtex
-
-#+END_SRC
