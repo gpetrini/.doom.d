@@ -156,7 +156,7 @@
         +pretty                     ; yessss my pretties! (nice unicode symbols)
         +dragndrop                  ; drag & drop files/images into org buffers
         ;; +deft                     ; use Emacs for hugo blogging
-        ;; +roam
+        +roam
         +jupyter                    ; ipython/jupyter support for babel
         +pandoc                     ; export-with-pandoc support
         +gnuplot                    ; who doesn't like pretty pictures
