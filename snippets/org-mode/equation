@@ -1,0 +1,10 @@
+# -*- mode: snippet -*-
+# name:equation 
+# key:<eq 
+# --
+
+#+BEGIN_latex
+\begin{equation}
+$1
+\end{equation}
+#+END_latex

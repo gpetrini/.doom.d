@@ -87,8 +87,8 @@
 ;;   :recipe (:host github :repo "org-roam/org-roam"))
 ;; (package! php-cs-fixer) ;; https://github.com/hlissner/doom-emacs/issues/1350
 (package! org-roam-server)
-(package! ess-view)
-(package! ess-view-data)
+;; (package! ess-view)
+;; (package! ess-view-data)
 (package! company)
 ;; (package! company-box)
 ;; (package! company-prescient)

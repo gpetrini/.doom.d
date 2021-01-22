@@ -1,0 +1,18 @@
+# -*- mode: snippet -*-
+# name:Loan Share 
+# key:<Lsh 
+# --
+ 
+** Filed $2
+:PROPERTIES:
+:URL: [[https://sdw.ecb.europa.eu/quickview.do?SERIES_KEY=$1][Link]]
+:FREQUENCY: Monthly
+:START:    2003
+:END:      2020
+:DESCRIPTION: "Share of variable rate loans in total loans for house purchase"
+:COVERAGE: Country
+:PUBLIC:   Yes
+:SEASONAL_ADJ: Not Informed
+:VAR_TYPE: ratio
+:KEY: $1
+:END:

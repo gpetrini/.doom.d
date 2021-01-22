@@ -319,112 +319,46 @@ ado-cus.el changed to include fake time
 ** R
 
 #+BEGIN_SRC elisp
-(use-package! ess
-  :defer t
-  :demand t
-  :init
-  (require 'ess-site)
-  :config
-  (setq display-buffer-alist
-        `(("*R Dired"
-           (display-buffer-reuse-window display-buffer-in-side-window)
-           (side . right)
-           (slot . -1)
-           (window-width . 0.33)
-           (reusable-frames . nil))
-          ("*R"
-           (display-buffer-reuse-window display-buffer-in-side-window)
-           (side . right)
-           (window-width . 0.5)
-           (reusable-frames . nil))
-          ("*Help"
-           (display-buffer-reuse-window display-buffer-below-selected)
-           (side . left)
-           (slot . 1)
-           (window-width . 0.33)
-           (reusable-frames . nil)))
-        )
-  (setq ess-style 'RStudio
-        ;; auto-width
-        ess-auto-width 'window
-        ;; let lsp manage lintr
-        ess-use-flymake nil
-        ;; Stop R repl eval from blocking emacs.
-        ess-eval-visibly 'nowait
-        ess-use-eldoc nil
-        ess-use-company nil
-        )
+(setq display-buffer-alist
+      `(("*R Dired"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . right)
+         (slot . -1)
+         (window-width . 0.33)
+         (reusable-frames . nil))
+        ("*R"
+         (display-buffer-reuse-window display-buffer-in-side-window)
+         (side . right)
+         (window-width . 0.5)
+         (reusable-frames . nil))
+        ("*Help"
+         (display-buffer-reuse-window display-buffer-below-selected)
+         (side . left)
+         (slot . 1)
+         (window-width . 0.33)
+         (reusable-frames . nil)))
+      )
+(setq ess-style 'RStudio
+      ;; auto-width
+      ess-auto-width 'window
+      ;; let lsp manage lintr
+      ess-use-flymake nil
+      ;; Stop R repl eval from blocking emacs.
+      ess-eval-visibly 'nowait
+      ess-use-eldoc nil
+      ess-use-company nil
+      )
 
 (setq ess-use-flymake nil)
 (setq ess-r--no-company-meta t)
 
-  (setq ess-ask-for-ess-directory t
-        ess-local-process-name "R"
-        ansi-color-for-comint-mode 'filter
-        comint-scroll-to-bottom-on-input t
-        comint-scroll-to-bottom-on-output t
-        comint-move-point-for-output t)
+(setq ess-ask-for-ess-directory t
+      ess-local-process-name "R"
+      ansi-color-for-comint-mode 'filter
+      comint-scroll-to-bottom-on-input t
+      comint-scroll-to-bottom-on-output t
+      comint-move-point-for-output t)
 
-  ;; insert pipes etc...
-  (defun tide-insert-assign ()
-    "Insert an assignment <-"
-    (interactive)
-    (insert " <- "))
-  (defun tide-insert-pipe ()
-    "Insert a %>% and newline"
-    (interactive)
-    (insert " %>%"))
-  ;; set keybindings
-  ;; insert pipe
-  (define-key ess-r-mode-map (kbd "M-s-'") 'tide-insert-assign)
-  (define-key inferior-ess-r-mode-map (kbd "M-s-'") 'tide-insert-assign)
-  ;; insert assign
-  (define-key ess-r-mode-map (kbd "M-s-\"") 'tide-insert-pipe)
-  (define-key inferior-ess-r-mode-map (kbd "M-s-\"") 'tide-insert-pipe)
-  )
-
-;; ess-view
-;; open a df in an external app
-;; TODO need to find out how to display options vertically
-(use-package! ess-view
-  ;; :ensure t
-  :after ess
-  :diminish
-  :config
-  (setq ess-view--spreadsheet-program "open") ; open in system default on macos
-  (setq ess-view-inspect-and-save-df t)
-  ;; enable ess-view package to be triggered from the source doc
-  ;; see: <https://github.com/GioBo/ess-view/issues/9>
-  (defun ess-view-extract-R-process ()
-    "Return the name of R running in current buffer."
-    (let*
-        ((proc (ess-get-process))         ; Modified from (proc (get-buffer-process (current-buffer)))
-         (string-proc (prin1-to-string proc))
-         (selected-proc (s-match "^#<process \\(R:?[0-9]*\\)>$" string-proc)))
-      (nth 1 (-flatten selected-proc))
-      )
-    )
-  :bind
-  (
-   ("C-c C-e C-v" . ess-view-inspect-df)
-   ;; the below doesn't work on osx
-   ;; see <https://github.com/GioBo/ess-view/issues/5>
-   ;; ("C-x q" . ess-view-inspect-and-save-df)
-   )
-  )
-
-(map! :leader
-      :prefix "m"
-      "cv"      #'ess-view-inspect-df
-      "cc"       'ess-tide-insert-chunk
-      "w"        'ess-eval-word
-      )
-
-(use-package! ess-view-data
-  :load-path "./ess-view-data"
-  :after ess
-  :init
-  (require 'ess-view-data))
 
 ;; ===========================================================
 ;; IDE Functions
@@ -445,69 +379,6 @@ ado-cus.el changed to include fake time
         (R))
     (set-window-buffer w2 "*R*")
     (set-window-buffer w1 w1name)))
-
-(global-set-key (kbd "C-x 9") 'ess-tide-R-scratch)
-
-;; Graphics device management ;;
-(defun ess-tide-new-gdev ()
-  "create a new graphics device"
-  (interactive)
-  (ess-eval-linewise "dev.new()"))
-
-(defun ess-tide-cur-gdev ()
-  "return current graphics device"
-  (interactive)
-  (ess-eval-linewise "dev.cur()"))
-
-(defun ess-tide-list-all-gdev ()
-  "list all graphics devices"
-  (interactive)
-  (ess-eval-linewise "dev.list()"))
-
-(defun ess-tide-switch-to-gdev ()
-  "Prompt for the number of the graphics device to make current"
-  (interactive)
-  (setq dev-num
-        (read-from-minibuffer "Select R graphics device: "
-                              nil nil t t "1"))
-  (ess-eval-linewise
-   (format "dev.set(%s)" dev-num)))
-
-(defun ess-tide-switch-next-gdev ()
-  "switch to next available graphics device"
-  (interactive)
-  (ess-eval-linewise "dev.set(dev.next())"))
-
-(defun ess-tide-switch-prev-gdev ()
-  "switch to previous available graphics device"
-  (interactive)
-  (ess-eval-linewise "dev.set(dev.prev())"))
-
-(defun ess-tide-save-gdev-pdf ()
-  "Save current graphics device as pdf"
-  (interactive)
-  (ess-eval-linewise "dev.copy2pdf()"))
-
-(defun ess-tide-capture-gdev ()
-  "Capture current graphics device as image"
-  (interactive)
-  (ess-eval-linewise "dev.capture()"))
-
-;; Devtools
-(defun ess-tide-devtools-setup ()
-  "setup R package in current working directory"
-  (interactive)
-  (ess-eval-linewise "devtools::setup()"))
-
-;; eval any word where the cursor is (objects, functions, etc)
-(defun ess-eval-word ()
-  (interactive)
-  (let ((x (ess-edit-word-at-point)))
-    (ess-eval-linewise (concat x)))
-  )
-;; key binding
-(define-key ess-mode-map (kbd "C-c r") 'ess-eval-word)
-;; (load! "+ess.el")
 #+END_SRC
 
 
