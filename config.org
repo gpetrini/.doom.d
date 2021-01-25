@@ -501,7 +501,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
 
 * Org-roam-bibtex
 
-#+begin_src elisp :tangle no
+#+begin_src elisp
 (use-package! org-roam-bibtex
   :defer t
   :after org-roam
@@ -547,9 +547,6 @@ Time-stamp: %<%Y-%m-%d>
 * Org-roam-server
 
 #+begin_src elisp
-;; (require 'simple-httpd)
-;; (setq httpd-root "/var/www")
-;; (httpd-start)
 (use-package! org-roam-server
   ;; :defer t
   :after (org-roam server)
@@ -578,15 +575,3 @@ Time-stamp: %<%Y-%m-%d>
 ;;  (smartparens-global-mode +1)
 ;;  )
 #+end_src
-
-* Fixes
-
-** File mode specification error: (wrong-type-argument stringp nil)
-#+begin_src elisp
-(defun doom-buffer-has-long-lines-p ()
-  (when comment-use-syntax
-    (so-long-detected-long-line-p)))
-(setq so-long-predicate #'doom-buffer-has-long-lines-p)
-#+end_src
-
-#+RESULTS:

@@ -280,9 +280,46 @@
         org-ref-notes-function 'orb-edit-notes
         ))
 
-;; (require 'simple-httpd)
-;; (setq httpd-root "/var/www")
-;; (httpd-start)
+(use-package! org-roam-bibtex
+  :defer t
+  :after org-roam
+  :hook (org-roam-mode . org-roam-bibtex-mode)
+  :config
+  (setq orb-preformat-keywords
+        '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+  (setq orb-templates
+        '(("r" "ref" plain (function org-roam-capture--get-point)
+           ""
+           :file-name "%<%Y-%m-%d-%H-%M-%S>-${=key=}"
+           :head "#+TITLE: ${=key=}: ${title}
+#+ROAM_KEY: ${ref}
+#+ROAM_TAGS:
+Time-stamp: %<%Y-%m-%d>
+- tags :: ${keywords}
+
+\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: %a\n  :END:
+\n** FISH-5SS
+\n
+|---------------------------------------------+-----|
+| *Background*                                  |     |
+| *Supporting Ideas*                            |     |
+| *Purpose*                                     |     |
+| *Originality/value (Contribution)*            |     |
+| *Relevance*                                   |     |
+| *Design/methodology/approach*                 |     |
+| *Results*                                     |     |
+| *(Interesting) Findings*                      |     |
+| *Research limitations/implications (Critics)* |     |
+| *Uncategorized stuff*                         |     |
+| *5SS*                                         |     |
+|---------------------------------------------+-----|
+\n** Backlinks\n
+\n* Specifics comments
+"
+           :unnarrowed t)))
+
+  )
+
 (use-package! org-roam-server
   ;; :defer t
   :after (org-roam server)
@@ -310,8 +347,3 @@
 ;;  (org-roam-server-mode +1)
 ;;  (smartparens-global-mode +1)
 ;;  )
-
-(defun doom-buffer-has-long-lines-p ()
-  (when comment-use-syntax
-    (so-long-detected-long-line-p)))
-(setq so-long-predicate #'doom-buffer-has-long-lines-p)

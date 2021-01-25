@@ -83,9 +83,6 @@
 (unpin! org-roam company-org-roam)
 ;; When using bibtex-completion via the `biblio` module
 (unpin! bibtex-completion helm-bibtex ivy-bibtex)
-;; (package! org-roam
-;;   :recipe (:host github :repo "org-roam/org-roam"))
-;; (package! php-cs-fixer) ;; https://github.com/hlissner/doom-emacs/issues/1350
 (package! org-roam-server)
 ;; (package! ess-view)
 ;; (package! ess-view-data)
