@@ -44,7 +44,7 @@
         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
-(setq  doom-font (font-spec :family "monospace" :size 20 :weight 'semi-light))
+(setq  doom-font (font-spec :family "Fira Mono" :size 20))
 (setq doom-theme 'doom-one)
 (cua-mode +1)
 (after! ox
