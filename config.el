@@ -63,6 +63,14 @@
         org-log-done 'time
         org-hide-emphasis-markers t))
 
+(defun org-archive-done-tasks ()
+  (interactive)
+  (org-map-entries
+   (lambda ()
+     (org-archive-subtree)
+     (setq org-map-continue-from (org-element-property :begin (org-element-at-point))))
+   "/DONE" 'tree))
+
 (setq org-babel-default-header-args
       '((:session . "none")
         (:results . "output replace")

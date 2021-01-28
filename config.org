@@ -163,6 +163,14 @@ I initially started using this package in order to manage my citations. However,
         org-ellipsis " ▼ "
         org-log-done 'time
         org-hide-emphasis-markers t))
+
+(defun org-archive-done-tasks ()
+  (interactive)
+  (org-map-entries
+   (lambda ()
+     (org-archive-subtree)
+     (setq org-map-continue-from (org-element-property :begin (org-element-at-point))))
+   "/DONE" 'tree))
 #+end_src
 
 #+RESULTS:
