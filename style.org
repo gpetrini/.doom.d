@@ -1,4 +1,3 @@
-#+TITLE: Style
 #+LANGUAGE: en
 #+STARTUP: overview hideblocks
 #+OPTIONS: num:nil ':t H:6
