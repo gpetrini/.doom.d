@@ -62,7 +62,7 @@
         org-ellipsis " ▼ "
         org-log-done 'time
         org-hide-emphasis-markers t))
-
+(setq org-directory "/HDD/Org/")
 (defun org-archive-done-tasks ()
   (interactive)
   (org-map-entries
@@ -294,12 +294,12 @@
   :hook (org-roam-mode . org-roam-bibtex-mode)
   :config
   (setq orb-preformat-keywords
-        '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+        '("=key=" "title" "url" "file" "author-or-editor" "keywords" "journal"))
   (setq orb-templates
         '(("r" "ref" plain (function org-roam-capture--get-point)
            ""
            :file-name "%<%Y-%m-%d-%H-%M-%S>-${=key=}"
-           :head "#+TITLE: ${=key=}: ${title}
+           :head "#+TITLE: ${=key=}: ${title} (${journal})
 #+ROAM_KEY: ${ref}
 #+ROAM_TAGS:
 Time-stamp: %<%Y-%m-%d>

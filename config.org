@@ -163,7 +163,7 @@ I initially started using this package in order to manage my citations. However,
         org-ellipsis " ▼ "
         org-log-done 'time
         org-hide-emphasis-markers t))
-
+(setq org-directory "/HDD/Org/")
 (defun org-archive-done-tasks ()
   (interactive)
   (org-map-entries
@@ -172,8 +172,6 @@ I initially started using this package in order to manage my citations. However,
      (setq org-map-continue-from (org-element-property :begin (org-element-at-point))))
    "/DONE" 'tree))
 #+end_src
-
-#+RESULTS:
 
 ** Headers
 
@@ -516,12 +514,12 @@ during an Emacs session. After the command’s execution citeproc-org will remai
   :hook (org-roam-mode . org-roam-bibtex-mode)
   :config
   (setq orb-preformat-keywords
-        '("=key=" "title" "url" "file" "author-or-editor" "keywords"))
+        '("=key=" "title" "url" "file" "author-or-editor" "keywords" "journal"))
   (setq orb-templates
         '(("r" "ref" plain (function org-roam-capture--get-point)
            ""
            :file-name "%<%Y-%m-%d-%H-%M-%S>-${=key=}"
-           :head "#+TITLE: ${=key=}: ${title}
+           :head "#+TITLE: ${=key=}: ${title} (${journal})
 ,#+ROAM_KEY: ${ref}
 ,#+ROAM_TAGS:
 Time-stamp: %<%Y-%m-%d>

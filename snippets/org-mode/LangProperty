@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: LangProperty 
+# key: <lang
+# --
+
+#+PROPERTY:header-args ${1:lang} :results output drawer :eval never-export :session ${2:session} :exports both

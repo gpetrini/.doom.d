@@ -56,7 +56,7 @@
 (package! org-pretty-table-mode
   :recipe (:host github :repo "Fuco1/org-pretty-table"))
 (package! org-pretty-tags)
-(package! sublimity)
+;; (package! sublimity)
 (package! org-fancy-priorities)
 (package! info-colors) ; pretty colors
 (package! beacon) ; global minor mode for a blinking highliter to find where the cursor is.
@@ -66,7 +66,7 @@
 (package! org-bullets)
 (package! peep-dired)
 (package! rainbow-mode)
-(package! writeroom-mode)
+;; (package! writeroom-mode)
 (package! ox-reveal)
 (package! academic-phrases)
 (package! org-fragtog)
