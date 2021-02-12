@@ -81,6 +81,30 @@
         (:tangle . "no")
         ))
 
+(map! :localleader
+      :map (org-mode-map pdf-view-mode-map)
+      (:prefix ("o" . "Org")
+       (:prefix ("n" . "Noter")
+        :desc "Noter" "n" 'org-noter
+        )))
+
+(use-package! org-noter
+  :after (:any org pdf-view)
+  :config
+  (setq
+   ;; The WM can handle splits
+   org-noter-notes-window-location 'other-frame
+   ;; Please stop opening frames
+   org-noter-always-create-frame nil
+   ;; I want to see the whole file
+   org-noter-hide-other nil
+   ;; Everything is relative to the rclone mega
+   org-noter-notes-search-path (list org-directory)
+   org-noter-notes-window-location 'horizontal-split
+   bibtex-completion-pdf-field "file"
+   )
+  )
+
 (use-package! graphviz-dot-mode
   :commands graphviz-dot-mode
   :defer t
@@ -152,6 +176,7 @@
 (setq ispell-program-name (executable-find "hunspell")
       ispell-dictionary "en_US")
 (setq flyspell-correct-popup t)
+(setq langtool-language-tool-jar "/HDD/Configuracoes/LanguageTool-stable/LanguageTool-5.2/languagetool.jar")
 (setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
 
 (when (memq window-system '(mac ns x))
@@ -234,30 +259,32 @@
 (setq python-shell-completion-native-enable nil)
 (setq flycheck-python-pylint-executable "pylint")
 
-(require 'company)
-(setq company-idle-delay 0.2
-      company-minimum-prefix-length 3)
-(setq company-show-numbers t)
-(add-hook 'evil-normal-state-entry-hook #'company-abort) ;; make aborting less annoying.
-(add-hook 'after-init-hook 'global-company-mode)
+(after! python
+  (set-company-backend! 'python-mode 'elpy-company-backend))
+(after! company
+  (setq company-idle-delay 0
+        company-tooltip-limit 10
+        company-dabbrev-downcase nil
+        company-show-numbers t
+        company-minimum-prefix-length 3)
+  (add-hook 'evil-normal-state-entry-hook #'company-abort)) ;; make aborting less annoying.
 (setq-default history-length 1000)
 (setq-default prescient-history-length 1000)
 
-(after! company-box
-  (setq company-box-max-candidates 5))
-;; (use-package! company-prescient
+(set-company-backend!
+  '(text-mode
+    markdown-mode
+    org-mode)
+  '(:seperate
+    company-ispell
+    company-files
+    company-yasnippet))
+
+;; (use-package! company-tabnine
 ;;   :defer t
-;;   :after company
-;;   :hook (company-mode . company-prescient-mode))
-
-
-(after! company
-  (setq company-tooltip-limit 5
-        company-tooltip-minimum-width 80
-        company-tooltip-minimum 5
-        company-backends
-        '(company-capf company-dabbrev company-files company-yasnippet)
-        company-global-modes '(not comint-mode erc-mode message-mode help-mode gud-mode)))
+;;   )
+;; (after! company
+;;   (add-to-list 'company-backends 'company-tabnine))
 
 ;; (load! "dynare.el")
 
@@ -271,7 +298,56 @@
 
 (setq org-latex-prefer-user-labels t)
 
+(use-package! cdlatex
+    :after (:any org-mode LaTeX-mode)
+    :hook
+    ((LaTeX-mode . turn-on-cdlatex)
+     (org-mode . turn-on-org-cdlatex)))
+
+(use-package! company-math
+    :after (:any org-mode TeX-mode)
+    :config
+    (set-company-backend! 'org-mode 'company-math-symbols-latex)
+    (set-company-backend! 'TeX-mode 'company-math-symbols-latex)
+    (set-company-backend! 'org-mode 'company-latex-commands)
+    (set-company-backend! 'TeX-mode 'company-latex-commands)
+    (setq company-tooltip-align-annotations t)
+    (setq company-math-allow-latex-symbols-in-faces t))
+
+(add-to-list
+ 'org-latex-classes
+ '(("tufte-book"
+    "\\documentclass[a4paper, sfsidenotes, openany, justified]{tufte-book}"
+    ("\\part{%s}" . "\\part*{%s}")
+    ("\\chapter{%s}" . "\\chapter*{%s}")
+    ("\\section{%s}" . "\\section*{%s}")
+    ("utf8" . "utf8x")
+    ("\\subsection{%s}" . "\\subsection*{%s}"))))
+
 (citeproc-org-setup)
+
+(after! pdf-view
+  ;; open pdfs scaled to fit page
+  (setq-default pdf-view-display-size 'fit-width)
+  (add-hook! 'pdf-view-mode-hook (evil-colemak-basics-mode -1))
+  ;; automatically annotate highlights
+  (setq pdf-annot-activate-created-annotations t
+        pdf-view-resize-factor 1.1)
+  ;; faster motion
+  (map!
+   :map pdf-view-mode-map
+   :n "g g"          #'pdf-view-first-page
+   :n "G"            #'pdf-view-last-page
+   :n "N"            #'pdf-view-next-page-command
+   :n "P"            #'pdf-view-previous-page-command
+   :n "e"            #'evil-collection-pdf-view-previous-line-or-previous-page
+   :n "n"            #'evil-collection-pdf-view-next-line-or-next-page
+   :localleader
+   (:prefix "o"
+    (:prefix "n"
+     :desc "Insert" "i" 'org-noter-insert-note
+     ))
+   ))
 
 (use-package! org-ref
   :defer t
@@ -279,10 +355,11 @@
   :init
   (setq org-ref-default-bibliography '("/HDD/Org/all_my_refs.bib"))
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
+  (setq bibtex-completion-library-path "/HDD/PDFs/")
   :config
   (setq org-ref-pdf-directory "/HDD/PDFs/"
         org-ref-completion-library 'org-ref-ivy-cite
-        org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-ivy-bibtex
+        org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
         org-ref-default-bibliography (list "/HDD/Org/all_my_refs.bib")
         org-ref-notes-directory "/HDD/Org/notes/"
         org-ref-notes-function 'orb-edit-notes
@@ -294,19 +371,20 @@
   :hook (org-roam-mode . org-roam-bibtex-mode)
   :config
   (setq orb-preformat-keywords
-        '("=key=" "title" "url" "file" "author-or-editor" "keywords" "journal"))
+        '("=key=" "title" "url" "file" "author-or-editor" "keywords" "journal" "year" "doi"))
   (setq orb-templates
         '(("r" "ref" plain (function org-roam-capture--get-point)
            ""
            :file-name "%<%Y-%m-%d-%H-%M-%S>-${=key=}"
-           :head "#+TITLE: ${=key=}: ${title} (${journal})
+           :head "#+TITLE: ${=key=}: ${title} (${year}, ${journal})
 #+ROAM_KEY: ${ref}
 #+ROAM_TAGS:
 Time-stamp: %<%Y-%m-%d>
 - tags :: ${keywords}
 
-\n* ${title}\n  :PROPERTIES:\n  :Custom_ID: ${=key=}\n  :URL: ${url}\n  :AUTHOR: %a\n  :END:
-\n** FISH-5SS
+\n* Backlinks\n
+
+\n* FISH-5SS
 \n
 |---------------------------------------------+-----|
 | *Background*                                  |     |
@@ -321,8 +399,7 @@ Time-stamp: %<%Y-%m-%d>
 | *Uncategorized stuff*                         |     |
 | *5SS*                                         |     |
 |---------------------------------------------+-----|
-\n** Backlinks\n
-\n* Specifics comments
+\n* Specifics comments\n :PROPERTIES:\n :Custom_ID: ${=key=}\n :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n :AUTHOR: ${author-or-editor}\n :JOURNAL: ${journal}\n :YEAR: ${year}\n :DOI: ${doi}\n :URL: ${url}\n :END:
 "
            :unnarrowed t)))
 

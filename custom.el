@@ -3,11 +3,12 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ess-eval-visibly 'nowait)
+ '(ess-eval-visibly 'nowait t)
  '(org-agenda-files '("/HDD/Org/planner/weekly.org"))
  '(org-export-in-background t)
  '(org-src-window-setup 'current-window)
- '(package-selected-packages '(centaur-tabs org-noter org-roam-server)))
+ '(package-selected-packages
+   '(interleave olivetti focus helm-spotify centaur-tabs org-noter org-roam-server)))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
