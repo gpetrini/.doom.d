@@ -46,13 +46,18 @@
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
 (setq  doom-font (font-spec :family "Fira Mono" :size 20))
 (setq doom-theme 'doom-one)
-(cua-mode +1)
 (after! ox
   (require 'ox-extra)
   (ox-extras-activate '(ignore-headlines)))
 (setq display-line-numbers-type t)
 (setq org-support-shift-select t)
 (setq org-image-actual-width '(300))
+
+(map! :map evil-window-map
+      "C-<left>"       #'+evil/window-move-left
+      "C-<down>"       #'+evil/window-move-down
+      "C-<up>"         #'+evil/window-move-up
+      "C-<right>"      #'+evil/window-move-right)
 
 (setq org-src-window-setup 'current-window)
 (after! org
@@ -61,8 +66,12 @@
   (setq org-agenda-files '("/HDD/Org/agenda.org")
         org-ellipsis " ▼ "
         org-log-done 'time
+        org-enable-roam-support t
+        org-directory "/HDD/Org/"
+        notes-directory "/HDD/Org/notes"
+        pdfs-directory "/HDD/PDFs/"
+        refs-directory "/HDD/Org/all_my_refs.bib"
         org-hide-emphasis-markers t))
-(setq org-directory "/HDD/Org/")
 (defun org-archive-done-tasks ()
   (interactive)
   (org-map-entries
@@ -80,30 +89,6 @@
         (:hlines . "no")
         (:tangle . "no")
         ))
-
-(map! :localleader
-      :map (org-mode-map pdf-view-mode-map)
-      (:prefix ("o" . "Org")
-       (:prefix ("n" . "Noter")
-        :desc "Noter" "n" 'org-noter
-        )))
-
-(use-package! org-noter
-  :after (:any org pdf-view)
-  :config
-  (setq
-   ;; The WM can handle splits
-   org-noter-notes-window-location 'other-frame
-   ;; Please stop opening frames
-   org-noter-always-create-frame nil
-   ;; I want to see the whole file
-   org-noter-hide-other nil
-   ;; Everything is relative to the rclone mega
-   org-noter-notes-search-path (list org-directory)
-   org-noter-notes-window-location 'horizontal-split
-   bibtex-completion-pdf-field "file"
-   )
-  )
 
 (use-package! graphviz-dot-mode
   :commands graphviz-dot-mode
@@ -326,44 +311,72 @@
 
 (citeproc-org-setup)
 
-(after! pdf-view
-  ;; open pdfs scaled to fit page
-  (setq-default pdf-view-display-size 'fit-width)
-  (add-hook! 'pdf-view-mode-hook (evil-colemak-basics-mode -1))
-  ;; automatically annotate highlights
-  (setq pdf-annot-activate-created-annotations t
-        pdf-view-resize-factor 1.1)
-  ;; faster motion
-  (map!
-   :map pdf-view-mode-map
-   :n "g g"          #'pdf-view-first-page
-   :n "G"            #'pdf-view-last-page
-   :n "N"            #'pdf-view-next-page-command
-   :n "P"            #'pdf-view-previous-page-command
-   :n "e"            #'evil-collection-pdf-view-previous-line-or-previous-page
-   :n "n"            #'evil-collection-pdf-view-next-line-or-next-page
-   :localleader
-   (:prefix "o"
-    (:prefix "n"
-     :desc "Insert" "i" 'org-noter-insert-note
-     ))
-   ))
+(setq pdf-annot-activate-created-annotations t
+      pdf-view-display-size 'fit-width
+      pdf-view-resize-factor 1.1)
+
+(use-package! org-noter
+  :defer t
+  :after (:any org pdf-view)
+  :config
+  (setq
+   ;; The WM can handle splits
+   org-noter-notes-window-location 'other-frame
+   ;; Please stop opening frames
+   org-noter-always-create-frame nil
+   ;; I want to see the whole file
+   org-noter-hide-other nil
+   ;; Everything is relative to the rclone mega
+   org-noter-notes-search-path (list org-directory)
+   org-noter-notes-window-location 'horizontal-split
+   bibtex-completion-pdf-field "file"
+   )
+  )
 
 (use-package! org-ref
   :defer t
   :after (org bibtex)
   :init
-  (setq org-ref-default-bibliography '("/HDD/Org/all_my_refs.bib"))
+  (setq org-ref-default-bibliography refs-directory)
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
-  (setq bibtex-completion-library-path "/HDD/PDFs/")
+  (setq bibtex-completion-library-path pdfs-directory)
   :config
-  (setq org-ref-pdf-directory "/HDD/PDFs/"
+  (setq org-ref-pdfs-directory pdfs-directory
         org-ref-completion-library 'org-ref-ivy-cite
         org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
-        org-ref-default-bibliography (list "/HDD/Org/all_my_refs.bib")
-        org-ref-notes-directory "/HDD/Org/notes/"
+        org-ref-default-bibliography (list refs-directory)
+        org-ref-notes-directory org-directory
         org-ref-notes-function 'orb-edit-notes
         ))
+
+(setq
+ bibtex-completion-notes-path org-directory
+ bibtex-completion-bibliography refs-directory
+ bibtex-completion-pdf-field "file"
+ bibtex-completion-notes-template-multiple-files
+ (concat
+  "${author-abbre} (${year}, ${journaltitle}): ${title}\n"
+  "#+ROAM_KEY: cite:${key}\n"
+  "Time-stamp: %<%Y-%m-%d>\n"
+  "- tags :: ${keywords}\n"
+  "\n* Backlinks\n"
+  "\n* FISH-5SS\n"
+  "|---------------------------------------------+-----|\n"
+  "| *Background*                                  |     |\n"
+  "| *Supporting Ideas*                            |     |\n"
+  "| *Purpose*                                     |     |\n"
+  "| *Originality/value (Contribution)*            |     |\n"
+  "| *Relevance*                                   |     |\n"
+  "| *Design/methodology/approach*                 |     |\n"
+  "| *Results*                                     |     |\n"
+  "| *(Interesting) Findings*                      |     |\n"
+  "| *Research limitations/implications (Critics)* |     |\n"
+  "| *Uncategorized stuff*                         |     |\n"
+  "| *5SS*                                         |     |\n"
+  "|---------------------------------------------+-----|\n"
+  "\n* Specifics comments\n :PROPERTIES:\n :Custom_ID: ${=key=}\n :AUTHOR: ${author-or-editor}\n :JOURNAL: ${journal}\n :YEAR: ${year}\n :DOI: ${doi}\n :URL: ${url}\n :END:\n"
+  "\n* PDF Highlights:PROPERTIES:\n :NOTER_DOCUMENT: %(orb-process-file-field \"${key}\")\n :END:\n"
+  ))
 
 (use-package! org-roam-bibtex
   :defer t
@@ -372,6 +385,8 @@
   :config
   (setq orb-preformat-keywords
         '("=key=" "title" "url" "file" "author-or-editor" "keywords" "journal" "year" "doi"))
+  ;; (orb-process-file-keyword t)
+  ;; (orb-file-field-extensions '("pdf" "epub" "html")
   (setq orb-templates
         '(("r" "ref" plain (function org-roam-capture--get-point)
            ""
@@ -399,11 +414,22 @@ Time-stamp: %<%Y-%m-%d>
 | *Uncategorized stuff*                         |     |
 | *5SS*                                         |     |
 |---------------------------------------------+-----|
-\n* Specifics comments\n :PROPERTIES:\n :Custom_ID: ${=key=}\n :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n :AUTHOR: ${author-or-editor}\n :JOURNAL: ${journal}\n :YEAR: ${year}\n :DOI: ${doi}\n :URL: ${url}\n :END:
-"
-           :unnarrowed t)))
+\n* Specifics comments\n :PROPERTIES:\n :Custom_ID: ${=key=}\n :AUTHOR: ${author-or-editor}\n :JOURNAL: ${journal}\n :YEAR: ${year}\n :DOI: ${doi}\n :URL: ${url}\n :END:\n
+\n* PDF Highlights:PROPERTIES:\n :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n :END:\n"
+           :unnarrowed t))))
 
-  )
+(setq deft-directory notes-directory)
+(use-package! deft
+  :defer t
+  :after org
+  :bind
+  ("C-c n d" . deft)
+  :custom
+  (setq
+   deft-recursive t
+   deft-use-filter-string-for-filename t
+   deft-default-extension "org"
+   ))
 
 (use-package! org-roam-server
   ;; :defer t
