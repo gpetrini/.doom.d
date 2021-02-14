@@ -97,7 +97,6 @@
 
 (use-package! elfeed-org
   :after org
-  :defer t
   :config
   (setq rmh-elfeed-org-files (list "~/Dropbox/Emacs/elfeed.org")))
 
@@ -311,12 +310,11 @@
 
 (citeproc-org-setup)
 
-(setq pdf-annot-activate-created-annotations t
+(setq pdf-annot-activate-created-annotations nil
       pdf-view-display-size 'fit-width
       pdf-view-resize-factor 1.1)
 
 (use-package! org-noter
-  :defer t
   :after (:any org pdf-view)
   :config
   (setq
@@ -334,7 +332,6 @@
   )
 
 (use-package! org-ref
-  :defer t
   :after (org bibtex)
   :init
   (setq org-ref-default-bibliography refs-directory)
@@ -379,7 +376,6 @@
   ))
 
 (use-package! org-roam-bibtex
-  :defer t
   :after org-roam
   :hook (org-roam-mode . org-roam-bibtex-mode)
   :config
@@ -420,7 +416,6 @@ Time-stamp: %<%Y-%m-%d>
 
 (setq deft-directory notes-directory)
 (use-package! deft
-  :defer t
   :after org
   :bind
   ("C-c n d" . deft)
@@ -432,7 +427,6 @@ Time-stamp: %<%Y-%m-%d>
    ))
 
 (use-package! org-roam-server
-  ;; :defer t
   :after (org-roam server)
   :config
   (setq org-roam-server-host "127.0.0.1"
