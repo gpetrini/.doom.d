@@ -655,22 +655,20 @@ Time-stamp: %<%Y-%m-%d>
 * Deft
 
 #+begin_src elisp
-(setq deft-directory notes-directory)
-(use-package! deft
-  :after org
-  :bind
-  ("C-c n d" . deft)
-  :custom
-  (setq
-   deft-recursive t
-   deft-use-filter-string-for-filename t
-   deft-default-extension "org"
-   ))
+(setq deft-directory notes-directory
+      deft-recursive t
+      deft-use-filter-string-for-filename t
+      deft-default-extension "org"
+      )
 #+end_src
 
 * Org-roam-server
 
 #+begin_src elisp
+(use-package! org-roam-protocol
+  :after org-protocol)
+
+
 (use-package! org-roam-server
   :after (org-roam server)
   :config
@@ -691,10 +689,13 @@ Time-stamp: %<%Y-%m-%d>
     (browse-url-xdg-open (format "http://localhost:%d" org-roam-server-port))
     )
   )
+#+end_src
 
-;; (after! org-roam
-;;  (smartparens-global-mode -1)
-;;  (org-roam-server-mode +1)
-;;  (smartparens-global-mode +1)
-;;  )
+* Org-journal
+
+#+begin_src elisp
+(setq org-journal-file-type "weekly"
+      org-journal-file-format "%Y-%m-%d.org"
+      org-journal-file-header "#+TITLE: Weekly Journal\n#+STARTUP: folded"
+      )
 #+end_src

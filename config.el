@@ -414,17 +414,15 @@ Time-stamp: %<%Y-%m-%d>
 \n* PDF Highlights:PROPERTIES:\n :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n :END:\n"
            :unnarrowed t))))
 
-(setq deft-directory notes-directory)
-(use-package! deft
-  :after org
-  :bind
-  ("C-c n d" . deft)
-  :custom
-  (setq
-   deft-recursive t
-   deft-use-filter-string-for-filename t
-   deft-default-extension "org"
-   ))
+(setq deft-directory notes-directory
+      deft-recursive t
+      deft-use-filter-string-for-filename t
+      deft-default-extension "org"
+      )
+
+(use-package! org-roam-protocol
+  :after org-protocol)
+
 
 (use-package! org-roam-server
   :after (org-roam server)
@@ -447,8 +445,7 @@ Time-stamp: %<%Y-%m-%d>
     )
   )
 
-;; (after! org-roam
-;;  (smartparens-global-mode -1)
-;;  (org-roam-server-mode +1)
-;;  (smartparens-global-mode +1)
-;;  )
+(setq org-journal-file-type "weekly"
+      org-journal-file-format "%Y-%m-%d.org"
+      org-journal-file-header "#+TITLE: Weekly Journal\n#+STARTUP: folded"
+      )

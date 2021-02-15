@@ -6,6 +6,7 @@
  '(ess-eval-visibly 'nowait t)
  '(org-agenda-files '("/HDD/Org/planner/weekly.org"))
  '(org-export-in-background t)
+ '(org-roam-server-style nil)
  '(org-src-window-setup 'current-window)
  '(package-selected-packages
    '(interleave olivetti focus helm-spotify centaur-tabs org-noter org-roam-server)))

@@ -88,4 +88,3 @@
 ;; (package! ess-view-data)
 ;; (package! company-tabnine)
 (package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
-(package! deft)
