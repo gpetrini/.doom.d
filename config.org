@@ -33,11 +33,11 @@ that should be easy enough to do (see, for example, the [[https://github.com/hli
 
 #+BEGIN_SRC elisp
 (setq-default
-    delete-by-moving-to-trash t                      ; Delete files to trash
-    tab-width 4                                                         ; Set width for tabs
-    uniquify-buffer-name-style 'forward      ; Uniquify buffer names
-    window-combination-resize t                    ; take new window space from all other windows (not just current)
-    x-stretch-cursor t
+ delete-by-moving-to-trash t                      ; Delete files to trash
+ tab-width 4                                                         ; Set width for tabs
+ uniquify-buffer-name-style 'forward      ; Uniquify buffer names
+ window-combination-resize t                    ; take new window space from all other windows (not just current)
+ x-stretch-cursor t
  )                                           ; Stretch cursor to the glyph width
 
 (setq undo-limit 80000000                          ; Raise undo-limit to 80Mb
@@ -48,22 +48,10 @@ that should be easy enough to do (see, for example, the [[https://github.com/hli
 
 (delete-selection-mode 1)                             ; Replace selection when inserting text
 (display-time-mode 1)                                   ; Enable time in the mode-line
-(global-subword-mode 1)                           ; Iterate through CamelCase words
+;; (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
 (setq org-roam-directory "/HDD/Org/notes/")
-(setq doom-theme 'doom-one)
 #+END_SRC
-
-* Battery Display
-I use the same emacs config on my desktop and my laptop. I added a little snippet that shows battery level on my laptop.
-#+BEGIN_SRC elisp
-(unless (equal "Battery status not available"
-               (battery))
-  (display-battery-mode 1))                           ; On laptops it's nice to know how much power you have
-#+END_SRC
-
-#+RESULTS:
-: t
 
 
 * Full Screen Emacs
@@ -152,16 +140,6 @@ I initially started using this package in order to manage my citations. However,
 (setq org-image-actual-width '(300))
 #+END_SRC
 
-* Windown behavior
-
-#+begin_src elisp
-(map! :map evil-window-map
-      "C-<left>"       #'+evil/window-move-left
-      "C-<down>"       #'+evil/window-move-down
-      "C-<up>"         #'+evil/window-move-up
-      "C-<right>"      #'+evil/window-move-right)
-#+end_src
-
 * Org-mode
 #+begin_src elisp
 (setq org-src-window-setup 'current-window)
@@ -213,9 +191,9 @@ I initially started using this package in order to manage my citations. However,
 
 #+begin_src elisp
 (use-package! elfeed-org
-  :after org
+  :defer t
   :config
-  (setq rmh-elfeed-org-files (list "~/Dropbox/Emacs/elfeed.org")))
+  (setq rmh-elfeed-org-files (list "/HDD/Org/rss/elfeed.org")))
 #+end_src
 
 ** Keybindings
@@ -698,6 +676,6 @@ Time-stamp: %<%Y-%m-%d>
 #+begin_src elisp
 (setq org-journal-file-type 'weekly
       org-journal-file-format "%Y-%m-%d.org"
-      org-journal-file-header "# -*- mode: org; -*-\n#+TITLE: Weekly Journal\n#+STARTUP: folded"
+      org-journal-file-header "#+TITLE: Weekly Journal\n#+STARTUP: folded"
       )
 #+end_src

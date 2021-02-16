@@ -2,11 +2,11 @@
       user-mail-address "gpetrinidasilveira@gmail.com")
 
 (setq-default
-    delete-by-moving-to-trash t                      ; Delete files to trash
-    tab-width 4                                                         ; Set width for tabs
-    uniquify-buffer-name-style 'forward      ; Uniquify buffer names
-    window-combination-resize t                    ; take new window space from all other windows (not just current)
-    x-stretch-cursor t
+ delete-by-moving-to-trash t                      ; Delete files to trash
+ tab-width 4                                                         ; Set width for tabs
+ uniquify-buffer-name-style 'forward      ; Uniquify buffer names
+ window-combination-resize t                    ; take new window space from all other windows (not just current)
+ x-stretch-cursor t
  )                                           ; Stretch cursor to the glyph width
 
 (setq undo-limit 80000000                          ; Raise undo-limit to 80Mb
@@ -17,14 +17,9 @@
 
 (delete-selection-mode 1)                             ; Replace selection when inserting text
 (display-time-mode 1)                                   ; Enable time in the mode-line
-(global-subword-mode 1)                           ; Iterate through CamelCase words
+;; (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
 (setq org-roam-directory "/HDD/Org/notes/")
-(setq doom-theme 'doom-one)
-
-(unless (equal "Battery status not available"
-               (battery))
-  (display-battery-mode 1))                           ; On laptops it's nice to know how much power you have
 
 (if (eq initial-window-system 'x)                 ; if started by emacs command or desktop file
     (toggle-frame-maximized)
@@ -53,12 +48,6 @@
 (setq display-line-numbers-type t)
 (setq org-support-shift-select t)
 (setq org-image-actual-width '(300))
-
-(map! :map evil-window-map
-      "C-<left>"       #'+evil/window-move-left
-      "C-<down>"       #'+evil/window-move-down
-      "C-<up>"         #'+evil/window-move-up
-      "C-<right>"      #'+evil/window-move-right)
 
 (setq org-src-window-setup 'current-window)
 (after! org
@@ -97,9 +86,9 @@
   :mode ("\\.dot\\'" "\\.gz\\'"))
 
 (use-package! elfeed-org
-  :after org
+  :defer t
   :config
-  (setq rmh-elfeed-org-files (list "~/Dropbox/Emacs/elfeed.org")))
+  (setq rmh-elfeed-org-files (list "/HDD/Org/rss/elfeed.org")))
 
 (map! :map elfeed-search-mode-map
       :after elfeed-search
@@ -449,5 +438,5 @@ Time-stamp: %<%Y-%m-%d>
 
 (setq org-journal-file-type 'weekly
       org-journal-file-format "%Y-%m-%d.org"
-      org-journal-file-header "# -*- mode: org; -*-\n#+TITLE: Weekly Journal\n#+STARTUP: folded"
+      org-journal-file-header "#+TITLE: Weekly Journal\n#+STARTUP: folded"
       )

@@ -1,0 +1,14 @@
+# -*- mode: snippet -*-
+# name:LiteratureReviewProps 
+# key:<Lit 
+# --
+
+  :PROPERTIES:
+  :YEAR:     
+  :ZOTERO:   
+  :STATUS:   
+  :RELEVANCE: 
+  :IMPACT:   
+  :CITE:     
+  :KEY: 
+  :END:
