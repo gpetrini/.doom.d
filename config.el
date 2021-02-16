@@ -20,6 +20,7 @@
 (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
 (setq org-roam-directory "/HDD/Org/notes/")
+(setq doom-theme 'doom-one)
 
 (unless (equal "Battery status not available"
                (battery))
@@ -91,8 +92,8 @@
         ))
 
 (use-package! graphviz-dot-mode
-  :commands graphviz-dot-mode
   :defer t
+  :commands graphviz-dot-mode
   :mode ("\\.dot\\'" "\\.gz\\'"))
 
 (use-package! elfeed-org
@@ -310,6 +311,7 @@
 
 (citeproc-org-setup)
 
+(setq +latex-viewers '(pdf-tools))
 (setq pdf-annot-activate-created-annotations nil
       pdf-view-display-size 'fit-width
       pdf-view-resize-factor 1.1)
@@ -420,8 +422,8 @@ Time-stamp: %<%Y-%m-%d>
       deft-default-extension "org"
       )
 
-(use-package! org-roam-protocol
-  :after org-protocol)
+;; (use-package! org-roam-protocol
+;;   :after org-protocol)
 
 
 (use-package! org-roam-server
@@ -445,7 +447,7 @@ Time-stamp: %<%Y-%m-%d>
     )
   )
 
-(setq org-journal-file-type "weekly"
+(setq org-journal-file-type 'weekly
       org-journal-file-format "%Y-%m-%d.org"
-      org-journal-file-header "#+TITLE: Weekly Journal\n#+STARTUP: folded"
+      org-journal-file-header "# -*- mode: org; -*-\n#+TITLE: Weekly Journal\n#+STARTUP: folded"
       )

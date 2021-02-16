@@ -51,6 +51,7 @@ that should be easy enough to do (see, for example, the [[https://github.com/hli
 (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
 (setq org-roam-directory "/HDD/Org/notes/")
+(setq doom-theme 'doom-one)
 #+END_SRC
 
 * Battery Display
@@ -203,8 +204,8 @@ I initially started using this package in order to manage my citations. However,
 
 #+begin_src elisp
 (use-package! graphviz-dot-mode
-  :commands graphviz-dot-mode
   :defer t
+  :commands graphviz-dot-mode
   :mode ("\\.dot\\'" "\\.gz\\'"))
 #+end_src
 * Elfeed
@@ -534,6 +535,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
 * PDF tools
 
 #+begin_src elisp
+(setq +latex-viewers '(pdf-tools))
 (setq pdf-annot-activate-created-annotations nil
       pdf-view-display-size 'fit-width
       pdf-view-resize-factor 1.1)
@@ -665,8 +667,8 @@ Time-stamp: %<%Y-%m-%d>
 * Org-roam-server
 
 #+begin_src elisp
-(use-package! org-roam-protocol
-  :after org-protocol)
+;; (use-package! org-roam-protocol
+;;   :after org-protocol)
 
 
 (use-package! org-roam-server
@@ -694,8 +696,8 @@ Time-stamp: %<%Y-%m-%d>
 * Org-journal
 
 #+begin_src elisp
-(setq org-journal-file-type "weekly"
+(setq org-journal-file-type 'weekly
       org-journal-file-format "%Y-%m-%d.org"
-      org-journal-file-header "#+TITLE: Weekly Journal\n#+STARTUP: folded"
+      org-journal-file-header "# -*- mode: org; -*-\n#+TITLE: Weekly Journal\n#+STARTUP: folded"
       )
 #+end_src
