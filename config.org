@@ -566,6 +566,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
  bibtex-completion-notes-template-multiple-files
  (concat
   "${author-abbre} (${year}, ${journaltitle}): ${title}\n"
+  "#+OPTIONS: toc:nil num:nil\n"
   "#+ROAM_KEY: cite:${key}\n"
   "Time-stamp: %<%Y-%m-%d>\n"
   "- tags :: ${keywords}\n"
