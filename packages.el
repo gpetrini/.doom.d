@@ -88,3 +88,9 @@
 ;; (package! ess-view-data)
 ;; (package! company-tabnine)
 (package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
+
+;; Use org-appear to reveal emphasis markers when moving the cursor over them.
+(package! org-appear
+  :recipe (:host github
+           :repo "awth13/org-appear"))
+(package! iedit)
