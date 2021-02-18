@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name:bigblow 
+# key:<big 
+# --
+
+#+SETUPFILE: /HDD/Org/org-html-themes/org/theme-bigblow-local.setup
+
+

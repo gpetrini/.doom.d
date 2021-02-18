@@ -1,0 +1,7 @@
+# -*- mode: snippet -*-
+# name:readtheorg 
+# key:<read 
+# --
+
+
+#+SETUPFILE: /HDD/Org/org-html-themes/org/theme-readtheorg-local.setup
