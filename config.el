@@ -317,22 +317,22 @@ title."
 
 (after! python
   (set-company-backend! 'python-mode 'elpy-company-backend))
-(after! company
-  (setq company-idle-delay 0
-        company-tooltip-limit 10
-        company-dabbrev-downcase nil
-        company-show-numbers t
-        company-minimum-prefix-length 3)
-  (add-hook 'evil-normal-state-entry-hook #'company-abort)) ;; make aborting less annoying.
-(setq-default history-length 1000)
-(setq-default prescient-history-length 1000)
+;; (after! company
+;;   (setq company-idle-delay 0.5
+;;         company-tooltip-limit 10
+;;         company-dabbrev-downcase nil
+;;         company-show-numbers t
+;;         company-minimum-prefix-length 3)
+;;   (add-hook 'evil-normal-state-entry-hook #'company-abort)) ;; make aborting less annoying.
+;; (setq-default history-length 1000)
+;; (setq-default prescient-history-length 1000)
 
-(set-company-backend!
-  '(org-mode)
-  '(:seperate
-    company-ispell
-    company-files
-    company-yasnippet))
+;; (set-company-backend!
+;;   '(org-mode)
+;;   '(:seperate
+;;     company-ispell
+;;     company-files
+;;     company-yasnippet))
 
 ;; (use-package! company-tabnine
 ;;   :defer t
