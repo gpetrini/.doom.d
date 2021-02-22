@@ -94,3 +94,5 @@
   :recipe (:host github
            :repo "awth13/org-appear"))
 (package! iedit)
+;; (package! org-mime)
+;; (package! org-msg :disable t)

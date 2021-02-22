@@ -9,7 +9,10 @@
  '(org-roam-server-style nil)
  '(org-src-window-setup 'current-window)
  '(package-selected-packages
-   '(interleave olivetti focus helm-spotify centaur-tabs org-noter org-roam-server)))
+   '(interleave olivetti focus helm-spotify centaur-tabs org-noter org-roam-server))
+ '(send-mail-function 'mailclient-send-it)
+ '(smtpmail-smtp-server "smtp.gmail.com")
+ '(smtpmail-smtp-service 587))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

@@ -328,9 +328,7 @@ title."
 (setq-default prescient-history-length 1000)
 
 (set-company-backend!
-  '(text-mode
-    markdown-mode
-    org-mode)
+  '(org-mode)
   '(:seperate
     company-ispell
     company-files
@@ -533,3 +531,62 @@ Time-stamp: %<%Y-%m-%d>
 
 (setq org-refile-targets '(("/HDD/Org/gtd/projects.org" :maxlevel . 3)
                            ("/HDD/Org/gtd/someday.org" :level . 1)))
+
+;; (add-to-list 'load-path "your/path/to/mu4e")
+;; if you installed it using your package manager
+(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
+;; if you built from source
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
+;; (require 'smtpmail)
+;; (add-hook 'message-send-hook 'org-mime-htmlize)
+(setq message-send-mail-function 'smtpmail-send-it
+      starttls-use-gnutls t
+      smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil))
+      smtpmail-auth-credentials
+      '(("smtp.gmail.com" 587 "gpetrinidasilveira@gmail.com" nil))
+      smtpmail-default-smtp-server "smtp.gmail.com"
+      smtpmail-smtp-server "smtp.gmail.com"
+      smtpmail-smtp-service 587)
+(after! mu4e
+  (setq user-mail-address "gpetrinidasilveira@gmail.com"
+        user-full-name  "Gabriel Petrini"
+        mu4e-maildir "/HDD/Mail"
+        mu4e-root-maildir "/HDD/Mail"
+        mu4e-get-mail-command "mbsync -c ~/.config/mu4e/mbsyncrc -a"
+        mu4e-update-interval  300
+        org-mu4e-convert-to-html t
+        ;; mu4e-html2text-command "html2text -utf8 -width 72"
+        ;; mu4e-html2text-command "w3m -T text/html"
+        mu4e-main-buffer-hide-personal-addresses t
+        mu4e-view-show-images t
+        mu4e-attachment-dir  "~/Downloads"
+        mu4e-sent-folder "/gmail/Sent"
+        mu4e-drafts-folder "/gmail/Drafts"
+        mu4e-trash-folder "/gmail/Trash"
+        mu4e-maildir-shortcuts
+        '(("/gmail/Inbox"      . ?i)
+          ("/gmail/Sent Items" . ?s)
+          ("/gmail/Drafts"     . ?d)
+          ("/gmail/Trash"      . ?t)))
+  )
+
+;; use imagemagick, if available
+(when (fboundp 'imagemagick-register-types)
+  (imagemagick-register-types))
+(after! org-msg
+  (setq org-msg-greeting-name-limit 3
+        org-msg-default-alternatives '(text html)
+        org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng"
+        org-msg-startup "hidestars indent inlineimages"
+        org-msg-recipient-names '(("gpetrinidasilveira@gmail.com" . "Gabriel Petrini"))
+        org-msg-greeting-name-limit 4
+        org-msg-convert-citation t
+        org-msg-signature "
+ Regards,
+
+ #+begin_signature
+ -- *Gabriel Petrini da Silvera*\n
+PhD Student at University of Campinas - Brazil\n
+ /Sent from Emacs with mu4e and org-msg/
+ #+end_signature"))
