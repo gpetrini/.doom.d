@@ -2,13 +2,13 @@
 # name:LiteratureReviewProps 
 # key:<Lit 
 # --
-
+[[$3][$2]$4
   :PROPERTIES:
-  :YEAR:     
+  :YEAR:  citeyear*:$1   
   :ZOTERO:   
   :STATUS:   
   :RELEVANCE: 
   :IMPACT:   
   :CITE:     
-  :KEY: 
+  :KEY: cite:$1
   :END:

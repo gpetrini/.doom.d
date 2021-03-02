@@ -96,3 +96,4 @@
 (package! iedit)
 ;; (package! org-mime)
 ;; (package! org-msg :disable t)
+(package! elfeed-goodies)
