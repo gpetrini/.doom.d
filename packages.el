@@ -97,3 +97,4 @@
 ;; (package! org-mime)
 ;; (package! org-msg :disable t)
 (package! elfeed-goodies)
+(package! mu4e-alert)
