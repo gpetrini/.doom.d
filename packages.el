@@ -51,25 +51,23 @@
 (package! org-ref)
 ;(package! interleave)                                        not using anymore as org-noter is far superior.
 (package! ivy-bibtex)
-(package! ox-pandoc)
-(package! org-download)
-(package! org-pretty-table-mode
-  :recipe (:host github :repo "Fuco1/org-pretty-table"))
+;; (package! ox-pandoc)
+;; (package! org-download)
+;; (package! org-pretty-table-mode
+;;   :recipe (:host github :repo "Fuco1/org-pretty-table"))
 (package! org-pretty-tags)
 ;; (package! sublimity)
-(package! org-fancy-priorities)
+;; (package! org-fancy-priorities)
 (package! info-colors) ; pretty colors
-(package! beacon) ; global minor mode for a blinking highliter to find where the cursor is.
 (package! exec-path-from-shell)
 (package! elfeed)
-(package! evil-tutor)
 (package! org-bullets)
-(package! peep-dired)
+;; (package! peep-dired)
 (package! rainbow-mode)
 ;; (package! writeroom-mode)
 (package! ox-reveal)
 (package! academic-phrases)
-(package! org-fragtog)
+;; (package! org-fragtog)
 (package! citeproc-org)
 ;; (package! org-superstar)
 ;; (package! synosaurus)
@@ -87,14 +85,16 @@
 ;; (package! ess-view)
 ;; (package! ess-view-data)
 ;; (package! company-tabnine)
-(package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
+;; (package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
 
 ;; Use org-appear to reveal emphasis markers when moving the cursor over them.
 (package! org-appear
   :recipe (:host github
            :repo "awth13/org-appear"))
-(package! iedit)
+;; (package! iedit)
 ;; (package! org-mime)
 ;; (package! org-msg :disable t)
 (package! elfeed-goodies)
-(package! mu4e-alert)
+;; (package! mu4e-alert)
+(package! nov)
+(package! flycheck-aspell)

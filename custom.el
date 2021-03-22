@@ -3,9 +3,9 @@
  ;; If you edit it by hand, you could mess it up, so be careful.
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
- '(ess-eval-visibly 'nowait t)
+ '(ess-eval-visibly 'nowait)
  '(org-agenda-files
-   '("/HDD/PhD/Writings/Ideas.org" "/HDD/Org/planner/weekly.org"))
+   '("/HDD/PhD/Articles/VECM/VECM.org" "/HDD/PhD/Writings/Ideas.org" "/HDD/Org/planner/weekly.org"))
  '(org-export-in-background t)
  '(org-roam-server-style nil)
  '(org-src-window-setup 'current-window)

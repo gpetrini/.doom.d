@@ -23,7 +23,7 @@
        (company +childframe)                     ; the ultimate code completion backend
        ;; (helm +fuzzy)
        ;;ido               ; the other *other* search engine...
-       (ivy +fuzzy +prescient +icons +childframe)
+       (ivy +fonts +fuzzy +prescient +icons +childframe)
        ;;ivy               ; a search engine for love and life
 
        :ui
@@ -31,7 +31,7 @@
        doom              ; what makes DOOM look the way it does
        doom-dashboard    ; a nifty splash screen for Emacs
        doom-quit         ; DOOM quit-message prompts when you quit Emacs
-       ;; (emoji +github +unicode)  ; 🙂
+       (emoji +github +unicode)  ; 🙂
        ;;fill-column       ; a `fill-column' indicator
        hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
        ;;hydra
@@ -161,6 +161,7 @@
         ;; +pomodoro
         +jupyter                    ; ipython/jupyter support for babel
         +pandoc                     ; export-with-pandoc support
+        +org-bullets
         ;; +gnuplot                    ; who doesn't like pretty pictures
         +noter
         +journal
@@ -178,7 +179,7 @@
        ;;rust              ; Fe2O3.unwrap().unwrap().unwrap().unwrap()
        ;;scala             ; java, but good
        ;;scheme            ; a fully conniving family of lisps
-       sh                ; she sells {ba,z,fi}sh shells on the C xor
+       (sh +lsp)                ; she sells {ba,z,fi}sh shells on the C xor
        ;;sml
        ;;solidity          ; do you need a blockchain? No.
        ;;swift             ; who asked for emoji variables?

@@ -9,10 +9,10 @@
  x-stretch-cursor t
  )                                           ; Stretch cursor to the glyph width
 
-(setq undo-limit 80000000                          ; Raise undo-limit to 80Mb
-      evil-want-fine-undo t                             ; By default while in insert all changes are one big blob. Be more granular
+(setq evil-want-fine-undo t                             ; By default while in insert all changes are one big blob. Be more granular
       auto-save-default t                                    ; Nobody likes to loose work, I certainly don't
       inhibit-compacting-font-caches t      ; When there are lots of glyphs, keep them in memory
+      ;; undo-limit 80000000                          ; Raise undo-limit to 80Mb
       truncate-string-ellipsis "…")               ; Unicode ellispis are nicer than "...", and also save /precious/ space
 
 (delete-selection-mode 1)                             ; Replace selection when inserting text
@@ -56,7 +56,7 @@
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
 (setq  doom-font (font-spec :family "Fira Mono" :size 20))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 20))
-(setq doom-theme 'doom-one)
+(setq doom-theme 'doom-material)
 (after! ox
   (require 'ox-extra)
   (ox-extras-activate '(ignore-headlines)))
@@ -64,110 +64,12 @@
 (setq org-support-shift-select t)
 (after! org
   (setq org-image-actual-width '(300)))
+(setq evil-normal-state-cursor '(box "orange")
+      evil-insert-state-cursor '(bar "orange")
+      evil-visual-state-cursor '(hollow "orange"))
 
-(defvar fancy-splash-image-template
-  (expand-file-name "misc/splash-images/blackhole-lines-template.svg" doom-private-dir)
-  "Default template svg used for the splash image, with substitutions from ")
-(defvar fancy-splash-image-nil
-  (expand-file-name "misc/splash-images/transparent-pixel.png" doom-private-dir)
-  "An image to use at minimum size, usually a transparent pixel")
-
-(setq fancy-splash-sizes
-      `((:height 500 :min-height 50 :padding (0 . 4) :template ,(expand-file-name "misc/splash-images/blackhole-lines-0.svg" doom-private-dir))
-        (:height 440 :min-height 42 :padding (1 . 4) :template ,(expand-file-name "misc/splash-images/blackhole-lines-0.svg" doom-private-dir))
-        (:height 400 :min-height 38 :padding (1 . 4) :template ,(expand-file-name "misc/splash-images/blackhole-lines-1.svg" doom-private-dir))
-        (:height 350 :min-height 36 :padding (1 . 3) :template ,(expand-file-name "misc/splash-images/blackhole-lines-2.svg" doom-private-dir))
-        (:height 300 :min-height 34 :padding (1 . 3) :template ,(expand-file-name "misc/splash-images/blackhole-lines-3.svg" doom-private-dir))
-        (:height 250 :min-height 32 :padding (1 . 2) :template ,(expand-file-name "misc/splash-images/blackhole-lines-4.svg" doom-private-dir))
-        (:height 200 :min-height 30 :padding (1 . 2) :template ,(expand-file-name "misc/splash-images/blackhole-lines-5.svg" doom-private-dir))
-        (:height 100 :min-height 24 :padding (1 . 2) :template ,(expand-file-name "misc/splash-images/emacs-e-template.svg" doom-private-dir))
-        (:height 0   :min-height 0  :padding (0 . 0) :file ,fancy-splash-image-nil)))
-
-(defvar fancy-splash-sizes
-  `((:height 500 :min-height 50 :padding (0 . 2))
-    (:height 440 :min-height 42 :padding (1 . 4))
-    (:height 330 :min-height 35 :padding (1 . 3))
-    (:height 200 :min-height 30 :padding (1 . 2))
-    (:height 0   :min-height 0  :padding (0 . 0) :file ,fancy-splash-image-nil))
-  "list of plists with the following properties
-  :height the height of the image
-  :min-height minimum `frame-height' for image
-  :padding `+doom-dashboard-banner-padding' to apply
-  :template non-default template file
-  :file file to use instead of template")
-
-(defvar fancy-splash-template-colours
-  '(("$colour1" . keywords) ("$colour2" . type) ("$colour3" . base5) ("$colour4" . base8))
-  "list of colour-replacement alists of the form (\"$placeholder\" . 'theme-colour) which applied the template")
-
-(unless (file-exists-p (expand-file-name "theme-splashes" doom-cache-dir))
-  (make-directory (expand-file-name "theme-splashes" doom-cache-dir) t))
-
-(defun fancy-splash-filename (theme-name height)
-  (expand-file-name (concat (file-name-as-directory "theme-splashes")
-                            theme-name
-                            "-" (number-to-string height) ".svg")
-                    doom-cache-dir))
-
-(defun fancy-splash-clear-cache ()
-  "Delete all cached fancy splash images"
-  (interactive)
-  (delete-directory (expand-file-name "theme-splashes" doom-cache-dir) t)
-  (message "Cache cleared!"))
-
-(defun fancy-splash-generate-image (template height)
-  "Read TEMPLATE and create an image if HEIGHT with colour substitutions as
-   described by `fancy-splash-template-colours' for the current theme"
-  (with-temp-buffer
-    (insert-file-contents template)
-    (re-search-forward "$height" nil t)
-    (replace-match (number-to-string height) nil nil)
-    (dolist (substitution fancy-splash-template-colours)
-      (goto-char (point-min))
-      (while (re-search-forward (car substitution) nil t)
-        (replace-match (doom-color (cdr substitution)) nil nil)))
-    (write-region nil nil
-                  (fancy-splash-filename (symbol-name doom-theme) height) nil nil)))
-
-(defun fancy-splash-generate-images ()
-  "Perform `fancy-splash-generate-image' in bulk"
-  (dolist (size fancy-splash-sizes)
-    (unless (plist-get size :file)
-      (fancy-splash-generate-image (or (plist-get size :file)
-                                       (plist-get size :template)
-                                       fancy-splash-image-template)
-                                   (plist-get size :height)))))
-
-(defun ensure-theme-splash-images-exist (&optional height)
-  (unless (file-exists-p (fancy-splash-filename
-                          (symbol-name doom-theme)
-                          (or height
-                              (plist-get (car fancy-splash-sizes) :height))))
-    (fancy-splash-generate-images)))
-
-(defun get-appropriate-splash ()
-  (let ((height (frame-height)))
-    (cl-some (lambda (size) (when (>= height (plist-get size :min-height)) size))
-             fancy-splash-sizes)))
-
-(setq fancy-splash-last-size nil)
-(setq fancy-splash-last-theme nil)
-(defun set-appropriate-splash (&rest _)
-  (let ((appropriate-image (get-appropriate-splash)))
-    (unless (and (equal appropriate-image fancy-splash-last-size)
-                 (equal doom-theme fancy-splash-last-theme)))
-    (unless (plist-get appropriate-image :file)
-      (ensure-theme-splash-images-exist (plist-get appropriate-image :height)))
-    (setq fancy-splash-image
-          (or (plist-get appropriate-image :file)
-              (fancy-splash-filename (symbol-name doom-theme) (plist-get appropriate-image :height))))
-    (setq +doom-dashboard-banner-padding (plist-get appropriate-image :padding))
-    (setq fancy-splash-last-size appropriate-image)
-    (setq fancy-splash-last-theme doom-theme)
-    (+doom-dashboard-reload)))
-
-(add-hook 'window-size-change-functions #'set-appropriate-splash)
-(add-hook 'doom-load-theme-hook #'set-appropriate-splash)
+(setq +doom-dashboard-banner-file
+      (expand-file-name "splash-images/black-hole2.png" doom-private-dir))
 
 (after! org
   (require 'org-bullets)  ; Nicer bullets in org-mode
@@ -280,23 +182,16 @@
 (setq org-reveal-mathjax t)
 
 (add-to-list 'ispell-aspell-dictionary-alist (ispell-aspell-find-dictionary "en_US"))
-(setq ispell-program-name (executable-find "hunspell")
+(setq ispell-program-name (executable-find "aspell")
       ispell-dictionary "en_US")
 (setq flyspell-correct-popup t)
-(setq langtool-language-tool-jar "/HDD/Configuracoes/LanguageTool-stable/LanguageTool-5.2/languagetool.jar")
-(setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
+;; (setq langtool-language-tool-jar "/HDD/Configuracoes/LanguageTool-stable/LanguageTool-5.2/languagetool.jar")
+;; (setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
 
 (when (memq window-system '(mac ns x))
   (require 'exec-path-from-shell)
   (setq-default exec-path-from-shell-shell-name "/usr/bin/zsh")
   (exec-path-from-shell-initialize))
-
-(use-package! iedit
-  :defer
-  :config
-  (set-face-background 'iedit-occurrence "Magenta")
-  :bind
-  ("C-;" . iedit-mode))
 
 ;; (when (functionp 'module-load)
 ;; associated jupyter-stata with stata (fixes fontification if using pygmentize for html export)
@@ -367,36 +262,60 @@
     (set-window-buffer w2 "*R*")
     (set-window-buffer w1 w1name)))
 
-(setq python-shell-interpreter "/usr/bin/python3")
-(setq org-babel-python-command "/usr/bin/python3")
 ;; Fix Warning "readline" message
-(setq python-shell-completion-native-enable nil)
-(setq flycheck-python-pylint-executable "pylint")
+(after! python
+  (set-company-backend! 'python-mode 'elpy-company-backend)
+  (setq python-shell-interpreter "/usr/bin/python3"
+        org-babel-python-command "/usr/bin/python3")
+  )
+(after! elpy
+  (set-company-backend! 'elpy-mode
+    '(elpy-company-backend :with company-files company-yasnippet)))
 
 (after! python
   (set-company-backend! 'python-mode 'elpy-company-backend))
-;; (after! company
-;;   (setq company-idle-delay 0.5
-;;         company-tooltip-limit 10
-;;         company-dabbrev-downcase nil
-;;         company-show-numbers t
-;;         company-minimum-prefix-length 3)
-;;   (add-hook 'evil-normal-state-entry-hook #'company-abort)) ;; make aborting less annoying.
-;; (setq-default history-length 1000)
-;; (setq-default prescient-history-length 1000)
+(after! company
+  (setq company-idle-delay 0.5
+        company-tooltip-limit 10
+        company-dabbrev-downcase nil
+        company-show-numbers t
+        company-minimum-prefix-length 3)
+  (add-hook 'evil-normal-state-entry-hook #'company-abort)) ;; make aborting less annoying.
+(setq-default history-length 1000)
+(setq-default prescient-history-length 1000)
 
-;; (set-company-backend!
-;;   '(org-mode)
-;;   '(:seperate
-;;     company-ispell
-;;     company-files
-;;     company-yasnippet))
-
+(set-company-backend! 'org-mode nil)
 ;; (use-package! company-tabnine
 ;;   :defer t
 ;;   )
 ;; (after! company
 ;;   (add-to-list 'company-backends 'company-tabnine))
+
+(after! lsp-python-ms
+  (set-lsp-priority! 'pyright 1))
+
+;; In case we get a wrong workspace root, we can delete it with lsp-workspace-folders-remove
+(after! lsp-mode
+  (setq lsp-auto-guess-root nil))
+(set-popup-rule! "^\\*lsp-help" :side 'right :size .50 :select t :vslot 1)
+
+;; Disable lsp flycheck checker and use flake8
+(after! lsp-mode
+  (setq lsp-diagnostic-package :none))
+
+(after! flycheck
+  (add-hook 'pyhon-mode-local-vars-hook
+            (lambda ()
+              (when (flycheck-may-enable-checker 'python-flake8)
+                (flycheck-select-checker 'python-flake8)))))
+;; (setq flycheck-disabled-checkers 'lsp)
+
+(after! lsp-mode
+  (setq lsp-eldoc-enable-hover nil
+        lsp-signature-auto-activate nil
+        ;; lsp-enable-on-type-formatting nil
+        ;; lsp-enable-symbol-highlighting nil
+        lsp-enable-file-watchers nil))
 
 ;; (load! "dynare.el")
 
@@ -461,7 +380,7 @@
   )
 
 (use-package! org-ref
-  :after (org bibtex)
+  :after (org-roam bibtex)
   :init
   (setq org-ref-default-bibliography refs-directory)
   (setq bibtex-completion-bibliography org-ref-default-bibliography)
@@ -654,3 +573,9 @@ Time-stamp: %<%Y-%m-%d>
 PhD Student at University of Campinas - Brazil\n
  /Sent from Emacs with mu4e and org-msg/
  #+end_signature"))
+
+(use-package! nov
+  :defer t
+  :mode ("\\.epub\\'" . nov-mode)
+  :config
+  (setq nov-save-place-file (concat doom-cache-dir "nov-places")))
