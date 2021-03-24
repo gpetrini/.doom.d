@@ -60,7 +60,9 @@
 (after! ox
   (require 'ox-extra)
   (ox-extras-activate '(ignore-headlines)))
-(setq display-line-numbers-type t)
+;; Line numbers are pretty slow all around. The performance boost of
+;; disabling them outweighs the utility of always keeping them on.
+(setq display-line-numbers-type nil)
 (setq org-support-shift-select t)
 (after! org
   (setq org-image-actual-width '(300)))
@@ -68,8 +70,9 @@
       evil-insert-state-cursor '(bar "orange")
       evil-visual-state-cursor '(hollow "orange"))
 
-(setq +doom-dashboard-banner-file
-      (expand-file-name "splash-images/black-hole2.png" doom-private-dir))
+(setq fancy-splash-image (concat doom-private-dir "./splash-images/black-hole-2.png"))
+;; (setq +doom-dashboard-banner-file
+;;       (expand-file-name "splash-images/black-hole2.png" doom-private-dir))
 
 (after! org
   (require 'org-bullets)  ; Nicer bullets in org-mode
@@ -83,6 +86,7 @@
         pdfs-directory "/HDD/PDFs/"
         refs-directory "/HDD/Org/all_my_refs.bib"
         org-src-window-setup 'current-window
+        org-startup-folded 'overview
         org-hide-emphasis-markers t))
 (defun org-archive-done-tasks ()
   (interactive)
@@ -93,6 +97,10 @@
    "/DONE" 'tree))
 (add-hook! org-mode :append #'org-appear-mode)
 
+;; IMO, modern editors have trained a bad habit into us all: a burning
+;; need for completion all the time -- as we type, as we breathe, as we
+;; pray to the ancient ones -- but how often do you *really* need that
+;; information? I say rarely. So opt for manual completion:
 (require 'company)
 (setq company-idle-delay 0.2
       company-minimum-prefix-length 3)
