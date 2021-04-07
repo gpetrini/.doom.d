@@ -68,6 +68,7 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
 * Rudimentary Settings
 
 #+BEGIN_SRC elisp
+(setq package-native-compile t)
 (setq-default
  delete-by-moving-to-trash t                      ; Delete files to trash
  tab-width 4                                                         ; Set width for tabs
@@ -497,14 +498,22 @@ Display inline images after running code
 
 #+BEGIN_SRC elisp
 ;; Fix Warning "readline" message
+(set-popup-rule! "^\\*Python*"  :side 'bottom :size .30) ;; Python console to the bottom
+
+;; Disable native completion
+
 (after! python
+
+  (setq python-shell-completion-native-enable nil)
   (set-company-backend! 'python-mode 'elpy-company-backend)
-  (setq python-shell-interpreter "/usr/bin/python3"
-        org-babel-python-command "/usr/bin/python3")
+  ;; (setq python-shell-interpreter "/usr/bin/python3"
+  ;;       org-babel-python-command "/usr/bin/python3")
   )
 (after! elpy
   (set-company-backend! 'elpy-mode
     '(elpy-company-backend :with company-files company-yasnippet)))
+
+;; (add-hook 'python-mode-hook 'eglot-ensure)
 #+END_SRC
 
 #+RESULTS:
@@ -516,7 +525,7 @@ Display inline images after running code
 (after! python
   (set-company-backend! 'python-mode 'elpy-company-backend))
 (after! company
-  (setq company-idle-delay 0.5
+  (setq company-idle-delay 0
         company-tooltip-limit 10
         company-dabbrev-downcase nil
         company-show-numbers t
@@ -533,12 +542,9 @@ Display inline images after running code
 ;;   (add-to-list 'company-backends 'company-tabnine))
 #+end_src
 
-*** LSP
+** LSP
 
 #+begin_src elisp
-(after! lsp-python-ms
-  (set-lsp-priority! 'pyright 1))
-
 ;; In case we get a wrong workspace root, we can delete it with lsp-workspace-folders-remove
 (after! lsp-mode
   (setq lsp-auto-guess-root nil))
@@ -569,7 +575,18 @@ Display inline images after running code
 ;; (load! "dynare.el")
 #+END_SRC
 
+** Magit
 
+#+begin_src elisp
+(after! magit
+  ;; (magit-wip-mode)
+  (setq magit-save-repository-buffers nil
+        ;; Don't restore the wconf after quitting magit
+        magit-inhibit-save-previous-winconf t
+        magit-log-arguments '("--graph" "--decorate" "--color")
+        ;; magit-delete-by-moving-to-trash nil
+        git-commit-summary-max-length 120))
+#+end_src
 * LaTeX
 
 ** Latex Process

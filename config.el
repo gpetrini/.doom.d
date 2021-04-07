@@ -1,6 +1,7 @@
 (setq user-full-name "Gabriel Petrini"
       user-mail-address "gpetrinidasilveira@gmail.com")
 
+(setq package-native-compile t)
 (setq-default
  delete-by-moving-to-trash t                      ; Delete files to trash
  tab-width 4                                                         ; Set width for tabs
@@ -271,19 +272,27 @@
     (set-window-buffer w1 w1name)))
 
 ;; Fix Warning "readline" message
+(set-popup-rule! "^\\*Python*"  :side 'bottom :size .30) ;; Python console to the bottom
+
+;; Disable native completion
+
 (after! python
+
+  (setq python-shell-completion-native-enable nil)
   (set-company-backend! 'python-mode 'elpy-company-backend)
-  (setq python-shell-interpreter "/usr/bin/python3"
-        org-babel-python-command "/usr/bin/python3")
+  ;; (setq python-shell-interpreter "/usr/bin/python3"
+  ;;       org-babel-python-command "/usr/bin/python3")
   )
 (after! elpy
   (set-company-backend! 'elpy-mode
     '(elpy-company-backend :with company-files company-yasnippet)))
 
+;; (add-hook 'python-mode-hook 'eglot-ensure)
+
 (after! python
   (set-company-backend! 'python-mode 'elpy-company-backend))
 (after! company
-  (setq company-idle-delay 0.5
+  (setq company-idle-delay 0
         company-tooltip-limit 10
         company-dabbrev-downcase nil
         company-show-numbers t
@@ -298,9 +307,6 @@
 ;;   )
 ;; (after! company
 ;;   (add-to-list 'company-backends 'company-tabnine))
-
-(after! lsp-python-ms
-  (set-lsp-priority! 'pyright 1))
 
 ;; In case we get a wrong workspace root, we can delete it with lsp-workspace-folders-remove
 (after! lsp-mode
@@ -326,6 +332,15 @@
         lsp-enable-file-watchers nil))
 
 ;; (load! "dynare.el")
+
+(after! magit
+  ;; (magit-wip-mode)
+  (setq magit-save-repository-buffers nil
+        ;; Don't restore the wconf after quitting magit
+        magit-inhibit-save-previous-winconf t
+        magit-log-arguments '("--graph" "--decorate" "--color")
+        ;; magit-delete-by-moving-to-trash nil
+        git-commit-summary-max-length 120))
 
 (load! "scimax-org-latex.el")
 

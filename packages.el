@@ -72,7 +72,7 @@
 ;; (package! org-superstar)
 ;; (package! synosaurus)
 (package! async)
-(package! elpy)
+;; (package! elpy)
 ;; (package! nose) ;; Trying to fix nosetests warnings
 
 (package! org-roam-bibtex
@@ -98,3 +98,209 @@
 ;; (package! mu4e-alert)
 (package! nov)
 (package! flycheck-aspell)
+
+(package! org-ref)
+;(package! interleave)                                        not using anymore as org-noter is far superior.
+(package! ivy-bibtex)
+;; (package! ox-pandoc)
+;; (package! org-download)
+;; (package! org-pretty-table-mode
+;;   :recipe (:host github :repo "Fuco1/org-pretty-table"))
+(package! org-pretty-tags)
+;; (package! sublimity)
+;; (package! org-fancy-priorities)
+(package! info-colors) ; pretty colors
+(package! exec-path-from-shell)
+(package! elfeed)
+(package! org-bullets)
+;; (package! peep-dired)
+(package! rainbow-mode)
+;; (package! writeroom-mode)
+(package! ox-reveal)
+(package! academic-phrases)
+;; (package! org-fragtog)
+(package! citeproc-org)
+;; (package! org-superstar)
+;; (package! synosaurus)
+(package! async)
+;; (package! elpy)
+;; (package! nose) ;; Trying to fix nosetests warnings
+
+(package! org-roam-bibtex
+  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; When using org-roam via the `+roam` flag
+(unpin! org-roam company-org-roam)
+;; When using bibtex-completion via the `biblio` module
+(unpin! bibtex-completion helm-bibtex ivy-bibtex)
+(package! org-roam-server)
+;; (package! ess-view)
+;; (package! ess-view-data)
+;; (package! company-tabnine)
+;; (package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
+
+;; Use org-appear to reveal emphasis markers when moving the cursor over them.
+(package! org-appear
+  :recipe (:host github
+           :repo "awth13/org-appear"))
+;; (package! iedit)
+;; (package! org-mime)
+;; (package! org-msg :disable t)
+(package! elfeed-goodies)
+;; (package! mu4e-alert)
+(package! nov)
+(package! flycheck-aspell)
+
+(package! org-ref)
+;(package! interleave)                                        not using anymore as org-noter is far superior.
+(package! ivy-bibtex)
+;; (package! ox-pandoc)
+;; (package! org-download)
+;; (package! org-pretty-table-mode
+;;   :recipe (:host github :repo "Fuco1/org-pretty-table"))
+(package! org-pretty-tags)
+;; (package! sublimity)
+;; (package! org-fancy-priorities)
+(package! info-colors) ; pretty colors
+(package! exec-path-from-shell)
+(package! elfeed)
+(package! org-bullets)
+;; (package! peep-dired)
+(package! rainbow-mode)
+;; (package! writeroom-mode)
+(package! ox-reveal)
+(package! academic-phrases)
+;; (package! org-fragtog)
+(package! citeproc-org)
+;; (package! org-superstar)
+;; (package! synosaurus)
+(package! async)
+;; (package! elpy)
+;; (package! nose) ;; Trying to fix nosetests warnings
+
+(package! org-roam-bibtex
+  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; When using org-roam via the `+roam` flag
+(unpin! org-roam company-org-roam)
+;; When using bibtex-completion via the `biblio` module
+(unpin! bibtex-completion helm-bibtex ivy-bibtex)
+(package! org-roam-server)
+;; (package! ess-view)
+;; (package! ess-view-data)
+;; (package! company-tabnine)
+;; (package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
+
+;; Use org-appear to reveal emphasis markers when moving the cursor over them.
+(package! org-appear
+  :recipe (:host github
+           :repo "awth13/org-appear"))
+;; (package! iedit)
+;; (package! org-mime)
+;; (package! org-msg :disable t)
+(package! elfeed-goodies)
+;; (package! mu4e-alert)
+(package! nov)
+(package! flycheck-aspell)
+
+(package! org-ref)
+;(package! interleave)                                        not using anymore as org-noter is far superior.
+(package! ivy-bibtex)
+;; (package! ox-pandoc)
+;; (package! org-download)
+;; (package! org-pretty-table-mode
+;;   :recipe (:host github :repo "Fuco1/org-pretty-table"))
+(package! org-pretty-tags)
+;; (package! sublimity)
+;; (package! org-fancy-priorities)
+(package! info-colors) ; pretty colors
+(package! exec-path-from-shell)
+(package! elfeed)
+(package! org-bullets)
+;; (package! peep-dired)
+(package! rainbow-mode)
+;; (package! writeroom-mode)
+(package! ox-reveal)
+(package! academic-phrases)
+;; (package! org-fragtog)
+(package! citeproc-org)
+;; (package! org-superstar)
+;; (package! synosaurus)
+(package! async)
+;; (package! elpy)
+;; (package! nose) ;; Trying to fix nosetests warnings
+
+(package! org-roam-bibtex
+  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; When using org-roam via the `+roam` flag
+(unpin! org-roam company-org-roam)
+;; When using bibtex-completion via the `biblio` module
+(unpin! bibtex-completion helm-bibtex ivy-bibtex)
+(package! org-roam-server)
+;; (package! ess-view)
+;; (package! ess-view-data)
+;; (package! company-tabnine)
+;; (package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
+
+;; Use org-appear to reveal emphasis markers when moving the cursor over them.
+(package! org-appear
+  :recipe (:host github
+           :repo "awth13/org-appear"))
+;; (package! iedit)
+;; (package! org-mime)
+;; (package! org-msg :disable t)
+(package! elfeed-goodies)
+;; (package! mu4e-alert)
+(package! nov)
+(package! flycheck-aspell)
+
+(package! org-ref)
+;(package! interleave)                                        not using anymore as org-noter is far superior.
+(package! ivy-bibtex)
+;; (package! ox-pandoc)
+;; (package! org-download)
+;; (package! org-pretty-table-mode
+;;   :recipe (:host github :repo "Fuco1/org-pretty-table"))
+(package! org-pretty-tags)
+;; (package! sublimity)
+;; (package! org-fancy-priorities)
+(package! info-colors) ; pretty colors
+(package! exec-path-from-shell)
+(package! elfeed)
+(package! org-bullets)
+;; (package! peep-dired)
+(package! rainbow-mode)
+;; (package! writeroom-mode)
+(package! ox-reveal)
+(package! academic-phrases)
+;; (package! org-fragtog)
+(package! citeproc-org)
+;; (package! org-superstar)
+;; (package! synosaurus)
+(package! async)
+;; (package! elpy)
+;; (package! nose) ;; Trying to fix nosetests warnings
+
+(package! org-roam-bibtex
+  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;; When using org-roam via the `+roam` flag
+(unpin! org-roam company-org-roam)
+;; When using bibtex-completion via the `biblio` module
+(unpin! bibtex-completion helm-bibtex ivy-bibtex)
+(package! org-roam-server)
+;; (package! ess-view)
+;; (package! ess-view-data)
+;; (package! company-tabnine)
+;; (package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
+
+;; Use org-appear to reveal emphasis markers when moving the cursor over them.
+(package! org-appear
+  :recipe (:host github
+           :repo "awth13/org-appear"))
+;; (package! iedit)
+;; (package! org-mime)
+;; (package! org-msg :disable t)
+(package! elfeed-goodies)
+;; (package! mu4e-alert)
+(package! nov)
+(package! flycheck-aspell)
+(package! lsp-python-ms)
+;; (package! lsp-python-ms :disable t)
