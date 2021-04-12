@@ -21,7 +21,7 @@
 
        :completion
        (company
-       ;;+childframe
+       +childframe
                 )                     ; the ultimate code completion backend
        ;; (helm +fuzzy)
        ;;ido               ; the other *other* search engine...
