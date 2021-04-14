@@ -217,7 +217,7 @@ I initially started using this package in order to manage my citations. However,
         org-directory "/HDD/Org/"
         notes-directory "/HDD/Org/notes"
         pdfs-directory "/HDD/PDFs/"
-        refs-directory "/HDD/Org/all_my_refs.bib"
+        refs-directory "/HDD/Org/zotero_refs.bib"
         org-src-window-setup 'current-window
         org-startup-folded 'overview
         org-hide-emphasis-markers t))
@@ -358,7 +358,7 @@ This just configures spelling and grammar checking support.
 (setq ispell-program-name (executable-find "aspell")
       ispell-dictionary "en_US")
 (setq flyspell-correct-popup t)
-;; (setq langtool-language-tool-jar "/HDD/Configuracoes/LanguageTool-stable/LanguageTool-5.2/languagetool.jar")
+;; (setq langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.2/languagetool.jar")
 ;; (setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
 #+END_SRC
 
