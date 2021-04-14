@@ -181,7 +181,7 @@ I initially started using this package in order to manage my citations. However,
 
 #+BEGIN_SRC elisp
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
-(setq  doom-font (font-spec :family "Fira Mono" :size 20))
+;; (setq  doom-font (font-spec :family "Fira Mono" :size 20))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 20))
 (setq doom-theme 'doom-material)
 (after! ox
@@ -654,7 +654,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
 
 * PDF tools
 
-#+begin_src elisp
+#+begin_src elisp :tangle no
 (setq +latex-viewers '(pdf-tools))
 (setq pdf-annot-activate-created-annotations t
       pdf-view-display-size 'fit-width
@@ -862,7 +862,7 @@ mbsync -c ~/.config/mu4e/mbsyncrc -Dmn gpetrini-gmail
 
 
 ** Configuration
-#+begin_src elisp
+#+begin_src elisp :tangle no
 ;; (add-to-list 'load-path "your/path/to/mu4e")
 ;; if you installed it using your package manager
 (add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
@@ -905,7 +905,7 @@ mbsync -c ~/.config/mu4e/mbsyncrc -Dmn gpetrini-gmail
 
 ** Org-msg
 
-#+begin_src elisp
+#+begin_src elisp :tangle no
 ;; use imagemagick, if available
 (when (fboundp 'imagemagick-register-types)
   (imagemagick-register-types))

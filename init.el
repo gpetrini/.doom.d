@@ -20,9 +20,7 @@
        ;;layout            ; auie,ctsrnm is the superior home row
 
        :completion
-       (company
-       ;; +childframe
-                )                     ; the ultimate code completion backend
+       (company +childframe)                     ; the ultimate code completion backend
        ;; (helm +fuzzy)
        ;;ido               ; the other *other* search engine...
        (ivy +fonts +fuzzy +prescient +icons +childframe)
