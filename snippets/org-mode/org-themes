@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name:org-themes
+# key: <org-th
+# --
+
+#+SETUPFILE: https://fniessen.github.io/org-html-themes/org/theme-$1.setup

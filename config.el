@@ -21,6 +21,16 @@
 ;; (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
 (setq org-roam-directory "/HDD/Org/notes/")
+(setq org-notes-directory "/HDD/Org/notes/")
+(setq gtd-directory "/HDD/Org/gtd/")
+
+(map! :leader
+      (:prefix ("-" . "open file")
+       :desc "Edit readings list" "r" #'(lambda () (interactive) (find-file (expand-file-name "readings.org" gtd-directory)))
+       :desc "Edit projects file" "p" #'(lambda () (interactive) (find-file  (expand-file-name "projects.org" gtd-directory)))
+       :desc "Edit inbox tasks" "i" #'(lambda () (interactive) (find-file (expand-file-name "inbox.org" gtd-directory)))
+       :desc "Edit someday tasks" "s" #'(lambda () (interactive) (find-file (expand-file-name "someday.org" gtd-directory)))
+       ))
 
 (if (eq initial-window-system 'x)                 ; if started by emacs command or desktop file
     (toggle-frame-maximized)
@@ -48,11 +58,13 @@
 
 (setq! +biblio-pdf-library-dir "/HDD/PDFs/")
 
-(setq org-latex-pdf-process
-      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "biber %b"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+;; (setq org-latex-pdf-process
+;;       '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+;;         "biber %b"
+;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+(setq org-latex-pdf-process '("latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o %f"))
 
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
 ;; (setq  doom-font (font-spec :family "Fira Mono" :size 20))
@@ -70,10 +82,25 @@
 (setq evil-normal-state-cursor '(box "orange")
       evil-insert-state-cursor '(bar "orange")
       evil-visual-state-cursor '(hollow "orange"))
+(setq org-export-headline-levels 5) ; I like nesting
 
-(setq fancy-splash-image (concat doom-private-dir "./splash-images/black-hole-2.png"))
-;; (setq +doom-dashboard-banner-file
-;;       (expand-file-name "splash-images/black-hole2.png" doom-private-dir))
+(use-package! dashboard
+  :init      ;; tweak dashboard config before loading it
+  (setq dashboard-set-heading-icons t)
+  (setq dashboard-set-file-icons t)
+  (setq dashboard-banner-logo-title "Emacs Is More Than A Text Editor!")
+  (setq dashboard-startup-banner 'logo) ;; use standard emacs logo as banner
+  (setq dashboard-center-content nil) ;; set to 't' for centered content
+  (setq dashboard-items '((recents . 5)
+                          (bookmarks . 5)
+                          (projects . 5)
+                          (registers . 5)))
+  :config
+  (dashboard-setup-startup-hook)
+  (dashboard-modify-heading-icons '((recents . "file-text")
+			      (bookmarks . "book"))))
+
+(setq doom-fallback-buffer "*dashboard*")
 
 (after! org
   (require 'org-bullets)  ; Nicer bullets in org-mode
@@ -122,6 +149,94 @@
         '((unicode (on . "<span class=\"task-done\">&#x2611;</span>")
                    (off . "<span class=\"task-todo\">&#x2610;</span>")
                    (trans . "<span class=\"task-in-progress\">[-]</span>")))))
+
+(after! org-superstar
+  (setq org-superstar-headline-bullets-list '("◉" "○" "✸" "✿" "✤" "✜" "◆" "▶")
+        ;; org-superstar-headline-bullets-list '("Ⅰ" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ" "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ" "Ⅹ")
+        org-superstar-prettify-item-bullets t ))
+
+(setq org-ellipsis " ▾ "
+      org-hide-leading-stars t
+      org-priority-highest ?A
+      org-priority-lowest ?E
+      org-priority-faces
+      '((?A . 'all-the-icons-red)
+        (?B . 'all-the-icons-orange)
+        (?C . 'all-the-icons-yellow)
+        (?D . 'all-the-icons-green)
+        (?E . 'all-the-icons-blue)))
+
+
+(appendq! +ligatures-extra-symbols
+          `(:checkbox      "☐"
+            :pending       "◼"
+            :checkedbox    "☑"
+            :list_property "∷"
+            :em_dash       "—"
+            :ellipses      "…"
+            :arrow_right   "→"
+            :arrow_left    "←"
+            :title         "𝙏"
+            :subtitle      "𝙩"
+            :author        "𝘼"
+            :date          "𝘿"
+            :property      "☸"
+            :options       "⌥"
+            :latex_class   "🄲"
+            :latex_header  "⇥"
+            :beamer_header "↠"
+            :attr_latex    "🄛"
+            :attr_html     "🄗"
+            :begin_quote   "❝"
+            :end_quote     "❞"
+            :caption       "☰"
+            :header        "›"
+            :results       "🠶"
+            :begin_export  "⏩"
+            :end_export    "⏪"
+            :properties    "⚙"
+            :end           "∎"
+            :priority_a   ,(propertize "⚑" 'face 'all-the-icons-red)
+            :priority_b   ,(propertize "⬆" 'face 'all-the-icons-orange)
+            :priority_c   ,(propertize "■" 'face 'all-the-icons-yellow)
+            :priority_d   ,(propertize "⬇" 'face 'all-the-icons-green)
+            :priority_e   ,(propertize "❓" 'face 'all-the-icons-blue)))
+(set-ligatures! 'org-mode
+  :merge t
+  :checkbox      "[ ]"
+  :pending       "[-]"
+  :checkedbox    "[X]"
+  :list_property "::"
+  :em_dash       "---"
+  :ellipsis      "..."
+  :arrow_right   "->"
+  :arrow_left    "<-"
+  :title         "#+title:"
+  :subtitle      "#+subtitle:"
+  :author        "#+author:"
+  :date          "#+date:"
+  :property      "#+property:"
+  :options       "#+options:"
+  :latex_class   "#+latex_class:"
+  :latex_header  "#+latex_header:"
+  :beamer_header "#+beamer_header:"
+  :attr_latex    "#+attr_latex:"
+  :attr_html     "#+attr_latex:"
+  :begin_quote   "#+begin_quote"
+  :end_quote     "#+end_quote"
+  :caption       "#+caption:"
+  :header        "#+header:"
+  :begin_export  "#+begin_export"
+  :end_export    "#+end_export"
+  :results       "#+RESULTS:"
+  :property      ":PROPERTIES:"
+  :end           ":END:"
+  :priority_a    "[#A]"
+  :priority_b    "[#B]"
+  :priority_c    "[#C]"
+  :priority_d    "[#D]"
+  :priority_e    "[#E]")
+(plist-put +ligatures-extra-symbols :name "⁍")
 
 (use-package! graphviz-dot-mode
   :defer t
@@ -194,8 +309,8 @@
 (setq ispell-program-name (executable-find "aspell")
       ispell-dictionary "en_US")
 (setq flyspell-correct-popup t)
-;; (setq langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.2/languagetool.jar")
-;; (setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
+(setq langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.2/languagetool.jar")
+(setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
 
 (when (memq window-system '(mac ns x))
   (require 'exec-path-from-shell)
@@ -240,7 +355,6 @@
       ess-use-company nil
       )
 
-(setq ess-use-flymake nil)
 (setq ess-r--no-company-meta t)
 
 (setq ess-ask-for-ess-directory t
@@ -271,6 +385,20 @@
     (set-window-buffer w2 "*R*")
     (set-window-buffer w1 w1name)))
 
+(setq ess-R-font-lock-keywords
+      '((ess-R-fl-keyword:keywords . t)
+        (ess-R-fl-keyword:constants . t)
+        (ess-R-fl-keyword:modifiers . t)
+        (ess-R-fl-keyword:fun-defs . t)
+        (ess-R-fl-keyword:assign-ops . t)
+        (ess-R-fl-keyword:%op% . t)
+        (ess-fl-keyword:fun-calls . t)
+        (ess-fl-keyword:numbers . t)
+        (ess-fl-keyword:operators . t)
+        (ess-fl-keyword:delimiters . t)
+        (ess-fl-keyword:= . t)
+        (ess-R-fl-keyword:F&T . t)))
+
 ;; Fix Warning "readline" message
 (set-popup-rule! "^\\*Python*"  :side 'bottom :size .30) ;; Python console to the bottom
 
@@ -280,8 +408,8 @@
 
   (setq python-shell-completion-native-enable nil)
   (set-company-backend! 'python-mode 'elpy-company-backend)
-  ;; (setq python-shell-interpreter "/usr/bin/python3"
-  ;;       org-babel-python-command "/usr/bin/python3")
+  (setq python-shell-interpreter "/usr/bin/python3"
+        org-babel-python-command "/usr/bin/python3")
   )
 (after! elpy
   (set-company-backend! 'elpy-mode
@@ -380,6 +508,18 @@
 
 (citeproc-org-setup)
 
+(setq reftex-default-bibliography "/HDD/Org/zotero_refs.bib")
+
+(setq +latex-viewers '(evince pdf-tools zathura okular skim sumatrapdf))
+
+(setq org-highlight-latex-and-related '(native script entities))
+
+(add-to-list 'org-src-block-faces '("latex" (:inherit default :extend t)))
+
+(setq pdf-annot-activate-created-annotations t
+      pdf-view-display-size 'fit-width
+      pdf-view-resize-factor 1.1)
+
 (use-package! org-noter
   :after (:any org pdf-view)
   :config
@@ -395,6 +535,7 @@
    org-noter-notes-window-location 'horizontal-split
    bibtex-completion-pdf-field "file"
    )
+  ;; (require 'org-noter-pdftools)
   )
 
 (use-package! org-ref
@@ -408,7 +549,7 @@
         org-ref-completion-library 'org-ref-ivy-cite
         org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
         org-ref-default-bibliography (list refs-directory)
-        org-ref-notes-directory org-directory
+        org-ref-notes-directory org-notes-directory
         org-ref-notes-function 'orb-edit-notes
         ))
 
@@ -538,3 +679,109 @@ Time-stamp: %<%Y-%m-%d>
   :mode ("\\.epub\\'" . nov-mode)
   :config
   (setq nov-save-place-file (concat doom-cache-dir "nov-places")))
+
+(use-package! vlf-setup
+  :defer-incrementally vlf-tune vlf-base vlf-write vlf-search vlf-occur vlf-follow vlf-ediff vlf)
+
+(use-package! org-pandoc-import :after org)
+
+(setq +zen-text-scale 0.5)
+
+
+
+(defvar +zen-serif-p t
+  "Whether to use a serifed font with `mixed-pitch-mode'.")
+(after! writeroom-mode
+  (defvar-local +zen--original-org-indent-mode-p nil)
+  (defvar-local +zen--original-mixed-pitch-mode-p nil)
+  (defvar-local +zen--original-solaire-mode-p nil)
+  (defvar-local +zen--original-org-pretty-table-mode-p nil)
+  (defun +zen-enable-mixed-pitch-mode-h ()
+    "Enable `mixed-pitch-mode' when in `+zen-mixed-pitch-modes'."
+    (when (apply #'derived-mode-p +zen-mixed-pitch-modes)
+      (if writeroom-mode
+          (progn
+            (setq +zen--original-solaire-mode-p solaire-mode)
+            (solaire-mode -1)
+            (setq +zen--original-mixed-pitch-mode-p mixed-pitch-mode)
+            (funcall (if +zen-serif-p #'mixed-pitch-serif-mode #'mixed-pitch-mode) 1))
+        (funcall #'mixed-pitch-mode (if +zen--original-mixed-pitch-mode-p 1 -1))
+        (when +zen--original-solaire-mode-p (solaire-mode 1)))))
+  (pushnew! writeroom--local-variables
+            'display-line-numbers
+            'visual-fill-column-width
+            'org-adapt-indentation
+            'org-superstar-headline-bullets-list
+            'org-superstar-remove-leading-stars)
+  (add-hook 'writeroom-mode-enable-hook
+            (defun +zen-prose-org-h ()
+              "Reformat the current Org buffer appearance for prose."
+              (when (eq major-mode 'org-mode)
+                (setq display-line-numbers nil
+                      visual-fill-column-width 60
+                      org-adapt-indentation nil)
+                (when (featurep 'org-superstar)
+                  (setq-local org-superstar-headline-bullets-list '("🙘" "🙙" "🙚" "🙛")
+                              ;; org-superstar-headline-bullets-list '("🙐" "🙑" "🙒" "🙓" "🙔" "🙕" "🙖" "🙗")
+                              org-superstar-remove-leading-stars t)
+                  (org-superstar-restart))
+                (setq
+                 +zen--original-org-indent-mode-p org-indent-mode
+                 +zen--original-org-pretty-table-mode-p (bound-and-true-p org-pretty-table-mode))
+                (org-indent-mode -1)
+                (org-pretty-table-mode 1))))
+  (add-hook 'writeroom-mode-disable-hook
+            (defun +zen-nonprose-org-h ()
+              "Reverse the effect of `+zen-prose-org'."
+              (when (eq major-mode 'org-mode)
+                (when (featurep 'org-superstar)
+                  (org-superstar-restart))
+                (when +zen--original-org-indent-mode-p (org-indent-mode 1))
+                ;; (unless +zen--original-org-pretty-table-mode-p (org-pretty-table-mode -1))
+                ))))
+
+(use-package! company-org-block
+  :after org
+  :custom
+  (company-org-block-edit-style 'auto) ;; 'auto, 'prompt, or 'inline
+  :hook ((org-mode . (lambda ()
+                       (setq-local company-backends '(company-org-block))
+                       (company-mode +1)))))
+
+(load! (expand-file-name "netlogo-mode.el" "~/.doom.d/netlogo/"))
+;; (use-package! netlogo-mode :load-path "./netlogo/")
+
+;; (org-babel-do-load-languages 'org-babel-load-languages
+;;                              (append org-babel-load-languages
+;;                               '((nlogo     . t)
+;;                                 (netlogo       . t)
+;;                                 )))
+
+(use-package! org-transclusion
+  :defer
+  :after org
+  :init
+  (map!
+   :map global-map "<f12>" #'org-transclusion-add
+   :leader
+   :prefix "n"
+   :desc "Org Transclusion Mode" "t" #'org-transclusion-mode))
+
+(defvar org-latex-extra-special-string-regexps
+  '(("->" . "\\\\textrightarrow{}")
+    ("<-" . "\\\\textleftarrow{}")))
+
+(defun org-latex-convert-extra-special-strings (string)
+  "Convert special characters in STRING to LaTeX."
+  (dolist (a org-latex-extra-special-string-regexps string)
+    (let ((re (car a))
+          (rpl (cdr a)))
+      (setq string (replace-regexp-in-string re rpl string t)))))
+
+(defadvice! org-latex-plain-text-extra-special-a (orig-fn text info)
+  "Make `org-latex-plain-text' handle some extra special strings."
+  :around #'org-latex-plain-text
+  (let ((output (funcall orig-fn text info)))
+    (when (plist-get info :with-special-strings)
+      (setq output (org-latex-convert-extra-special-strings output)))
+    output))

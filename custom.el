@@ -10,7 +10,7 @@
  '(org-roam-server-style nil)
  '(org-src-window-setup 'current-window)
  '(package-selected-packages
-   '(interleave olivetti focus helm-spotify centaur-tabs org-noter org-roam-server))
+   '(ess-view-data interleave olivetti focus helm-spotify centaur-tabs org-noter org-roam-server))
  '(send-mail-function 'mailclient-send-it)
  '(smtpmail-smtp-server "smtp.gmail.com" t)
  '(smtpmail-smtp-service 587 t))

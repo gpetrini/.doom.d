@@ -55,10 +55,10 @@
 	("theorems, skins" "tcolorbox" t)
 	
 	;; Abnt related configuration
-	("style=abnt,noslsn,extrayear,uniquename=init,giveninits,justify,sccite,
-scbib,repeattitles,doi=false,isbn=false,url=false,maxcitenames=2,
-natbib=true,backend=biber" "biblatex" t)
-
+	;; ("style=authoryear,extrayear,uniquename=init,giveninits,justify,repeattitles,doi=false,isbn=false,url=true,maxcitenames=2,natbib=true,backend=biber" "biblatex" t)
+        ("style=abnt,noslsn,extrayear,uniquename=init,giveninits,justify,sccite,
+        scbib,repeattitles,doi=false,isbn=false,url=false,maxcitenames=2,
+        natbib=true,backend=biber" "biblatex" t)
 	
 	("" "url" nil)
 	;; this is used for syntax highlighting of code
