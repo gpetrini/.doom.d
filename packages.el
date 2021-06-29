@@ -108,8 +108,8 @@
 (package! company-org-block)
 (package! dashboard)
 
-(package! netlogo-mode :recipe (:host github :repo "tgolsson/netlogo-mode" :files ("*.el" "emacs/")))
-(package! company-netlogo :recipe (:host github :repo "tgolsson/company-netlogo" :files ("company-netlogo.el")))
+;; (package! netlogo-mode :recipe (:host github :repo "tgolsson/netlogo-mode" :files ("*.el" "emacs/")))
+;; (package! company-netlogo :recipe (:host github :repo "tgolsson/company-netlogo" :files ("*.el")))
 
 (package! org-transclusion
   :recipe (:host github

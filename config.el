@@ -69,7 +69,8 @@
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
 ;; (setq  doom-font (font-spec :family "Fira Mono" :size 20))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 20))
-(setq doom-theme 'doom-material)
+;; (setq doom-theme 'doom-material)
+(setq doom-theme 'doom-dracula)
 (after! ox
   (require 'ox-extra)
   (ox-extras-activate '(ignore-headlines)))
@@ -470,6 +471,11 @@
         ;; magit-delete-by-moving-to-trash nil
         git-commit-summary-max-length 120))
 
+(load! "netlogo/netlogo-mode")
+(load! "netlogo/company-netlogo")
+
+(set-company-backend! 'netlogo-mode '(:separate company-netlogo company-yasnippet))
+
 (load! "scimax-org-latex.el")
 
 (setq org-latex-pdf-process
@@ -747,15 +753,6 @@ Time-stamp: %<%Y-%m-%d>
   :hook ((org-mode . (lambda ()
                        (setq-local company-backends '(company-org-block))
                        (company-mode +1)))))
-
-(load! (expand-file-name "netlogo-mode.el" "~/.doom.d/netlogo/"))
-;; (use-package! netlogo-mode :load-path "./netlogo/")
-
-;; (org-babel-do-load-languages 'org-babel-load-languages
-;;                              (append org-babel-load-languages
-;;                               '((nlogo     . t)
-;;                                 (netlogo       . t)
-;;                                 )))
 
 (use-package! org-transclusion
   :defer

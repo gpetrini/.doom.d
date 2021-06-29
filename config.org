@@ -204,7 +204,8 @@ I initially started using this package in order to manage my citations. However,
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
 ;; (setq  doom-font (font-spec :family "Fira Mono" :size 20))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 20))
-(setq doom-theme 'doom-material)
+;; (setq doom-theme 'doom-material)
+(setq doom-theme 'doom-dracula)
 (after! ox
   (require 'ox-extra)
   (ox-extras-activate '(ignore-headlines)))
@@ -761,6 +762,21 @@ Display inline images after running code
         ;; magit-delete-by-moving-to-trash nil
         git-commit-summary-max-length 120))
 #+end_src
+** Netlogo
+
+*** NetLogo mode and company-netlogo
+
+#+begin_src elisp
+(load! "netlogo/netlogo-mode")
+(load! "netlogo/company-netlogo")
+
+(set-company-backend! 'netlogo-mode '(:separate company-netlogo company-yasnippet))
+#+end_src
+
+
+
+
+
 * LaTeX
 
 ** Latex Process
@@ -1260,32 +1276,6 @@ PhD Student at University of Campinas - Brazil\n
   :hook ((org-mode . (lambda ()
                        (setq-local company-backends '(company-org-block))
                        (company-mode +1)))))
-#+end_src
-
-* NetLogo specifics
-
-** NetLogo mode
-
-#+begin_src elisp
-(load! (expand-file-name "netlogo-mode.el" "~/.doom.d/netlogo/"))
-;; (use-package! netlogo-mode :load-path "./netlogo/")
-
-;; (org-babel-do-load-languages 'org-babel-load-languages
-;;                              (append org-babel-load-languages
-;;                               '((nlogo     . t)
-;;                                 (netlogo       . t)
-;;                                 )))
-
-#+end_src
-
-
-
-** Netlogo company mode
-#+begin_src elisp :tangle no
-;; (require './netlogo/company-netlogo)
-;; (load! (expand-file-name "company-netlogo.el" "~/.doom.d/netlogo/"))
-(use-package! company-netlogo :defer t)
-(add-to-list 'company-backends '(:separate company-netlogo company-yasnippet))
 #+end_src
 
 * Org transclusion

@@ -53,6 +53,6 @@ non-nil"
     (sorted 't)
     (duplicates 't)))
 
-(load-file (file-relative-name "signatures.el"))
+(load-file "~/.doom.d/netlogo/signatures.el")
 
 (provide 'company-netlogo)
