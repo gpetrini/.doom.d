@@ -29,9 +29,9 @@
        :ui
        deft              ; notational velocity for Emacs
        doom              ; what makes DOOM look the way it does
-       ;; doom-dashboard    ; a nifty splash screen for Emacs
+       doom-dashboard    ; a nifty splash screen for Emacs
        ;; doom-quit         ; DOOM quit-message prompts when you quit Emacs
-       (emoji +github +unicode)  ; 🙂
+       ;; (emoji +github +unicode)  ; 🙂
        ;;fill-column       ; a `fill-column' indicator
        hl-todo           ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
        ;;hydra
@@ -45,7 +45,7 @@
        ophints           ; highlight the region an operation acts on
        (popup +all)   ; tame sudden yet inevitable temporary windows
        ;;tabs              ; a tab bar for Emacs
-       treemacs          ; a project drawer, like neotree but cooler
+       ;; treemacs          ; a project drawer, like neotree but cooler
        unicode           ; extended unicode support for various languages
        ;; vc-gutter         ; vcs diff in the fringe
        ;; vi-tilde-fringe   ; fringe tildes to mark beyond EOB
@@ -99,7 +99,8 @@
        (lookup                      ; helps you navigate your code and documentation
         +dictionary)                 ; dictionary/thesaurus is nice
        (lsp
-        +eglot
+        +peek
+        ;; +eglot
             )
        magit             ; a git porcelain for Emacs
        ;;make              ; run make tasks from Emacs
@@ -161,8 +162,9 @@
        (org                         ; organize your plain life in plain text
         +pretty                     ; yessss my pretties! (nice unicode symbols)
         +dragndrop                  ; drag & drop files/images into org buffers
-        +roam
-        ;; +pomodoro
+        ;; +roam
+        +roam2
+        +pomodoro
         +jupyter                    ; ipython/jupyter support for babel
         +pandoc                     ; export-with-pandoc support
         +org-bullets
@@ -208,6 +210,9 @@
 
        :config
        literate
-       (default +bindings +smartparens)) ;
+       (default
+         +bindings
+         ;; +smartparens
+         )) ;
 
 ;; (setq comp-deferred-compilation t)

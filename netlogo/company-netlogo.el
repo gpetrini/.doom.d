@@ -1,5 +1,5 @@
 (require 'netlogo-mode)
-(require 'cl)
+(require 'cl-lib)
 
 (defgroup company-netlogo nil
   "company backend for NetLogo"
@@ -43,7 +43,7 @@ non-nil"
 
 (defun company-netlogo (command &optional arg &rest ignored)
   (interactive (list 'interactive))
-  (case command
+  (cl-case command
     (interactive (company-begin-backend 'company-netlogo))
     (prefix (company-grab-symbol))
     (candidates (company-netlogo-candidates arg))

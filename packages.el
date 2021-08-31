@@ -76,12 +76,26 @@
 (package! elpy)
 ;; (package! nose) ;; Trying to fix nosetests warnings
 
+
+
+;; (package! org-roam :disable t)
+
+(package! vulpea
+  :recipe (:host github :repo "d12frosted/vulpea"))
+
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 ;; When using org-roam via the `+roam` flag
+(package! org-roam
+  :recipe (:host github :repo "org-roam/org-roam" :branch "master"))
+(package! org-roam-server
+  :recipe (:host github :repo "org-roam/org-roam-server" :branch "master"))
+(package! company-org-roam
+  :recipe (:host github :repo "org-roam/company-org-roam" :branch "master"))
 (unpin! org-roam company-org-roam)
 ;; When using bibtex-completion via the `biblio` module
 (unpin! bibtex-completion helm-bibtex ivy-bibtex)
+
 (package! org-roam-server)
 (package! ess-view)
 (package! ess-view-data)
@@ -93,7 +107,6 @@
            :repo "awth13/org-appear"))
 ;; (package! iedit)
 (package! elfeed-goodies)
-(package! nov)
 (package! flycheck-aspell)
 
 (package! lsp-python-ms :disable t)
@@ -116,3 +129,7 @@
            :repo "nobiot/org-transclusion"
            :branch "main"
            :files ("*.el")))
+(package! websocket)
+(package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
+(package! ebib :recipe (:host github :repo "joostkremers/ebib" :files ("*.el")))
+(package! ox-gemini)

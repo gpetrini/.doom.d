@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: My red latex
+# key: <red
+# --
+
+@@latex:\myRed{}@@

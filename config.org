@@ -55,6 +55,9 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
 
 
 * Me
+:PROPERTIES:
+:ID:       9ad5be6b-9352-4dea-9363-c6974fe31f25
+:END:
 
 #+BEGIN_SRC elisp
 (setq user-full-name "Gabriel Petrini"
@@ -66,6 +69,9 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
 
 
 * Rudimentary Settings
+:PROPERTIES:
+:ID:       f9c43d1b-ca49-43e1-ae47-cb788250a602
+:END:
 
 #+BEGIN_SRC elisp
 (setq package-native-compile t)
@@ -75,6 +81,7 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
  uniquify-buffer-name-style 'forward      ; Uniquify buffer names
  window-combination-resize t                    ; take new window space from all other windows (not just current)
  x-stretch-cursor t
+ load-prefer-newer t                             ;; Native-comp related
  )                                           ; Stretch cursor to the glyph width
 
 (setq evil-want-fine-undo t                             ; By default while in insert all changes are one big blob. Be more granular
@@ -85,16 +92,22 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
 
 (delete-selection-mode 1)                             ; Replace selection when inserting text
 (display-time-mode 1)                                   ; Enable time in the mode-line
-;; (global-subword-mode 1)                           ; Iterate through CamelCase words
+(global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
 (setq org-roam-directory "/HDD/Org/notes/")
 (setq org-notes-directory "/HDD/Org/notes/")
 (setq gtd-directory "/HDD/Org/gtd/")
+(setq org-roam-v2-ack t)
+(after! gcmh
+  (setq gcmh-high-cons-threshold 33554432))  ; 32mb, or 64mb, or *maybe* 128mb, BUT NOT 512mb
 #+END_SRC
 
 
 
 ** Open specific files
+:PROPERTIES:
+:ID:       9a91ea38-10fb-47b2-ac91-7c4f786e0040
+:END:
 
 #+begin_src elisp
 (map! :leader
@@ -107,6 +120,9 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
 #+end_src
 
 * Full Screen Emacs
+:PROPERTIES:
+:ID:       ab0a9384-3179-42a7-b6aa-cf07a4cb89d9
+:END:
 I like to emacs to be fullscreen when I open it for the first time.
 #+BEGIN_SRC elisp
 (if (eq initial-window-system 'x)                 ; if started by emacs command or desktop file
@@ -117,6 +133,9 @@ I like to emacs to be fullscreen when I open it for the first time.
 #+RESULTS:
 
 * Modeline
+:PROPERTIES:
+:ID:       07d1a81f-79a9-45d4-af47-84a8f6d53a29
+:END:
 I expect most of the documents I work on to be UTF - 8, So I don't want to see that taking up space unless the encoding is something different
 #+BEGIN_SRC elisp
 (defun doom-modeline-conditional-buffer-encoding ()
@@ -143,6 +162,9 @@ I expect most of the documents I work on to be UTF - 8, So I don't want to see t
 #+RESULTS:
 
 * An Integrated Academic Environment
+:PROPERTIES:
+:ID:       c969078a-b2c7-4480-9efa-9e296bec8a45
+:END:
 
 This sets up Doom Emacs for an academic research and writing workflow, with
 integrated bibliographic management, note-taking and document authoring.
@@ -199,6 +221,9 @@ I initially started using this package in order to manage my citations. However,
 
 
 * Editor
+:PROPERTIES:
+:ID:       856efcd6-85ab-491e-9815-61ef55628b6d
+:END:
 
 #+BEGIN_SRC elisp
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
@@ -206,6 +231,7 @@ I initially started using this package in order to manage my citations. However,
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 20))
 ;; (setq doom-theme 'doom-material)
 (setq doom-theme 'doom-dracula)
+;; (setq doom-theme 'doom-henna)
 (after! ox
   (require 'ox-extra)
   (ox-extras-activate '(ignore-headlines)))
@@ -223,7 +249,7 @@ I initially started using this package in order to manage my citations. However,
 
 ** Splash-screen and dashboard
 
-#+begin_src elisp
+#+begin_src elisp :tangle no
 
 (use-package! dashboard
   :init      ;; tweak dashboard config before loading it
@@ -244,6 +270,9 @@ I initially started using this package in order to manage my citations. However,
 (setq doom-fallback-buffer "*dashboard*")
 #+end_src
 * Org-mode
+:PROPERTIES:
+:ID:       0ac56cd6-ed1b-4d4d-a458-2277d20a25b8
+:END:
 #+begin_src elisp
 (after! org
   (require 'org-bullets)  ; Nicer bullets in org-mode
@@ -255,7 +284,7 @@ I initially started using this package in order to manage my citations. However,
         org-directory "/HDD/Org/"
         notes-directory "/HDD/Org/notes"
         pdfs-directory "/HDD/PDFs/"
-        refs-directory "/HDD/Org/zotero_refs.bib"
+        refs-files '("/HDD/Org/zotero_refs.bib")
         org-src-window-setup 'current-window
         org-startup-folded 'overview
         org-hide-emphasis-markers t))
@@ -273,11 +302,16 @@ I initially started using this package in order to manage my citations. However,
 ;; pray to the ancient ones -- but how often do you *really* need that
 ;; information? I say rarely. So opt for manual completion:
 (require 'company)
-(setq company-idle-delay 0.2
+(setq company-idle-delay nil ;; https://discourse.doomemacs.org/t/why-is-emacs-doom-slow/83/3
       company-minimum-prefix-length 3)
+
+(setq org-src-window-setup 'current-window)
 #+end_src
 
 ** Headers
+:PROPERTIES:
+:ID:       28baee43-f1c8-4d29-a306-8f052b324545
+:END:
 
 #+begin_src elisp
 (setq org-babel-default-header-args
@@ -292,6 +326,9 @@ I initially started using this package in order to manage my citations. However,
 #+end_src
 
 ** UTF-8 check box
+:PROPERTIES:
+:ID:       c6358e3e-d6d5-4d9f-840d-1a2cfbc01886
+:END:
 
 #+begin_src elisp
 (after! org
@@ -304,6 +341,9 @@ I initially started using this package in order to manage my citations. However,
 
 
 ** Symbols
+:PROPERTIES:
+:ID:       e2279c30-f79d-49f0-8f69-e4b712736458
+:END:
 
 #+begin_src elisp
 (after! org-superstar
@@ -397,6 +437,9 @@ I initially started using this package in order to manage my citations. However,
 
 
 ** Extra special strings
+:PROPERTIES:
+:ID:       09cfe794-13e8-43ab-b45b-f1fb7b58d489
+:END:
 
 LaTeX already recognises =---= and =--= as em/en-dashes, =\-= as a shy hyphen, and the
 conversion of =...= to =\ldots{}= is hardcoded into ~org-latex-plain-text~ (unlike
@@ -426,6 +469,9 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 #+end_src
 
 * Graphviz
+:PROPERTIES:
+:ID:       321c5dc9-49d3-4ec1-ad53-963a795a87db
+:END:
 
 #+begin_src elisp
 (use-package! graphviz-dot-mode
@@ -435,6 +481,9 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 #+end_src
 * Elfeed
 ** Pre-config
+:PROPERTIES:
+:ID:       c01430da-5ed2-4865-acce-b6e7878d8558
+:END:
 
 #+begin_src elisp
 (use-package! elfeed-org
@@ -444,6 +493,9 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 #+end_src
 
 ** Keybindings
+:PROPERTIES:
+:ID:       803de0d8-4172-4b7f-bcff-d2d97408876b
+:END:
 
 #+begin_src elisp
 (map! :map elfeed-search-mode-map
@@ -504,6 +556,9 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 * Presentations
 
 ** Reveal.Js
+:PROPERTIES:
+:ID:       2815599a-160d-4e62-bee7-a51d83474fcd
+:END:
 #+BEGIN_SRC elisp :async t
 (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
 (setq org-reveal-mathjax t)
@@ -511,6 +566,9 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 
 
 * Grammar and Spelling
+:PROPERTIES:
+:ID:       062a7b0b-ca1d-4d51-b31a-03c0b684cb8b
+:END:
 
 This just configures spelling and grammar checking support.
 
@@ -525,6 +583,9 @@ This just configures spelling and grammar checking support.
 
 
 * Programming languages
+:PROPERTIES:
+:ID:       ec24c007-5127-4bcc-b852-6b1526eecac8
+:END:
 #+begin_src elisp
 (when (memq window-system '(mac ns x))
   (require 'exec-path-from-shell)
@@ -546,6 +607,9 @@ I find iedit absolutely indispensable when coding. In short: when you hit Ctrl-;
 #+end_src
 
 ** Stata
+:PROPERTIES:
+:ID:       6a6a980c-7c79-462e-9cec-ec82d0dd6793
+:END:
 
 [[https://www.louabill.org/Stata/ado-mode_install.html][Instalation instruction]]
 
@@ -575,6 +639,9 @@ ado-cus.el changed to include fake time
 
 
 ** R
+:PROPERTIES:
+:ID:       aa92bfce-dd66-4f60-97da-414ef2163f02
+:END:
 
 #+BEGIN_SRC elisp
 (setq display-buffer-alist
@@ -663,6 +730,9 @@ ado-cus.el changed to include fake time
 [[https://discourse.julialang.org/t/working-setup-for-emacs-org-mode/41574/4][Source]]
 
 ** Python
+:PROPERTIES:
+:ID:       ea600d30-abb9-4234-af10-f375479a7958
+:END:
 
 In order to install dependencies, run ([[https://github.com/gjstein/emacs.d/blob/master/config/init-44-coding-python.el][Source]])
 
@@ -695,6 +765,9 @@ Display inline images after running code
 
 
 *** Company
+:PROPERTIES:
+:ID:       8ea81be8-430a-49a1-b0f8-2927ef0c51b4
+:END:
 
 #+begin_src elisp
 (after! python
@@ -718,6 +791,9 @@ Display inline images after running code
 #+end_src
 
 ** LSP
+:PROPERTIES:
+:ID:       f3ed513f-42c5-4cf0-ad94-32bffa0f9a64
+:END:
 
 #+begin_src elisp
 ;; In case we get a wrong workspace root, we can delete it with lsp-workspace-folders-remove
@@ -745,12 +821,18 @@ Display inline images after running code
 #+end_src
 
 ** Dynare
+:PROPERTIES:
+:ID:       7e04f9ca-c7c2-4f83-afb1-cf61f058121f
+:END:
 
 #+BEGIN_SRC elisp
 ;; (load! "dynare.el")
 #+END_SRC
 
 ** Magit
+:PROPERTIES:
+:ID:       953bffb5-6de5-41d7-a517-6f113d1112e1
+:END:
 
 #+begin_src elisp
 (after! magit
@@ -765,8 +847,11 @@ Display inline images after running code
 ** Netlogo
 
 *** NetLogo mode and company-netlogo
+:PROPERTIES:
+:ID:       3a86c393-efc9-49f6-a6d4-df918e6d18af
+:END:
 
-#+begin_src elisp
+#+begin_src elisp :tangle yes
 (load! "netlogo/netlogo-mode")
 (load! "netlogo/company-netlogo")
 
@@ -780,6 +865,9 @@ Display inline images after running code
 * LaTeX
 
 ** Latex Process
+:PROPERTIES:
+:ID:       a1e804dc-ee54-4478-b8e1-6f317d061e09
+:END:
 
 #+BEGIN_SRC elisp
 (load! "scimax-org-latex.el")
@@ -792,12 +880,18 @@ Display inline images after running code
 #+END_SRC
 
 ** Labels
+:PROPERTIES:
+:ID:       7eaf0644-cc5e-4dbc-a405-102080ef39aa
+:END:
 
 #+BEGIN_SRC elisp
 (setq org-latex-prefer-user-labels t)
 #+END_SRC
 
 ** Math support
+:PROPERTIES:
+:ID:       6070e801-b991-4dab-8932-58175a6a54c4
+:END:
 #+begin_src elisp
 (use-package! cdlatex
     :after (:any org-mode LaTeX-mode)
@@ -817,6 +911,9 @@ Display inline images after running code
 #+end_src
 
 ** Tufte booker
+:PROPERTIES:
+:ID:       edda38cc-1212-4a28-94a8-256e9d330981
+:END:
 #+begin_src elisp
 (add-to-list
  'org-latex-classes
@@ -829,6 +926,9 @@ Display inline images after running code
     ("\\subsection{%s}" . "\\subsection*{%s}"))))
 #+end_src
 ** Citeproc
+:PROPERTIES:
+:ID:       1991f324-4d54-4fb8-9479-f615be50620c
+:END:
 
 Using citeproc-org currently requires adding its main rendering function (citeproc-org-render-references) to org-mode’s org-export-before-parsing-hook. This makes it incompatible with org-ref’s own citeproc, which also uses this hook. Org-ref’s citeproc is not activated by default, but if you have added its renderer function, orcp-citeproc, to your org-export-before-parsing-hook then it has to be removed before setting up citeproc-org.
 
@@ -842,17 +942,26 @@ during an Emacs session. After the command’s execution citeproc-org will remai
 (citeproc-org-setup)
 #+END_SRC
 ** Default refs
+:PROPERTIES:
+:ID:       3dcb1860-7b51-4ff3-a5ae-1c1c62ac5b4d
+:END:
 
 #+begin_src elisp
 (setq reftex-default-bibliography "/HDD/Org/zotero_refs.bib")
 #+end_src
 ** Viewer
+:PROPERTIES:
+:ID:       78bce554-5c5f-40ae-b07c-7b8e88895f48
+:END:
 
 #+begin_src elisp
 (setq +latex-viewers '(evince pdf-tools zathura okular skim sumatrapdf))
 #+end_src
 
 ** Prittier highlighting
+:PROPERTIES:
+:ID:       7ad5df1c-7f6e-49c5-8cb3-c60e94435f5a
+:END:
 
 First off, we want those fragments to look good.
 
@@ -872,6 +981,9 @@ Inspecting org-do-latex-and-related shows that "latex" is the language argument 
 #+end_src
 
 * PDF tools
+:PROPERTIES:
+:ID:       df7993d2-dc70-43de-aab6-bd1845252531
+:END:
 
 #+begin_src elisp
 (setq pdf-annot-activate-created-annotations t
@@ -880,6 +992,9 @@ Inspecting org-do-latex-and-related shows that "latex" is the language argument 
 #+end_src
 
 * Org-noter
+:PROPERTIES:
+:ID:       3353c759-0c2d-4133-9733-69d09a1b7f69
+:END:
 
 #+begin_src elisp
 (use-package! org-noter
@@ -939,80 +1054,217 @@ With a prefix ARG, remove start location."
     (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
 #+end_src
 
-* Org-ref
-#+begin_src elisp
-(use-package! org-ref
-  :after (org-roam bibtex)
-  :init
-  (setq org-ref-default-bibliography refs-directory)
-  (setq bibtex-completion-bibliography org-ref-default-bibliography)
-  (setq bibtex-completion-library-path pdfs-directory)
-  :config
-  (setq org-ref-pdfs-directory pdfs-directory
-        org-ref-completion-library 'org-ref-ivy-cite
-        org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
-        org-ref-default-bibliography (list refs-directory)
-        org-ref-notes-directory org-notes-directory
-        org-ref-notes-function 'orb-edit-notes
-        ))
-#+end_src
+* Org-roam
+
+** General configs
+:PROPERTIES:
+:ID:       c2f16b95-6052-44bf-8aad-0d521fde0cf4
+:END:
 
 #+begin_src elisp
-(setq
- bibtex-completion-notes-path org-directory
- bibtex-completion-bibliography refs-directory
- bibtex-completion-pdf-field "file"
- bibtex-completion-notes-template-multiple-files
- (concat
-  "${author-abbre} (${year}, ${journaltitle}): ${title}\n"
-  "#+OPTIONS: toc:nil num:nil\n"
-  "#+ROAM_KEY: cite:${key}\n"
-  "Time-stamp: %<%Y-%m-%d>\n"
-  "- tags :: ${keywords}\n"
-  "\n* Backlinks\n"
-  "\n* FISH-5SS\n"
-  "|---------------------------------------------+-----|\n"
-  "| <40>                                        |<50> |\n"
-  "| *Background*                                  |     |\n"
-  "| *Supporting Ideas*                            |     |\n"
-  "| *Purpose*                                     |     |\n"
-  "| *Originality/value (Contribution)*            |     |\n"
-  "| *Relevance*                                   |     |\n"
-  "| *Design/methodology/approach*                 |     |\n"
-  "| *Results*                                     |     |\n"
-  "| *(Interesting) Findings*                      |     |\n"
-  "| *Research limitations/implications (Critics)* |     |\n"
-  "| *Uncategorized stuff*                         |     |\n"
-  "| *5SS*                                         |     |\n"
-  "|---------------------------------------------+-----|\n"
-  "\n* Specifics comments\n :PROPERTIES:\n :Custom_ID: ${=key=}\n :AUTHOR: ${author-or-editor}\n :JOURNAL: ${journal}\n :YEAR: ${year}\n :DOI: ${doi}\n :URL: ${url}\n :END:\n"
-  "\n* PDF Highlights\n:PROPERTIES:\n :NOTER_DOCUMENT: %(orb-process-file-field \"${key}\")\n :END:\n"
-  ))
+(require 'org-roam)
+(setq org-roam-directory (file-truename org-notes-directory))
+(make-directory org-roam-directory 'parents)
+(setq org-roam-verbose t)
+(setq org-roam-db-location
+      (concat org-roam-directory "/.database/org-roam.db"))
+;; (setq +org-roam-open-buffer-on-find-file nil) ; deprecated for v2
+;; (setq org-roam-db-update-idle-seconds 30) ; deprecated for v2
+;; (setq org-roam-graph-viewer "qutebrowser") ; deprecated for v2
+
+;; Redefining some part of the slug generator.
+(cl-defmethod org-roam-node-slug ((node org-roam-node))
+  "Return the slug of NODE."
+  (let ((title (org-roam-node-title node))
+        (slug-trim-chars '(;; Combining Diacritical Marks https://www.unicode.org/charts/PDF/U0300.pdf
+                           768    ; U+0300 COMBINING GRAVE ACCENT
+                           769    ; U+0301 COMBINING ACUTE ACCENT
+                           770 ; U+0302 COMBINING CIRCUMFLEX ACCENT
+                           771 ; U+0303 COMBINING TILDE
+                           772 ; U+0304 COMBINING MACRON
+                           774 ; U+0306 COMBINING BREVE
+                           775 ; U+0307 COMBINING DOT ABOVE
+                           776 ; U+0308 COMBINING DIAERESIS
+                           777 ; U+0309 COMBINING HOOK ABOVE
+                           778 ; U+030A COMBINING RING ABOVE
+                           780 ; U+030C COMBINING CARON
+                           795 ; U+031B COMBINING HORN
+                           803 ; U+0323 COMBINING DOT BELOW
+                           804 ; U+0324 COMBINING DIAERESIS BELOW
+                           805 ; U+0325 COMBINING RING BELOW
+                           807 ; U+0327 COMBINING CEDILLA
+                           813 ; U+032D COMBINING CIRCUMFLEX ACCENT BELOW
+                           814 ; U+032E COMBINING BREVE BELOW
+                           816 ; U+0330 COMBINING TILDE BELOW
+                           817 ; U+0331 COMBINING MACRON BELOW
+                           )))
+    (cl-flet* ((nonspacing-mark-p (char)
+                                  (memq char slug-trim-chars))
+               (strip-nonspacing-marks (s)
+                                       (ucs-normalize-NFC-string
+                                        (apply #'string (seq-remove #'nonspacing-mark-p
+                                                                    (ucs-normalize-NFD-string s)))))
+               (cl-replace (title pair)
+                           (replace-regexp-in-string (car pair) (cdr pair) title)))
+      (let* ((pairs `(("[^[:alnum:][:digit:]]" . "-") ;; convert anything not alphanumeric
+                      ;; ("__*" . "_") ;; remove sequential underscores
+                      ;; ("^_" . "")   ;; remove starting underscore
+                      ;; ("_$" . "")   ;; remove ending underscore
+                      ))
+             (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
+        (downcase slug)))))
+
+;; (setq org-roam-capture-templates
+;;       `(("p" "Permanent Note" plain "%?"
+;;          :if-new (file+head "${slug}.org"
+;;                             "#+title: ${title}\n")
+;;          :unnarrowed t)
+
+;;         ("l" "Literature Note" plain "%?"
+;;          :if-new (file+head "%<%Y%m%d%H%M%S>-${ref}.org"
+;;                             "#+TITLE: ${author-abbre} (${year}, ${jornaltitle}): ${title}
+;; ,#+OPTIONS: toc:nil num:nil\n
+;; ,#+ROAM_KEY: ${ref}\n
+;;   ,Time-stamp: %<%Y-%m-%d>\n
+;;   ,- tags :: ${keywords}\n
+;;   ,\n* Backlinks\n
+;;   ,\n* FISH-5SS\n
+;;   ,|---------------------------------------------+-----|\n
+;;   ,| <40>                                        |<50> |\n
+;;   ,| *Background*                                  |     |\n
+;;   ,| *Supporting Ideas*                            |     |\n
+;;   ,| *Purpose*                                     |     |\n
+;;   ,| *Originality/value (Contribution)*            |     |\n
+;;   ,| *Relevance*                                   |     |\n
+;;   ,| *Design/methodology/approach*                 |     |\n
+;;   ,| *Results*                                     |     |\n
+;;   ,| *(Interesting) Findings*                      |     |\n
+;;   ,| *Research limitations/implications (Critics)* |     |\n
+;;   ,| *Uncategorized stuff*                         |     |\n
+;;   ,| *5SS*                                         |     |\n
+;;   ,|---------------------------------------------+-----|\n
+;;                 ")
+;;          :unnarrowed t)
+;;         ))
+
+
+;; (require 'org-roam-protocol) ; Deprecated for v2.
+
+;; TODO Have not got it integrated with org protocol. Find out how.
+;;
+;; Recall that I used to use
+;;
+;;   `emacsclient "org-protocol://roam-ref?template=r&ref={INSERT-URL}&title={INSERT-TITLE}"`
+;;
+;; for quickly capturing a webpage.
+
 #+end_src
 
-* Org-roam-bibtex
+** Migration
+:PROPERTIES:
+:ID:       f04a3c43-a97a-4ff0-b8fa-6ffdbcb04b77
+:END:
 
-#+begin_src elisp 
-(use-package! org-roam-bibtex
-  :after org-roam
-  :hook (org-roam-mode . org-roam-bibtex-mode)
-  :config
-  (setq orb-preformat-keywords
-        '("=key=" "title" "url" "file" "author-or-editor" "keywords" "journal" "year" "doi"))
-  ;; (orb-process-file-keyword t)
-  ;; (orb-file-field-extensions '("pdf" "epub" "html")
-  (setq orb-templates
-        '(("r" "ref" plain (function org-roam-capture--get-point)
-           ""
-           :file-name "%<%Y-%m-%d-%H-%M-%S>-${=key=}"
-           :head "#+TITLE: ${=key=}: ${title} (${year}, ${journal})
-,#+OPTIONS: toc:nil num:nil
-,#+ROAM_KEY: ${ref}
-,#+ROAM_TAGS:
-Time-stamp: %<%Y-%m-%d>
-- tags :: ${keywords}
+#+begin_src elisp
 
-\n* Backlinks\n
+(use-package! vulpea
+  :after org-roam)
+
+(defun vulpea-migrate-buffer ()
+  "Migrate current buffer note to `org-roam' v2."
+  ;; Create file level ID if it doesn't exist yet
+  (org-with-point-at 1
+    (org-id-get-create))
+
+  ;; update title (just to make sure it's lowercase)
+  (vulpea-buffer-title-set (vulpea-buffer-prop-get "title"))
+
+  ;; move roam_key into properties drawer roam_ref
+  (when-let* ((ref (vulpea-buffer-prop-get "roam_key")))
+    (org-set-property "ROAM_REFS" ref)
+    (let ((case-fold-search t))
+      (org-with-point-at 1
+        (while (re-search-forward "^#\\+roam_key:" (point-max) t)
+          (beginning-of-line)
+          (kill-line 1)))))
+
+  ;; move roam_alias into properties drawer roam_aliases
+  (when-let* ((aliases (vulpea-buffer-prop-get-list "roam_alias")))
+    (org-set-property "ROAM_ALIASES"
+                      (combine-and-quote-strings aliases))
+    (let ((case-fold-search t))
+      (org-with-point-at 1
+        (while (re-search-forward "^#\\+roam_alias:" (point-max) t)
+          (beginning-of-line)
+          (kill-line 1)))))
+
+  ;; move roam_tags into filetags
+  (let* ((roam-tags (vulpea-buffer-prop-get-list "roam_tags"))
+         (file-tags (vulpea-buffer-prop-get-list "filetags"))
+         (path-tags (seq-filter
+                     (lambda (x) (not (string-empty-p x)))
+                     (split-string
+                      (string-remove-prefix
+                       org-roam-directory
+                       (file-name-directory (buffer-file-name)))
+                      "/")))
+         (tags (seq-map
+                (lambda (tag)
+                  (setq tag (replace-regexp-in-string
+                             ;; see `org-tag-re'
+                             "[^[:alnum:]_@#%]"
+                             "_"        ; use any valid char - _@#%
+                             tag))
+                  (if (or
+                       (string-prefix-p "status" tag 'ignore-case)
+                       (string-prefix-p "content" tag 'ignore-case)
+                       (string-equal "Project" tag))
+                      (setq tag (downcase tag)))
+                  tag)
+                (seq-uniq (append roam-tags file-tags path-tags)))))
+    (when tags
+      (apply #'vulpea-buffer-tags-set tags)
+      (let ((case-fold-search t))
+        (org-with-point-at 1
+          (while (re-search-forward "^#\\+roam_tags:" (point-max) t)
+            (beginning-of-line)
+            (kill-line 1))))))
+
+  (save-buffer))
+
+(defun vulpea-migrate-db ()
+  "Migrate all notes."
+  (dolist (f (org-roam--list-all-files))
+    (with-current-buffer (find-file f)
+      (message "migrating %s" f)
+      (vulpea-migrate-buffer)))
+
+  ;; Step 2: Build cache
+  ;; (org-roam-db-sync 'force)
+  )
+#+end_src
+
+** V2
+:PROPERTIES:
+:ID:       36030c09-2d8e-4ddc-9f23-7ebbf449eecf
+:END:
+#+begin_src elisp :tangle yes
+(setq org-attach-use-inheritance nil)
+(require 'org-id)
+(setq org-id-track-globally t)
+(setq org-roam-completion-everywhere t)
+
+
+(setq org-roam-capture-templates
+      '(("d" "default" plain
+         "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n")
+         :unnarrowed t)
+        ("r" "Bibliographic note" plain
+         "\n\n* Backlinks\n
+
+%?
 
 \n* FISH-5SS
 \n
@@ -1030,28 +1282,179 @@ Time-stamp: %<%Y-%m-%d>
 | *Uncategorized stuff*                         |     |
 | *5SS*                                         |     |
 |---------------------------------------------+-----|
-\n* Specifics comments\n :PROPERTIES:\n :Custom_ID: ${=key=}\n :AUTHOR: ${author-or-editor}\n :JOURNAL: ${journal}\n :YEAR: ${year}\n :DOI: ${doi}\n :URL: ${url}\n :END:\n
-\n* PDF Highlights\n:PROPERTIES:\n :NOTER_DOCUMENT: %(orb-process-file-field \"${=key=}\")\n :END:\n"
-           :unnarrowed t))))
+\n* Specifics comments\n"
+         :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
+                            ":PROPERTIES:
+:ID: %<%Y%m%dT%H%M%S>
+:CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
+:END:
+,#+TITLE: ${citekey}: ${title} - (${year}, ${journal})
+Time-stamp: %<%Y-%m-%d>
+,#+OPTIONS: toc:nil num:nil"
+
+                            )
+         :immediate-finish t
+         :unnarrowed t
+         :type org-roam-bibtex
+         :jump-to-captured t ))
+      )
+
+
+;; (use-package! org-roam
+;;   :defer t
+;;   :init
+;;   (map! :leader
+;;         :prefix "n"
+;;         :desc "org-roam" "l" #'org-roam-buffer-toggle
+;;         :desc "org-roam-node-insert" "i" #'org-roam-node-insert
+;;         :desc "org-roam-node-find" "f" #'org-roam-node-find
+;;         :desc "org-roam-ref-find" "r" #'org-roam-ref-find
+;;         :desc "org-roam-show-graph" "g" #'org-roam-show-graph
+;;         :desc "org-roam-capture" "c" #'org-roam-capture
+;;         :desc "org-roam-dailies-capture-today" "j" #'org-roam-dailies-capture-today)
+;;   (setq
+;;         org-roam-directory (file-truename org-notes-directory)
+;;         org-roam-db-gc-threshold most-positive-fixnum
+;;         org-id-link-to-org-use-id t)
+;;   (add-to-list 'display-buffer-alist
+;;                '(("\\*org-roam\\*"
+;;                   (display-buffer-in-direction)
+;;                   (direction . right)
+;;                   (window-width . 0.33)
+;;                   (window-height . fit-window-to-buffer))))
+;;   :config
+;;   (setq org-roam-mode-sections
+;;         (list #'org-roam-backlinks-insert-section
+;;               #'org-roam-reflinks-insert-section
+;;               ;; #'org-roam-unlinked-references-insert-section
+;;               ))
+;;   (org-roam-setup)
+;;   (require 'org-roam-protocol)
+;;   (setq org-roam-capture-templates
+;;         '(("d" "default" plain
+;;            "%?"
+;;            :if-new (file+head "${slug}.org"
+;;                               "#+title: ${title}\n")
+;;            :immediate-finish t
+;;            :unnarrowed t)))
+;;   (setq org-roam-capture-ref-templates
+;;         '(("r" "ref" plain
+;;            "%?"
+;;            :if-new (file+head "${slug}.org"
+;;                               "#+title: ${title}\n")
+;;            :unnarrowed t)))
+;; )
+
+;;   ;; (set-company-backend! 'org-mode '(company-capf))
+
+;; (add-to-list 'display-buffer-alist
+;;                '("\\*org-roam\\*"
+;;                   (display-buffer-in-direction)
+;;                   (direction . right)
+;;                   (window-width . 0.33)
+;;                   (window-height . fit-window-to-buffer)))
+
+
+;; (defun org-hide-properties ()
+;;   "Hide all org-mode headline property drawers in buffer. Could be slow if it has a lot of overlays."
+;;   (interactive)
+;;   (save-excursion
+;;     (goto-char (point-min))
+;;     (while (re-search-forward
+;;             "^ *:properties:\n\\( *:.+?:.*\n\\)+ *:end:\n" nil t)
+;;       (let ((ov_this (make-overlay (match-beginning 0) (match-end 0))))
+;;         (overlay-put ov_this 'display "")
+;;         (overlay-put ov_this 'hidden-prop-drawer t))))
+;;   (put 'org-toggle-properties-hide-state 'state 'hidden))
+
+;; (defun org-show-properties ()
+;;   "Show all org-mode property drawers hidden by org-hide-properties."
+;;   (interactive)
+;;   (remove-overlays (point-min) (point-max) 'hidden-prop-drawer t)
+;;   (put 'org-toggle-properties-hide-state 'state 'shown))
+
+;; (defun org-toggle-properties ()
+;;   "Toggle visibility of property drawers."
+;;   (interactive)
+;;   (if (eq (get 'org-toggle-properties-hide-state 'state) 'hidden)
+;;       (org-show-properties)
+;;     (org-hide-properties)))
+
+;; (cl-defmethod org-roam-node-directories ((node org-roam-node))
+;;   (if-let ((dirs (file-name-directory (file-relative-name (org-roam-node-file node) org-roam-directory))))
+;;       (format "(%s)" (car (f-split dirs)))
+;;     ""))
+
+;; (cl-defmethod org-roam-node-backlinkscount ((node org-roam-node))
+;;   (let* ((count (caar (org-roam-db-query
+;;                        [:select (funcall count source)
+;;                                 :from links
+;;                                 :where (= dest $s1)
+;;                                 :and (= type "id")]
+;;                        (org-roam-node-id node)))))
+;;     (format "[%d]" count)))
+
+;; (setq org-roam-node-display-template "${directories:10} ${tags:10} ${title:100} ${backlinkscount:6}")
+
 #+end_src
 
-* Deft
+
+* Org-ref
+:PROPERTIES:
+:ID:       3a459e81-fe33-4235-b75e-73dc08463ab7
+:END:
+#+begin_src elisp
+
+(use-package! org-ref
+  :after org
+  ;; :hook (org-mode . org-ref)
+  :config
+  (setq org-ref-default-bibliography refs-files)
+  (setq bibtex-completion-bibliography refs-files)
+  (setq bibtex-completion-library-path pdfs-directory)
+  (setq
+    org-ref-notes-function 'orb-edit-note
+    org-ref-completion-library 'org-ref-helm-bibtex
+    org-ref-notes-directory org-notes-directory
+    org-ref-default-citation-link "parencite"
+    org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex)
+
+  (setq bibtex-completion-pdf-extension '(".pdf" ".djvu")
+    bibtex-completion-pdf-field "file"))
+
+#+end_src
+
+
+* Org-roam-bibtex
+:PROPERTIES:
+:ID:       d9f10de3-7d56-49a7-a2ef-4982e7ba0bb1
+:END:
 
 #+begin_src elisp
-(setq deft-directory notes-directory
-      deft-recursive t
-      deft-use-filter-string-for-filename t
-      deft-default-extension "org"
-      )
+(setq warning-minimum-log-level :error) ;; https://github.com/tmalsburg/helm-bibtex/issues/280
+(use-package! org-roam-bibtex
+  :after org-roam
+  :config
+  (require 'org-ref)
+  (setq orb-preformat-keywords
+    '(("citekey" . "=key=") "title" "url" "author-or-editor" "keywords" "file" "year")
+    orb-process-file-keyword t
+    orb-file-field-extensions '("pdf")
+    orb-note-actions-interface 'helm
+    orb-insert-interface 'helm-bibtex))
+
+(after! org-roam
+  (org-roam-bibtex-mode))
 #+end_src
 
 * Org-roam-server
+:PROPERTIES:
+:ID:       f14644ae-31d7-4b97-b618-94eea0a11890
+:END:
 
-#+begin_src elisp
-;; (use-package! org-roam-protocol
-;;   :after org-protocol)
+#+begin_src elisp :tangle no
 
-
+(require 'org-roam-server)
 (use-package! org-roam-server
   :after (org-roam server)
   :config
@@ -1074,7 +1477,36 @@ Time-stamp: %<%Y-%m-%d>
   )
 #+end_src
 
+* Org-roam-gui
+
+#+begin_src elisp
+(use-package! websocket
+    :after org-roam)
+
+(use-package! org-roam-ui
+    :after org-roam ;; or :after org
+    :hook (org-roam . org-roam-ui-mode)
+    :config
+)
+#+end_src
+
+* Deft
+:PROPERTIES:
+:ID:       37ebac66-24db-4895-a0df-787e17ad0758
+:END:
+
+#+begin_src elisp
+(setq deft-directory notes-directory
+      deft-recursive t
+      deft-use-filter-string-for-filename t
+      deft-default-extension "org"
+      )
+#+end_src
+
 * Org-journal
+:PROPERTIES:
+:ID:       e31a3ede-0d3d-470c-84f7-91c86a6b5df5
+:END:
 
 #+begin_src elisp
 (setq org-journal-file-type 'weekly
@@ -1086,6 +1518,9 @@ Time-stamp: %<%Y-%m-%d>
 * GTD
 
 ** Capture templates
+:PROPERTIES:
+:ID:       97941191-689d-4398-ab2b-8c189d1742be
+:END:
 
 #+begin_src elisp
 (setq org-capture-templates '(
@@ -1098,6 +1533,9 @@ Time-stamp: %<%Y-%m-%d>
                               ))
 #+end_src
 ** Refile
+:PROPERTIES:
+:ID:       fc05838e-3058-462e-b4ab-ef9590d357f8
+:END:
 
 #+begin_src elisp
 (setq org-refile-targets '(("/HDD/Org/gtd/projects.org" :maxlevel . 3)
@@ -1105,96 +1543,11 @@ Time-stamp: %<%Y-%m-%d>
                            ("/HDD/Org/gtd/someday.org" :level . 1)))
 #+end_src
 
-* Mu4e
-** Instructions source
-
-- [[https://www.reddit.com/r/emacs/comments/bfsck6/mu4e_for_dummies/][Mu4e for dummies]]
-
-** Pre-requirements
-
-#+begin_example
-sudo apt install isync -f
-mbsync -c ~/.config/mu4e/mbsyncrc -Dmn gpetrini-gmail
-#+end_example
-
-
-** Configuration
-#+begin_src elisp :tangle no
-;; (add-to-list 'load-path "your/path/to/mu4e")
-;; if you installed it using your package manager
-(add-to-list 'load-path "/usr/share/emacs/site-lisp/mu4e")
-;; if you built from source
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
-(add-to-list 'load-path "/usr/local/share/emacs/site-lisp/mu4e")
-;; (require 'smtpmail)
-;; (add-hook 'message-send-hook 'org-mime-htmlize)
-(setq message-send-mail-function 'smtpmail-send-it
-      starttls-use-gnutls t
-      smtpmail-starttls-credentials '(("smtp.gmail.com" 587 nil nil))
-      smtpmail-auth-credentials
-      '(("smtp.gmail.com" 587 "gpetrinidasilveira@gmail.com" nil))
-      smtpmail-default-smtp-server "smtp.gmail.com"
-      smtpmail-smtp-server "smtp.gmail.com"
-      smtpmail-smtp-service 587)
-(after! mu4e
-  (setq user-mail-address "gpetrinidasilveira@gmail.com"
-        user-full-name  "Gabriel Petrini"
-        mu4e-maildir "/HDD/Mail"
-        mu4e-root-maildir "/HDD/Mail"
-        mu4e-get-mail-command "mbsync -c ~/.config/mu4e/mbsyncrc -a"
-        mu4e-update-interval  300
-        org-mu4e-convert-to-html t
-        ;; mu4e-html2text-command "html2text -utf8 -width 72"
-        ;; mu4e-html2text-command "w3m -T text/html"
-        mu4e-main-buffer-hide-personal-addresses t
-        mu4e-view-show-images t
-        mu4e-attachment-dir  "~/Downloads"
-        mu4e-sent-folder "/gmail/Sent"
-        mu4e-drafts-folder "/gmail/Drafts"
-        mu4e-trash-folder "/gmail/Trash"
-        mu4e-maildir-shortcuts
-        '(("/gmail/Inbox"      . ?i)
-          ("/gmail/Sent Items" . ?s)
-          ("/gmail/Drafts"     . ?d)
-          ("/gmail/Trash"      . ?t)))
-  )
-#+end_src
-
-** Org-msg
-
-#+begin_src elisp :tangle no
-;; use imagemagick, if available
-(when (fboundp 'imagemagick-register-types)
-  (imagemagick-register-types))
-(after! org-msg
-  (setq org-msg-greeting-name-limit 3
-        org-msg-default-alternatives '(text html)
-        org-msg-options "html-postamble:nil H:5 num:nil ^:{} toc:nil author:nil email:nil \\n:t tex:dvipng"
-        org-msg-startup "hidestars indent inlineimages"
-        org-msg-recipient-names '(("gpetrinidasilveira@gmail.com" . "Gabriel Petrini"))
-        org-msg-greeting-name-limit 4
-        org-msg-convert-citation t
-        org-msg-signature "
- Regards,
-
- ,#+begin_signature
- -- *Gabriel Petrini da Silvera*\n
-PhD Student at University of Campinas - Brazil\n
- /Sent from Emacs with mu4e and org-msg/
- ,#+end_signature"))
-#+end_src
-
-* Epub
-
-#+begin_src elisp
-(use-package! nov
-  :defer t
-  :mode ("\\.epub\\'" . nov-mode)
-  :config
-  (setq nov-save-place-file (concat doom-cache-dir "nov-places")))
-#+end_src
 
 * Large files
+:PROPERTIES:
+:ID:       48b4aeea-03e3-417b-bb89-142507776b10
+:END:
 
 #+begin_src elisp
 (use-package! vlf-setup
@@ -1202,12 +1555,18 @@ PhD Student at University of Campinas - Brazil\n
 #+end_src
 
 * Org-pandoc-import
+:PROPERTIES:
+:ID:       35704fb4-6e60-4d63-91e1-ab6043279dc0
+:END:
 
 #+begin_src elisp
 (use-package! org-pandoc-import :after org)
 #+end_src
 
 * Write-room
+:PROPERTIES:
+:ID:       ce347438-fec6-4f5b-8635-ef8310fa44d5
+:END:
 
 #+begin_src elisp
 (setq +zen-text-scale 0.5)
@@ -1267,9 +1626,13 @@ PhD Student at University of Campinas - Brazil\n
 #+end_src
 
 * Company org-block
+:PROPERTIES:
+:ID:       c81ea485-2535-483e-8599-476a99038f58
+:END:
 
 #+begin_src elisp
 (use-package! company-org-block
+  :defer t
   :after org
   :custom
   (company-org-block-edit-style 'auto) ;; 'auto, 'prompt, or 'inline
@@ -1279,6 +1642,9 @@ PhD Student at University of Campinas - Brazil\n
 #+end_src
 
 * Org transclusion
+:PROPERTIES:
+:ID:       b5e48c3f-d32f-4be1-84cb-b62f7320b716
+:END:
 
 #+begin_src elisp
 (use-package! org-transclusion
@@ -1291,3 +1657,96 @@ PhD Student at University of Campinas - Brazil\n
    :prefix "n"
    :desc "Org Transclusion Mode" "t" #'org-transclusion-mode))
 #+end_src
+
+
+Function to avoid =Text is read only= problem ([[https://github.com/nobiot/org-transclusion/issues/86][Link]]):
+
+#+begin_src elisp
+(defun export-transcluded ()
+  (interactive)
+  (setq inhibit-read-only t)
+  (org-export-dispatch)
+  (setq inhibit-read-only nil))
+#+end_src
+
+* Abbrev autocorrection
+
+[[https://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html][Source]]
+
+#+begin_src elisp
+(define-key ctl-x-map "\C-i"
+  #'endless/ispell-word-then-abbrev)
+
+(defun endless/simple-get-word ()
+  (car-safe (save-excursion (ispell-get-word nil))))
+
+(defun endless/ispell-word-then-abbrev (p)
+  "Call `ispell-word', then create an abbrev for it.
+With prefix P, create local abbrev. Otherwise it will
+be global.
+If there's nothing wrong with the word at point, keep
+looking for a typo until the beginning of buffer. You can
+skip typos you don't want to fix with `SPC', and you can
+abort completely with `C-g'."
+  (interactive "P")
+  (let (bef aft)
+    (save-excursion
+      (while (if (setq bef (endless/simple-get-word))
+                 ;; Word was corrected or used quit.
+                 (if (ispell-word nil 'quiet)
+                     nil ; End the loop.
+                   ;; Also end if we reach `bob'.
+                   (not (bobp)))
+               ;; If there's no word at point, keep looking
+               ;; until `bob'.
+               (not (bobp)))
+        (backward-word)
+        (backward-char))
+      (setq aft (endless/simple-get-word)))
+    (if (and aft bef (not (equal aft bef)))
+        (let ((aft (downcase aft))
+              (bef (downcase bef)))
+          (define-abbrev
+            (if p local-abbrev-table global-abbrev-table)
+            bef aft)
+          (message "\"%s\" now expands to \"%s\" %sally"
+                   bef aft (if p "loc" "glob")))
+      (user-error "No typo at or before point"))))
+
+(setq save-abbrevs 'silently)
+(setq-default abbrev-mode t)
+#+end_src
+
+* Ebib
+
+#+begin_src elisp
+(use-package! ebib :after (org latex))
+#+end_src
+
+* Publish
+
+#+begin_src elisp
+(use-package! ox-publish)
+
+(setq org-publish-use-timestamps-flag nil) ;; What is this?
+(setq org-export-with-broken-links t)
+(setq org-publish-project-alist
+      '(("MyOrg"
+         :base-directory "/HDD/Org/"
+         :base-extension "org"
+         :publishing-directory "/HDD/Org/html/"
+         :recursive t
+         :exclude "./org-html-themes/.*"
+         :publishing-function org-html-publish-to-html
+         :headline-levels 4             ; Just the default for this project.
+         :auto-preamble t)
+        ("org-static"
+         :base-directory "/HDD/Org/website/"
+         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
+         :publishing-directory "./public_html/"
+         :recursive t
+         :exclude "./org-html-themes/.*"
+         :publishing-function org-publish-attachment)
+        ))
+#+end_src
+
