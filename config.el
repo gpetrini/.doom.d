@@ -1,7 +1,7 @@
 (setq user-full-name "Gabriel Petrini"
       user-mail-address "gpetrinidasilveira@gmail.com")
 
-(setq package-native-compile t)
+;; (setq package-native-compile t)
 (setq-default
  delete-by-moving-to-trash t                      ; Delete files to trash
  tab-width 4                                                         ; Set width for tabs
@@ -101,7 +101,7 @@
         notes-directory "/HDD/Org/notes"
         pdfs-directory "/HDD/PDFs/"
         refs-files '("/HDD/Org/zotero_refs.bib")
-        org-src-window-setup 'current-window
+        org-src-window-setup 'other-frame
         org-startup-folded 'overview
         org-hide-emphasis-markers t))
 (defun org-archive-done-tasks ()
@@ -120,8 +120,6 @@
 (require 'company)
 (setq company-idle-delay nil ;; https://discourse.doomemacs.org/t/why-is-emacs-doom-slow/83/3
       company-minimum-prefix-length 3)
-
-(setq org-src-window-setup 'current-window)
 
 (setq org-babel-default-header-args
       '((:session . "none")
@@ -460,11 +458,6 @@
         ;; magit-delete-by-moving-to-trash nil
         git-commit-summary-max-length 120))
 
-(load! "netlogo/netlogo-mode")
-(load! "netlogo/company-netlogo")
-
-(set-company-backend! 'netlogo-mode '(:separate company-netlogo company-yasnippet))
-
 (load! "scimax-org-latex.el")
 
 (setq org-latex-pdf-process
@@ -715,10 +708,18 @@
       '(("d" "default" plain
          "%?"
          :if-new (file+head "${slug}.org"
-                            "#+title: ${title}\n")
+                            "#+title: ${title}\n
+#+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme\n
+#+OPTIONS: num:nil ^:{} toc:nil\n
+#+INCLUDE: '../header.org'
+\n")
          :unnarrowed t)
         ("r" "Bibliographic note" plain
-         "\n\n* Backlinks\n
+
+"\n#+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme\n
+#+OPTIONS: num:nil ^:{} toc:nil\n
+#+INCLUDE: '../header.org'
+         \n\n* Backlinks\n
 
 %?
 
@@ -878,8 +879,8 @@ Time-stamp: %<%Y-%m-%d>
     '(("citekey" . "=key=") "title" "url" "author-or-editor" "keywords" "file" "year")
     orb-process-file-keyword t
     orb-file-field-extensions '("pdf")
-    orb-note-actions-interface 'helm
-    orb-insert-interface 'helm-bibtex))
+    orb-note-actions-interface 'ivy
+    orb-insert-interface 'ivy-bibtex))
 
 (after! org-roam
   (org-roam-bibtex-mode))
@@ -906,14 +907,23 @@ Time-stamp: %<%Y-%m-%d>
 
 (setq org-capture-templates '(
                               ("t" "Todo [inbox]" entry
-                               (file+headline "/HDD/Org/gtd/inbox.org" "Tasks")
+                               (file+headline "/HDD/Org/gtd/inbox.org" "Tasks inbox") ;; FIXME Generalize path
                                "* TODO %i%?")
-                              ("i" "Readings inbox" entry
-                               (file+headline "/HDD/Org/gtd/readings.org" "Inbox")
+                              ("w" "Writing inbox" entry
+                               (file+headline "/HDD/Org/gtd/inbox.org" "Writing inbox")
+                               "* TODO %i%?")
+                              ("f" "Fleeting notes" entry
+                               (file+headline "/HDD/Org/gtd/inbox.org" "Fleeting notes")
+                               "* WAIT %i%?")
+                              ("r" "Readings inbox" entry
+                               (file+headline "/HDD/Org/gtd/inbox.org" "Reading Inbox")
+                               "* %t %(org-cliplink-capture) %^g" :prepend t)
+                              ("n" "News inbox" entry
+                               (file+headline "/HDD/Org/gtd/inbox.org" "News Inbox")
                                "* %t %(org-cliplink-capture) %^g" :prepend t)
                               ))
 
-(setq org-refile-targets '(("/HDD/Org/gtd/projects.org" :maxlevel . 3)
+(setq org-refile-targets '(("/HDD/Org/gtd/projects.org" :maxlevel . 3) ;; FIXME Generalize path
                            ("/HDD/Org/gtd/readings.org" :maxlevel . 4)
                            ("/HDD/Org/gtd/someday.org" :level . 1)))
 
@@ -1054,9 +1064,9 @@ abort completely with `C-g'."
       '(("MyOrg"
          :base-directory "/HDD/Org/"
          :base-extension "org"
-         :publishing-directory "/HDD/Org/html/"
+         :publishing-directory "/HDD/Org/docs/"
          :recursive t
-         :exclude "./org-html-themes/.*"
+         :exclude "./org-html-themes/.*\\|./themes/*"
          :publishing-function org-html-publish-to-html
          :headline-levels 4             ; Just the default for this project.
          :auto-preamble t)
@@ -1065,7 +1075,7 @@ abort completely with `C-g'."
          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
          :publishing-directory "./public_html/"
          :recursive t
-         :exclude "./org-html-themes/.*"
+         :exclude "./org-html-themes/.*\\|./themes/*"
          :publishing-function org-publish-attachment)
         ))
 
