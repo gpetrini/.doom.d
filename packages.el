@@ -48,7 +48,7 @@
 ;(unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
-(package! org-ref)
+;; (package! org-ref)
 ;(package! interleave)                                        not using anymore as org-noter is far superior.
 (package! ivy-bibtex)
 ;; (package! ox-pandoc)
@@ -80,8 +80,8 @@
 
 ;; (package! org-roam :disable t)
 
-(package! vulpea
-  :recipe (:host github :repo "d12frosted/vulpea"))
+;; (package! vulpea
+;;   :recipe (:host github :repo "d12frosted/vulpea"))
 
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
@@ -131,6 +131,7 @@
            :files ("*.el")))
 (package! websocket)
 (package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
-(package! ebib :recipe (:host github :repo "joostkremers/ebib" :files ("*.el")))
-(package! ox-gemini)
+;; (package! ebib :recipe (:host github :repo "joostkremers/ebib" :files ("*.el")))
+;; (package! ox-gemini)
 
+(package! orgdiff :recipe (:host github :repo "tecosaur/orgdiff" :files ("*.el")))

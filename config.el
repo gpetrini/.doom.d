@@ -20,13 +20,20 @@
 (delete-selection-mode 1)                             ; Replace selection when inserting text
 (display-time-mode 1)                                   ; Enable time in the mode-line
 (global-subword-mode 1)                           ; Iterate through CamelCase words
-(setq line-spacing 0.3)                                   ; seems like a nice line spacing balance.
-(setq org-roam-directory "/HDD/Org/notes/")
-(setq org-notes-directory "/HDD/Org/notes/")
-(setq gtd-directory "/HDD/Org/gtd/")
-(setq org-roam-v2-ack t)
-(after! gcmh
-  (setq gcmh-high-cons-threshold 33554432))  ; 32mb, or 64mb, or *maybe* 128mb, BUT NOT 512mb
+(setq
+ storage-directory "/HDD/" ;; Where to some main emacs-related file
+ org-directory (expand-file-name "Org/" storage-directory)
+ org-roam-directory (expand-file-name "notes/" org-directory)
+ org-agenda-files '(expand-file-name "agenda.org" org-directory)
+ org-notes-directory org-roam-directory
+ gtd-directory (expand-file-name "gtd/" org-directory)
+ inbox-file-path (expand-file-name "inbox.org" gtd-directory)
+ notes-directory (expand-file-name "notes" org-directory)
+ pdfs-directory  (expand-file-name "PDFs/" storage-directory)
+ refs-files '((expand-file-name "zotero_refs.bib" org-directory))
+ main-ref-file (expand-file-name "zotero_refs.bib" org-directory)
+ org-roam-v2-ack t
+ )
 
 (map! :leader
       (:prefix ("-" . "open file")
@@ -60,7 +67,7 @@
 ;; Whether display the environment version.
 (setq doom-modeline-env-version t)
 
-(setq! +biblio-pdf-library-dir "/HDD/PDFs/")
+(setq! +biblio-pdf-library-dir pdfs-directory)
 
 ;; (setq org-latex-pdf-process
 ;;       '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
@@ -90,17 +97,18 @@
       evil-visual-state-cursor '(hollow "orange"))
 (setq org-export-headline-levels 5) ; I like nesting
 
+(set-face-foreground 'vertical-border (doom-color 'red))
+(setq window-divider-default-bottom-width 4  ; default is 1
+      window-divider-default-right-width 4)  ; default is 1
+
+(custom-set-faces! '(window-divider :foreground "grey"))
+
 (after! org
   (require 'org-bullets)  ; Nicer bullets in org-mode
   (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-  (setq org-agenda-files '("/HDD/Org/agenda.org")
-        org-ellipsis " ▼ "
+  (setq org-ellipsis " ▼ "
         org-log-done 'time
         org-enable-roam-support t
-        org-directory "/HDD/Org/"
-        notes-directory "/HDD/Org/notes"
-        pdfs-directory "/HDD/PDFs/"
-        refs-files '("/HDD/Org/zotero_refs.bib")
         org-src-window-setup 'other-frame
         org-startup-folded 'overview
         org-hide-emphasis-markers t))
@@ -120,6 +128,8 @@
 (require 'company)
 (setq company-idle-delay nil ;; https://discourse.doomemacs.org/t/why-is-emacs-doom-slow/83/3
       company-minimum-prefix-length 3)
+
+(setq org-cite-csl-styles-dir "~/Zotero/styles")
 
 (setq org-babel-default-header-args
       '((:session . "none")
@@ -234,7 +244,7 @@
 (use-package! elfeed-org
   :defer t
   :config
-  (setq rmh-elfeed-org-files (list "/HDD/Org/rss/elfeed.org")))
+  (setq rmh-elfeed-org-files (list (expand-file-name "rss/elfeed.org" org-directory))))
 
 (map! :map elfeed-search-mode-map
       :after elfeed-search
@@ -494,9 +504,7 @@
     ("utf8" . "utf8x")
     ("\\subsection{%s}" . "\\subsection*{%s}"))))
 
-(citeproc-org-setup)
-
-(setq reftex-default-bibliography "/HDD/Org/zotero_refs.bib")
+(setq reftex-default-bibliography refs-files)
 
 (setq +latex-viewers '(evince pdf-tools zathura okular skim sumatrapdf))
 
@@ -526,182 +534,13 @@
   ;; (require 'org-noter-pdftools)
   )
 
-(require 'org-roam)
-(setq org-roam-directory (file-truename org-notes-directory))
-(make-directory org-roam-directory 'parents)
-(setq org-roam-verbose t)
-(setq org-roam-db-location
-      (concat org-roam-directory "/.database/org-roam.db"))
-;; (setq +org-roam-open-buffer-on-find-file nil) ; deprecated for v2
-;; (setq org-roam-db-update-idle-seconds 30) ; deprecated for v2
-;; (setq org-roam-graph-viewer "qutebrowser") ; deprecated for v2
-
-;; Redefining some part of the slug generator.
-(cl-defmethod org-roam-node-slug ((node org-roam-node))
-  "Return the slug of NODE."
-  (let ((title (org-roam-node-title node))
-        (slug-trim-chars '(;; Combining Diacritical Marks https://www.unicode.org/charts/PDF/U0300.pdf
-                           768    ; U+0300 COMBINING GRAVE ACCENT
-                           769    ; U+0301 COMBINING ACUTE ACCENT
-                           770 ; U+0302 COMBINING CIRCUMFLEX ACCENT
-                           771 ; U+0303 COMBINING TILDE
-                           772 ; U+0304 COMBINING MACRON
-                           774 ; U+0306 COMBINING BREVE
-                           775 ; U+0307 COMBINING DOT ABOVE
-                           776 ; U+0308 COMBINING DIAERESIS
-                           777 ; U+0309 COMBINING HOOK ABOVE
-                           778 ; U+030A COMBINING RING ABOVE
-                           780 ; U+030C COMBINING CARON
-                           795 ; U+031B COMBINING HORN
-                           803 ; U+0323 COMBINING DOT BELOW
-                           804 ; U+0324 COMBINING DIAERESIS BELOW
-                           805 ; U+0325 COMBINING RING BELOW
-                           807 ; U+0327 COMBINING CEDILLA
-                           813 ; U+032D COMBINING CIRCUMFLEX ACCENT BELOW
-                           814 ; U+032E COMBINING BREVE BELOW
-                           816 ; U+0330 COMBINING TILDE BELOW
-                           817 ; U+0331 COMBINING MACRON BELOW
-                           )))
-    (cl-flet* ((nonspacing-mark-p (char)
-                                  (memq char slug-trim-chars))
-               (strip-nonspacing-marks (s)
-                                       (ucs-normalize-NFC-string
-                                        (apply #'string (seq-remove #'nonspacing-mark-p
-                                                                    (ucs-normalize-NFD-string s)))))
-               (cl-replace (title pair)
-                           (replace-regexp-in-string (car pair) (cdr pair) title)))
-      (let* ((pairs `(("[^[:alnum:][:digit:]]" . "-") ;; convert anything not alphanumeric
-                      ;; ("__*" . "_") ;; remove sequential underscores
-                      ;; ("^_" . "")   ;; remove starting underscore
-                      ;; ("_$" . "")   ;; remove ending underscore
-                      ))
-             (slug (-reduce-from #'cl-replace (strip-nonspacing-marks title) pairs)))
-        (downcase slug)))))
-
-;; (setq org-roam-capture-templates
-;;       `(("p" "Permanent Note" plain "%?"
-;;          :if-new (file+head "${slug}.org"
-;;                             "#+title: ${title}\n")
-;;          :unnarrowed t)
-
-;;         ("l" "Literature Note" plain "%?"
-;;          :if-new (file+head "%<%Y%m%d%H%M%S>-${ref}.org"
-;;                             "#+TITLE: ${author-abbre} (${year}, ${jornaltitle}): ${title}
-;; ,#+OPTIONS: toc:nil num:nil\n
-;; ,#+ROAM_KEY: ${ref}\n
-;;   ,Time-stamp: %<%Y-%m-%d>\n
-;;   ,- tags :: ${keywords}\n
-;;   ,\n* Backlinks\n
-;;   ,\n* FISH-5SS\n
-;;   ,|---------------------------------------------+-----|\n
-;;   ,| <40>                                        |<50> |\n
-;;   ,| *Background*                                  |     |\n
-;;   ,| *Supporting Ideas*                            |     |\n
-;;   ,| *Purpose*                                     |     |\n
-;;   ,| *Originality/value (Contribution)*            |     |\n
-;;   ,| *Relevance*                                   |     |\n
-;;   ,| *Design/methodology/approach*                 |     |\n
-;;   ,| *Results*                                     |     |\n
-;;   ,| *(Interesting) Findings*                      |     |\n
-;;   ,| *Research limitations/implications (Critics)* |     |\n
-;;   ,| *Uncategorized stuff*                         |     |\n
-;;   ,| *5SS*                                         |     |\n
-;;   ,|---------------------------------------------+-----|\n
-;;                 ")
-;;          :unnarrowed t)
-;;         ))
-
-
-;; (require 'org-roam-protocol) ; Deprecated for v2.
-
-;; TODO Have not got it integrated with org protocol. Find out how.
-;;
-;; Recall that I used to use
-;;
-;;   `emacsclient "org-protocol://roam-ref?template=r&ref={INSERT-URL}&title={INSERT-TITLE}"`
-;;
-;; for quickly capturing a webpage.
-
-(use-package! vulpea
-  :after org-roam)
-
-(defun vulpea-migrate-buffer ()
-  "Migrate current buffer note to `org-roam' v2."
-  ;; Create file level ID if it doesn't exist yet
-  (org-with-point-at 1
-    (org-id-get-create))
-
-  ;; update title (just to make sure it's lowercase)
-  (vulpea-buffer-title-set (vulpea-buffer-prop-get "title"))
-
-  ;; move roam_key into properties drawer roam_ref
-  (when-let* ((ref (vulpea-buffer-prop-get "roam_key")))
-    (org-set-property "ROAM_REFS" ref)
-    (let ((case-fold-search t))
-      (org-with-point-at 1
-        (while (re-search-forward "^#\\+roam_key:" (point-max) t)
-          (beginning-of-line)
-          (kill-line 1)))))
-
-  ;; move roam_alias into properties drawer roam_aliases
-  (when-let* ((aliases (vulpea-buffer-prop-get-list "roam_alias")))
-    (org-set-property "ROAM_ALIASES"
-                      (combine-and-quote-strings aliases))
-    (let ((case-fold-search t))
-      (org-with-point-at 1
-        (while (re-search-forward "^#\\+roam_alias:" (point-max) t)
-          (beginning-of-line)
-          (kill-line 1)))))
-
-  ;; move roam_tags into filetags
-  (let* ((roam-tags (vulpea-buffer-prop-get-list "roam_tags"))
-         (file-tags (vulpea-buffer-prop-get-list "filetags"))
-         (path-tags (seq-filter
-                     (lambda (x) (not (string-empty-p x)))
-                     (split-string
-                      (string-remove-prefix
-                       org-roam-directory
-                       (file-name-directory (buffer-file-name)))
-                      "/")))
-         (tags (seq-map
-                (lambda (tag)
-                  (setq tag (replace-regexp-in-string
-                             ;; see `org-tag-re'
-                             "[^[:alnum:]_@#%]"
-                             "_"        ; use any valid char - _@#%
-                             tag))
-                  (if (or
-                       (string-prefix-p "status" tag 'ignore-case)
-                       (string-prefix-p "content" tag 'ignore-case)
-                       (string-equal "Project" tag))
-                      (setq tag (downcase tag)))
-                  tag)
-                (seq-uniq (append roam-tags file-tags path-tags)))))
-    (when tags
-      (apply #'vulpea-buffer-tags-set tags)
-      (let ((case-fold-search t))
-        (org-with-point-at 1
-          (while (re-search-forward "^#\\+roam_tags:" (point-max) t)
-            (beginning-of-line)
-            (kill-line 1))))))
-
-  (save-buffer))
-
-(defun vulpea-migrate-db ()
-  "Migrate all notes."
-  (dolist (f (org-roam--list-all-files))
-    (with-current-buffer (find-file f)
-      (message "migrating %s" f)
-      (vulpea-migrate-buffer)))
-
-  ;; Step 2: Build cache
-  ;; (org-roam-db-sync 'force)
-  )
-
 (setq org-attach-use-inheritance nil)
 (require 'org-id)
 (setq org-id-track-globally t)
 (setq org-roam-completion-everywhere t)
+
+(setq bibtex-completion-bibliography (expand-file-name "zotero_refs.bib" org-directory))
+(setq bibtex-completion-library-path pdfs-directory)
 
 
 (setq org-roam-capture-templates
@@ -715,16 +554,24 @@
 \n")
          :unnarrowed t)
         ("r" "Bibliographic note" plain
+         :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
+                            ":PROPERTIES:
+:ID: %<%Y%m%dT%H%M%S>
+:CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
+:END:
+#+TITLE: ${citekey}: ${title} - (${year}, ${journal})
+Time-stamp: %<%Y-%m-%d>
+#+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme
+#+OPTIONS: num:nil ^:{} toc:nil
+#+INCLUDE: ../header.org
+\n* Backlinks
 
-"\n#+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme\n
-#+OPTIONS: num:nil ^:{} toc:nil\n
-#+INCLUDE: '../header.org'
-         \n\n* Backlinks\n
+- keywords :: %^{keywords}
 
 %?
 
 \n* FISH-5SS
-\n
+
 |---------------------------------------------+-----|
 | <40>                                        |<50> |
 | *Background*                                  |     |
@@ -739,15 +586,16 @@
 | *Uncategorized stuff*                         |     |
 | *5SS*                                         |     |
 |---------------------------------------------+-----|
-\n* Specifics comments\n"
-         :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
-                            ":PROPERTIES:
-:ID: %<%Y%m%dT%H%M%S>
-:CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
-:END:
-#+TITLE: ${citekey}: ${title} - (${year}, ${journal})
-Time-stamp: %<%Y-%m-%d>
-#+OPTIONS: toc:nil num:nil"
+
+
+\n* Specifics comments
+
+\n* %^{citekey} Highlights
+:PROPERTIES:
+:AUTHOR: %^{author-or-editor}
+:NOTER_DOCUMENT: %^{file}
+:NOTER_PAGE:
+:END:\n"
 
                             )
          :immediate-finish t
@@ -756,134 +604,51 @@ Time-stamp: %<%Y-%m-%d>
          :jump-to-captured t ))
       )
 
-
-;; (use-package! org-roam
-;;   :defer t
-;;   :init
-;;   (map! :leader
-;;         :prefix "n"
-;;         :desc "org-roam" "l" #'org-roam-buffer-toggle
-;;         :desc "org-roam-node-insert" "i" #'org-roam-node-insert
-;;         :desc "org-roam-node-find" "f" #'org-roam-node-find
-;;         :desc "org-roam-ref-find" "r" #'org-roam-ref-find
-;;         :desc "org-roam-show-graph" "g" #'org-roam-show-graph
-;;         :desc "org-roam-capture" "c" #'org-roam-capture
-;;         :desc "org-roam-dailies-capture-today" "j" #'org-roam-dailies-capture-today)
-;;   (setq
-;;         org-roam-directory (file-truename org-notes-directory)
-;;         org-roam-db-gc-threshold most-positive-fixnum
-;;         org-id-link-to-org-use-id t)
-;;   (add-to-list 'display-buffer-alist
-;;                '(("\\*org-roam\\*"
-;;                   (display-buffer-in-direction)
-;;                   (direction . right)
-;;                   (window-width . 0.33)
-;;                   (window-height . fit-window-to-buffer))))
-;;   :config
-;;   (setq org-roam-mode-sections
-;;         (list #'org-roam-backlinks-insert-section
-;;               #'org-roam-reflinks-insert-section
-;;               ;; #'org-roam-unlinked-references-insert-section
-;;               ))
-;;   (org-roam-setup)
-;;   (require 'org-roam-protocol)
-;;   (setq org-roam-capture-templates
-;;         '(("d" "default" plain
-;;            "%?"
-;;            :if-new (file+head "${slug}.org"
-;;                               "#+title: ${title}\n")
-;;            :immediate-finish t
-;;            :unnarrowed t)))
-;;   (setq org-roam-capture-ref-templates
-;;         '(("r" "ref" plain
-;;            "%?"
-;;            :if-new (file+head "${slug}.org"
-;;                               "#+title: ${title}\n")
-;;            :unnarrowed t)))
-;; )
-
-;;   ;; (set-company-backend! 'org-mode '(company-capf))
-
-;; (add-to-list 'display-buffer-alist
-;;                '("\\*org-roam\\*"
-;;                   (display-buffer-in-direction)
-;;                   (direction . right)
-;;                   (window-width . 0.33)
-;;                   (window-height . fit-window-to-buffer)))
-
-
-;; (defun org-hide-properties ()
-;;   "Hide all org-mode headline property drawers in buffer. Could be slow if it has a lot of overlays."
-;;   (interactive)
-;;   (save-excursion
-;;     (goto-char (point-min))
-;;     (while (re-search-forward
-;;             "^ *:properties:\n\\( *:.+?:.*\n\\)+ *:end:\n" nil t)
-;;       (let ((ov_this (make-overlay (match-beginning 0) (match-end 0))))
-;;         (overlay-put ov_this 'display "")
-;;         (overlay-put ov_this 'hidden-prop-drawer t))))
-;;   (put 'org-toggle-properties-hide-state 'state 'hidden))
-
-;; (defun org-show-properties ()
-;;   "Show all org-mode property drawers hidden by org-hide-properties."
-;;   (interactive)
-;;   (remove-overlays (point-min) (point-max) 'hidden-prop-drawer t)
-;;   (put 'org-toggle-properties-hide-state 'state 'shown))
-
-;; (defun org-toggle-properties ()
-;;   "Toggle visibility of property drawers."
-;;   (interactive)
-;;   (if (eq (get 'org-toggle-properties-hide-state 'state) 'hidden)
-;;       (org-show-properties)
-;;     (org-hide-properties)))
-
-;; (cl-defmethod org-roam-node-directories ((node org-roam-node))
-;;   (if-let ((dirs (file-name-directory (file-relative-name (org-roam-node-file node) org-roam-directory))))
-;;       (format "(%s)" (car (f-split dirs)))
-;;     ""))
-
-;; (cl-defmethod org-roam-node-backlinkscount ((node org-roam-node))
-;;   (let* ((count (caar (org-roam-db-query
-;;                        [:select (funcall count source)
-;;                                 :from links
-;;                                 :where (= dest $s1)
-;;                                 :and (= type "id")]
-;;                        (org-roam-node-id node)))))
-;;     (format "[%d]" count)))
-
-;; (setq org-roam-node-display-template "${directories:10} ${tags:10} ${title:100} ${backlinkscount:6}")
-
 (use-package! org-ref
   :after org
-  ;; :hook (org-mode . org-ref)
+  :hook (org-mode . org-ref)
   :config
-  (setq org-ref-default-bibliography refs-files)
-  (setq bibtex-completion-bibliography refs-files)
-  (setq bibtex-completion-library-path pdfs-directory)
+  (setq org-ref-default-bibliography main-ref-file)
   (setq
     org-ref-notes-function 'orb-edit-note
     org-ref-completion-library 'org-ref-helm-bibtex
     org-ref-notes-directory org-notes-directory
     org-ref-default-citation-link "parencite"
-    org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex)
-
+    org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
+    )
   (setq bibtex-completion-pdf-extension '(".pdf" ".djvu")
-    bibtex-completion-pdf-field "file"))
+    bibtex-completion-pdf-field "file")
+  )
 
-(setq warning-minimum-log-level :error) ;; https://github.com/tmalsburg/helm-bibtex/issues/280
 (use-package! org-roam-bibtex
   :after org-roam
   :config
-  (require 'org-ref)
   (setq orb-preformat-keywords
-    '(("citekey" . "=key=") "title" "url" "author-or-editor" "keywords" "file" "year")
+    '("citekey" "title" "url" "author-or-editor" "keywords" "file" "year")
     orb-process-file-keyword t
     orb-file-field-extensions '("pdf")
-    orb-note-actions-interface 'ivy
-    orb-insert-interface 'ivy-bibtex))
+  ))
 
-(after! org-roam
-  (org-roam-bibtex-mode))
+(setq
+ bibtex-actions-bibliography (expand-file-name "zotero_refs.bib" org-directory)
+ bibtex-actions-at-point-function 'embark-act
+ bibtex-actions-file-open-note-function 'orb-bibtex-actions-edit-note
+ )
+
+(setq bibtex-actions-symbols
+  `((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
+            ,(all-the-icons-icon-for-file "foo.pdf" :face 'bibtex-actions-icon-dim)))
+    (note . (,(all-the-icons-icon-for-file "foo.txt") .
+            ,(all-the-icons-icon-for-file "foo.txt" :face 'bibtex-actions-icon-dim)))
+    (link .
+        (,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
+        ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'bibtex-actions-icon-dim)))))
+;; Here we define a face to dim non 'active' icons, but preserve alignment
+(defface bibtex-actions-icon-dim
+    '((((background dark)) :foreground "#282c34")
+     (((background light)) :foreground "#fafafa"))
+     "Face for obscuring/dimming icons"
+     :group 'all-the-icons-faces)
 
 (use-package! websocket
     :after org-roam)
@@ -907,25 +672,25 @@ Time-stamp: %<%Y-%m-%d>
 
 (setq org-capture-templates '(
                               ("t" "Todo [inbox]" entry
-                               (file+headline "/HDD/Org/gtd/inbox.org" "Tasks inbox") ;; FIXME Generalize path
+                               (file+headline inbox-file-path "Tasks inbox")
                                "* TODO %i%?")
                               ("w" "Writing inbox" entry
-                               (file+headline "/HDD/Org/gtd/inbox.org" "Writing inbox")
+                               (file+headline inbox-file-path "Writing inbox")
                                "* TODO %i%?")
                               ("f" "Fleeting notes" entry
-                               (file+headline "/HDD/Org/gtd/inbox.org" "Fleeting notes")
+                               (file+headline inbox-file-path "Fleeting notes")
                                "* WAIT %i%?")
                               ("r" "Readings inbox" entry
-                               (file+headline "/HDD/Org/gtd/inbox.org" "Reading Inbox")
+                               (file+headline inbox-file-path "Reading Inbox")
                                "* %t %(org-cliplink-capture) %^g" :prepend t)
                               ("n" "News inbox" entry
-                               (file+headline "/HDD/Org/gtd/inbox.org" "News Inbox")
+                               (file+headline inbox-file-path "News Inbox")
                                "* %t %(org-cliplink-capture) %^g" :prepend t)
                               ))
 
-(setq org-refile-targets '(("/HDD/Org/gtd/projects.org" :maxlevel . 3) ;; FIXME Generalize path
-                           ("/HDD/Org/gtd/readings.org" :maxlevel . 4)
-                           ("/HDD/Org/gtd/someday.org" :level . 1)))
+(setq org-refile-targets '((expand-file-name "projects.org"  gtd-directory :maxlevel . 3)
+                           (expand-file-name "reading.org" gtd-directory   :maxlevel . 4)
+                           (expand-file-name "someday.org" gtd-directory :level . 1)))
 
 (use-package! vlf-setup
   :defer-incrementally vlf-tune vlf-base vlf-write vlf-search vlf-occur vlf-follow vlf-ediff vlf)
@@ -1054,30 +819,30 @@ abort completely with `C-g'."
 (setq save-abbrevs 'silently)
 (setq-default abbrev-mode t)
 
-(use-package! ebib :after (org latex))
-
 (use-package! ox-publish)
 
 (setq org-publish-use-timestamps-flag nil) ;; What is this?
 (setq org-export-with-broken-links t)
 (setq org-publish-project-alist
       '(("MyOrg"
-         :base-directory "/HDD/Org/"
+         :base-directory org-directory
          :base-extension "org"
-         :publishing-directory "/HDD/Org/docs/"
+         :publishing-directory  (expand-file-name "docs/" org-directory)
          :recursive t
          :exclude "./org-html-themes/.*\\|./themes/*"
          :publishing-function org-html-publish-to-html
          :headline-levels 4             ; Just the default for this project.
          :auto-preamble t)
         ("org-static"
-         :base-directory "/HDD/Org/website/"
+         :base-directory  (expand-file-name "website/" org-directory)
          :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
          :publishing-directory "./public_html/"
          :recursive t
          :exclude "./org-html-themes/.*\\|./themes/*"
          :publishing-function org-publish-attachment)
         ))
+
+(use-package! orgdiff :defer t)
 
 (defvar org-latex-extra-special-string-regexps
   '(("->" . "\\\\textrightarrow{}")
