@@ -95,7 +95,7 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
 (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq
  storage-directory "/HDD/" ;; Where to some main emacs-related file
- org-directory (expand-file-name "Org/" storage-directory)
+ org-directory "~/Org/"
  org-roam-directory (expand-file-name "notes/" org-directory)
  org-agenda-files '(expand-file-name "agenda.org" org-directory)
  org-notes-directory org-roam-directory
@@ -173,35 +173,6 @@ I expect most of the documents I work on to be UTF - 8, So I don't want to see t
 :ID:       c969078a-b2c7-4480-9efa-9e296bec8a45
 :END:
 
-This sets up Doom Emacs for an academic research and writing workflow, with
-integrated bibliographic management, note-taking and document authoring.
-
-Almost all of the initial work on this is now incorporated into Doom modules,
-and you can install and set it all up with the following Doom modules and flags
-in your ~init.el~ file:
-
- - :completion ivy or helm (I use ivy)
- - :lang org (+roamom+noter)
- - :tools biblio
-
- The above will give you the following:
-
-  - ~ivy-bibtex~ or ~helm-bibtex~ and ~org-ref~ for bibliographic management
-  - ~org-roam~ for zettlekasten-inspired note-taking, including of bibliographic
-    notes (~org-roam-bibtex~ provides the glue here); also incorporates
-    ~org-noter~ for notes synced to PDF files, so that you have a consistent
-    environment to create, link, manage and access your notes
-  - document authoring in either markdown mode (if you activate the ~markdown~
-    module) or ~org~, including integrated citation access and insertion.
-
-What follows is simply my customization of the above, which for now is
-configuring the following variables.
-
-The ~+biblio~ module provides these path directory and file variables and passes
-them on to the relevant packages, so that one only has to set them once. There
-is no need to set the path for bibliographic notes, as ~org-roam-bibtex~ will
-handle that.
-
 #+BEGIN_SRC elisp
 (setq! +biblio-pdf-library-dir pdfs-directory)
 #+END_SRC
@@ -222,9 +193,6 @@ more appropriate for social sciences and humanities.
 (setq org-latex-pdf-process '("latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o %f"))
 
 #+END_SRC
-
-** Org-Ref
-I initially started using this package in order to manage my citations. However, I soon found that this package required a lot of manual work for my liking. I still keep it in my config as it allows me to use citations in org-documents, if I am working on them directly. I can output these org-documents later to pdf or .docx later.
 
 
 * Editor
@@ -260,28 +228,6 @@ I initially started using this package in order to manage my citations. However,
 (custom-set-faces! '(window-divider :foreground "grey"))
 #+END_SRC
 
-** Splash-screen and dashboard
-
-#+begin_src elisp :tangle no
-
-(use-package! dashboard
-  :init      ;; tweak dashboard config before loading it
-  (setq dashboard-set-heading-icons t)
-  (setq dashboard-set-file-icons t)
-  (setq dashboard-banner-logo-title "Emacs Is More Than A Text Editor!")
-  (setq dashboard-startup-banner 'logo) ;; use standard emacs logo as banner
-  (setq dashboard-center-content nil) ;; set to 't' for centered content
-  (setq dashboard-items '((recents . 5)
-                          (bookmarks . 5)
-                          (projects . 5)
-                          (registers . 5)))
-  :config
-  (dashboard-setup-startup-hook)
-  (dashboard-modify-heading-icons '((recents . "file-text")
-			      (bookmarks . "book"))))
-
-(setq doom-fallback-buffer "*dashboard*")
-#+end_src
 * Org-mode
 :PROPERTIES:
 :ID:       0ac56cd6-ed1b-4d4d-a458-2277d20a25b8
@@ -604,17 +550,6 @@ This just configures spelling and grammar checking support.
 
 
 
-I find iedit absolutely indispensable when coding. In short: when you hit Ctrl-;, all occurrences of the symbol under the cursor (or the current selection) are highlighted, and any changes you make on one of them will be automatically applied to all others. It’s great for renaming variables in code, but it needs to be used with care, as it has no idea of semantics, it’s a plain string replacement, so it can inadvertently modify unintended parts of the code.
-
-#+begin_src elisp :tangle no
-(use-package! iedit
-  :defer
-  :config
-  (set-face-background 'iedit-occurrence "Magenta")
-  :bind
-  ("C-;" . iedit-mode))
-#+end_src
-
 ** Stata
 :PROPERTIES:
 :ID:       6a6a980c-7c79-462e-9cec-ec82d0dd6793
@@ -622,7 +557,6 @@ I find iedit absolutely indispensable when coding. In short: when you hit Ctrl-;
 
 [[https://www.louabill.org/Stata/ado-mode_install.html][Instalation instruction]]
 
-Git repo was cloned, ~.git~ folder was removed and then moved to ~/scimax/user/~ folder.
 
 ado-cus.el changed to include fake time
 
@@ -792,11 +726,11 @@ Display inline images after running code
 (setq-default prescient-history-length 1000)
 
 (set-company-backend! 'org-mode nil)
-;; (use-package! company-tabnine
-;;   :defer t
-;;   )
-;; (after! company
-;;   (add-to-list 'company-backends 'company-tabnine))
+(use-package! company-tabnine
+  :defer t
+  )
+(after! company
+  (add-to-list 'company-backends 'company-tabnine))
 #+end_src
 
 ** LSP
@@ -828,15 +762,6 @@ Display inline images after running code
         ;; lsp-enable-symbol-highlighting nil
         lsp-enable-file-watchers nil))
 #+end_src
-
-** Dynare
-:PROPERTIES:
-:ID:       7e04f9ca-c7c2-4f83-afb1-cf61f058121f
-:END:
-
-#+BEGIN_SRC elisp
-;; (load! "dynare.el")
-#+END_SRC
 
 ** Magit
 :PROPERTIES:
@@ -881,11 +806,14 @@ Display inline images after running code
 #+BEGIN_SRC elisp
 (load! "scimax-org-latex.el")
 
-(setq org-latex-pdf-process
-      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "biber %b"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+;; (setq org-latex-pdf-process
+;;       '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+;;         "biber %b"
+;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+
+(setq org-latex-pdf-process '("latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o %f"))
 #+END_SRC
 
 ** Labels
@@ -934,7 +862,7 @@ Display inline images after running code
     ("utf8" . "utf8x")
     ("\\subsection{%s}" . "\\subsection*{%s}"))))
 #+end_src
-** WAIT Citeproc
+** Citeproc
 :PROPERTIES:
 :ID:       1991f324-4d54-4fb8-9479-f615be50620c
 :END:
@@ -947,7 +875,7 @@ citeproc-org provides the Emacs command citeproc-org-setup to add its renderer t
 
 during an Emacs session. After the command’s execution citeproc-org will remain active until the end of the session. If you want to use it on a permanent basis then add the following line to your .emacs or init.el file:
 
-#+BEGIN_SRC elisp :tangle no
+#+BEGIN_SRC elisp
 (citeproc-org-setup)
 #+END_SRC
 ** Default refs
@@ -964,7 +892,7 @@ during an Emacs session. After the command’s execution citeproc-org will remai
 :END:
 
 #+begin_src elisp
-(setq +latex-viewers '(evince pdf-tools zathura okular skim sumatrapdf))
+(setq +latex-viewers '(evince pdf-tools okular))
 #+end_src
 
 ** Prittier highlighting
@@ -1026,7 +954,7 @@ Inspecting org-do-latex-and-related shows that "latex" is the language argument 
 #+end_src
 
 
-* Org-pdftools
+* WAIT Org-pdftools
 
 #+begin_src elisp :tangle no
 (use-package! org-noter-pdftools
@@ -1207,7 +1135,7 @@ Waiting the removal of org-ref as a required package.
      :group 'all-the-icons-faces)
 #+end_src
 
-* Org-roam-server
+* WAIT Org-roam-server
 :PROPERTIES:
 :ID:       f14644ae-31d7-4b97-b618-94eea0a11890
 :END:

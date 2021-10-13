@@ -22,7 +22,7 @@
 (global-subword-mode 1)                           ; Iterate through CamelCase words
 (setq
  storage-directory "/HDD/" ;; Where to some main emacs-related file
- org-directory (expand-file-name "Org/" storage-directory)
+ org-directory "~/Org/"
  org-roam-directory (expand-file-name "notes/" org-directory)
  org-agenda-files '(expand-file-name "agenda.org" org-directory)
  org-notes-directory org-roam-directory
@@ -428,11 +428,11 @@
 (setq-default prescient-history-length 1000)
 
 (set-company-backend! 'org-mode nil)
-;; (use-package! company-tabnine
-;;   :defer t
-;;   )
-;; (after! company
-;;   (add-to-list 'company-backends 'company-tabnine))
+(use-package! company-tabnine
+  :defer t
+  )
+(after! company
+  (add-to-list 'company-backends 'company-tabnine))
 
 ;; In case we get a wrong workspace root, we can delete it with lsp-workspace-folders-remove
 (after! lsp-mode
@@ -457,8 +457,6 @@
         ;; lsp-enable-symbol-highlighting nil
         lsp-enable-file-watchers nil))
 
-;; (load! "dynare.el")
-
 (after! magit
   ;; (magit-wip-mode)
   (setq magit-save-repository-buffers nil
@@ -470,11 +468,14 @@
 
 (load! "scimax-org-latex.el")
 
-(setq org-latex-pdf-process
-      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "biber %b"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+;; (setq org-latex-pdf-process
+;;       '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+;;         "biber %b"
+;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+
+
+(setq org-latex-pdf-process '("latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o %f"))
 
 (setq org-latex-prefer-user-labels t)
 
@@ -504,9 +505,11 @@
     ("utf8" . "utf8x")
     ("\\subsection{%s}" . "\\subsection*{%s}"))))
 
+(citeproc-org-setup)
+
 (setq reftex-default-bibliography refs-files)
 
-(setq +latex-viewers '(evince pdf-tools zathura okular skim sumatrapdf))
+(setq +latex-viewers '(evince pdf-tools okular))
 
 (setq org-highlight-latex-and-related '(native script entities))
 
@@ -603,22 +606,6 @@ Time-stamp: %<%Y-%m-%d>
          :type org-roam-bibtex
          :jump-to-captured t ))
       )
-
-(use-package! org-ref
-  :after org
-  :hook (org-mode . org-ref)
-  :config
-  (setq org-ref-default-bibliography main-ref-file)
-  (setq
-    org-ref-notes-function 'orb-edit-note
-    org-ref-completion-library 'org-ref-helm-bibtex
-    org-ref-notes-directory org-notes-directory
-    org-ref-default-citation-link "parencite"
-    org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
-    )
-  (setq bibtex-completion-pdf-extension '(".pdf" ".djvu")
-    bibtex-completion-pdf-field "file")
-  )
 
 (use-package! org-roam-bibtex
   :after org-roam
