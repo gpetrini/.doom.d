@@ -121,13 +121,6 @@
    "/DONE" 'tree))
 (add-hook! org-mode :append #'org-appear-mode)
 
-;; IMO, modern editors have trained a bad habit into us all: a burning
-;; need for completion all the time -- as we type, as we breathe, as we
-;; pray to the ancient ones -- but how often do you *really* need that
-;; information? I say rarely. So opt for manual completion:
-(require 'company)
-(setq company-idle-delay nil ;; https://discourse.doomemacs.org/t/why-is-emacs-doom-slow/83/3
-      company-minimum-prefix-length 3)
 
 (setq org-cite-csl-styles-dir "~/Zotero/styles")
 
@@ -307,8 +300,15 @@
 (setq ispell-program-name (executable-find "aspell")
       ispell-dictionary "en_US")
 (setq flyspell-correct-popup t)
-(setq langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.2/languagetool.jar")
-(setq langtool-java-classpath "/usr/share/languagetool:/usr/share/java/languagetool/*")
+(setq langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool.jar")
+(setq langtool-language-tool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar")
+
+(use-package! flycheck-languagetool
+  :ensure t
+  :hook (text-mode . (lambda ()
+                       (require 'flycheck-languagetool)))
+  :init
+  (setq flycheck-languagetool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar"))
 
 (when (memq window-system '(mac ns x))
   (require 'exec-path-from-shell)
@@ -468,14 +468,14 @@
 
 (load! "scimax-org-latex.el")
 
-;; (setq org-latex-pdf-process
-;;       '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-;;         "biber %b"
-;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
-;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+(setq org-latex-pdf-process
+      '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "biber %b"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+        "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 
 
-(setq org-latex-pdf-process '("latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o %f"))
+;; (setq org-latex-pdf-process '("latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o %f"))
 
 (setq org-latex-prefer-user-labels t)
 
@@ -621,21 +621,21 @@ Time-stamp: %<%Y-%m-%d>
  bibtex-actions-at-point-function 'embark-act
  bibtex-actions-file-open-note-function 'orb-bibtex-actions-edit-note
  )
+;; Set bibliography paths so they are the same.
+(defvar my/bibs refs-files)
 
-(setq bibtex-actions-symbols
-  `((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
-            ,(all-the-icons-icon-for-file "foo.pdf" :face 'bibtex-actions-icon-dim)))
-    (note . (,(all-the-icons-icon-for-file "foo.txt") .
-            ,(all-the-icons-icon-for-file "foo.txt" :face 'bibtex-actions-icon-dim)))
-    (link .
-        (,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
-        ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'bibtex-actions-icon-dim)))))
-;; Here we define a face to dim non 'active' icons, but preserve alignment
-(defface bibtex-actions-icon-dim
-    '((((background dark)) :foreground "#282c34")
-     (((background light)) :foreground "#fafafa"))
-     "Face for obscuring/dimming icons"
-     :group 'all-the-icons-faces)
+(use-package! oc-bibtex-actions
+  :bind (("C-c ]" . org-cite-insert)
+         ("M-o" . org-open-at-point)
+         :map minibuffer-local-map
+         ("M-b" . bibtex-actions-insert-preset))
+  :after (embark oc)
+  :config
+  (setq bibtex-actions-bibliography my/bibs
+        org-cite-global-bibliography my/bibs
+        org-cite-insert-processor 'oc-bibtex-actions
+        org-cite-follow-processor 'oc-bibtex-actions
+        org-cite-activate-processor 'oc-bibtex-actions))
 
 (use-package! websocket
     :after org-roam)

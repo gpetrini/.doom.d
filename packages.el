@@ -135,3 +135,6 @@
 ;; (package! ox-gemini)
 
 (package! orgdiff :recipe (:host github :repo "tecosaur/orgdiff" :files ("*.el")))
+(package! company-tabnine)
+(package! oc-bibtex-action :recipe (:host github :repo "bdarcus/bibtex-actions" :files ("oc-bibtex-action.el")))
+(package! flycheck-languagetool :recipe (:host github :repo "emacs-languagetool/flycheck-languagetool" :files ("*.el")))
