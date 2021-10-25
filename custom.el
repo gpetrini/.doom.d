@@ -4,8 +4,23 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(org-agenda-files '("/HDD/PhD/Articles/SFC/Model_referee.org"))
- '(warning-suppress-types
+ '(warning-suppress-log-types
    '(((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))))
+ '(warning-suppress-types
+   '((comp)
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
+     ((flycheck syntax-checker))
      ((flycheck syntax-checker))
      ((flycheck syntax-checker)))))
 (custom-set-faces

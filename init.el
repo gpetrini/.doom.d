@@ -21,9 +21,9 @@
 
        :completion
        (company +childframe)     ; the ultimate code completion backend
-       ;                         ; (helm +fuzzy)
+       ;; (helm +fuzzy)
        ;;ido                     ; the other *other* search engine...
-       ;                         ; (ivy +fonts +fuzzy +prescient +icons +childframe)
+       ;; (ivy +fonts +fuzzy +prescient +icons +childframe)
        ;;ivy                     ; a search engine for love and life
        (vertico +icons)
 
@@ -162,7 +162,7 @@
        ;;nix                     ; I hereby declare "nix geht mehr!"
        ;;ocaml                   ; an objective camel
        (org                      ; organize your plain life in plain text
-        +pretty                  ; yessss my pretties! (nice unicode symbols)
+        ;; +pretty                  ; yessss my pretties! (nice unicode symbols)
         +dragndrop               ; drag & drop files/images into org buffers
         ;                        ; +roam
         +roam2
@@ -217,4 +217,5 @@
          ;                       ; +smartparens
          )) ;
 
-(setq comp-deferred-compilation t)
+;; (setq comp-deferred-compilation t)
+(setq native-comp-deferred-compilation t)

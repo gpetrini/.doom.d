@@ -48,7 +48,7 @@
 ;(unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
-;; (package! org-ref)
+(package! org-ref)
 ;(package! interleave)                                        not using anymore as org-noter is far superior.
 (package! ivy-bibtex)
 ;; (package! ox-pandoc)
@@ -131,10 +131,17 @@
            :files ("*.el")))
 (package! websocket)
 (package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
-;; (package! ebib :recipe (:host github :repo "joostkremers/ebib" :files ("*.el")))
 ;; (package! ox-gemini)
 
 (package! orgdiff :recipe (:host github :repo "tecosaur/orgdiff" :files ("*.el")))
 (package! company-tabnine)
 (package! oc-bibtex-action :recipe (:host github :repo "bdarcus/bibtex-actions" :files ("oc-bibtex-action.el")))
 (package! flycheck-languagetool :recipe (:host github :repo "emacs-languagetool/flycheck-languagetool" :files ("*.el")))
+(package! org-cite-csl-activate :recipe (:host github :repo "andras-simonyi/org-cite-csl-activate"))
+
+(package! ox-word :recipe (:host github :repo "jkitchin/scimax" :files ("ox-word.el")))
+
+
+
+(unpin! ox-pandoc) ;; Changing pandoc repo
+(package! ox-pandoc :recipe (:host github :repo "a-fent/ox-pandoc"))

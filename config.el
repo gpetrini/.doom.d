@@ -112,6 +112,7 @@
         org-src-window-setup 'other-frame
         org-startup-folded 'overview
         org-hide-emphasis-markers t))
+
 (defun org-archive-done-tasks ()
   (interactive)
   (org-map-entries
@@ -119,10 +120,14 @@
      (org-archive-subtree)
      (setq org-map-continue-from (org-element-property :begin (org-element-at-point))))
    "/DONE" 'tree))
+
 (add-hook! org-mode :append #'org-appear-mode)
 
 
-(setq org-cite-csl-styles-dir "~/Zotero/styles")
+(setq
+ org-cite-csl-styles-dir "~/Zotero/styles"
+ ;; org-cite-global-bibliography '(main-ref-file)
+      )
 
 (setq org-babel-default-header-args
       '((:session . "none")
@@ -133,13 +138,6 @@
         (:hlines . "no")
         (:tangle . "no")
         ))
-
-(after! org
-  (setq org-html-checkbox-type 'unicode
-        org-html-checkbox-types
-        '((unicode (on . "<span class=\"task-done\">&#x2611;</span>")
-                   (off . "<span class=\"task-todo\">&#x2610;</span>")
-                   (trans . "<span class=\"task-in-progress\">[-]</span>")))))
 
 (after! org-superstar
   (setq org-superstar-headline-bullets-list '("◉" "○" "✸" "✿" "✤" "✜" "◆" "▶")
@@ -229,6 +227,25 @@
   :priority_e    "[#E]")
 (plist-put +ligatures-extra-symbols :name "⁍")
 
+(defvar org-latex-extra-special-string-regexps
+  '(("->" . "\\\\textrightarrow{}")
+    ("<-" . "\\\\textleftarrow{}")))
+
+(defun org-latex-convert-extra-special-strings (string)
+  "Convert special characters in STRING to LaTeX."
+  (dolist (a org-latex-extra-special-string-regexps string)
+    (let ((re (car a))
+          (rpl (cdr a)))
+      (setq string (replace-regexp-in-string re rpl string t)))))
+
+(defadvice! org-latex-plain-text-extra-special-a (orig-fn text info)
+  "Make `org-latex-plain-text' handle some extra special strings."
+  :around #'org-latex-plain-text
+  (let ((output (funcall orig-fn text info)))
+    (when (plist-get info :with-special-strings)
+      (setq output (org-latex-convert-extra-special-strings output)))
+    output))
+
 (use-package! graphviz-dot-mode
   :defer t
   :commands graphviz-dot-mode
@@ -303,12 +320,12 @@
 (setq langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool.jar")
 (setq langtool-language-tool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar")
 
-(use-package! flycheck-languagetool
-  :ensure t
-  :hook (text-mode . (lambda ()
-                       (require 'flycheck-languagetool)))
-  :init
-  (setq flycheck-languagetool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar"))
+;; (use-package! flycheck-languagetool
+;;   :defer t
+;;   :hook (text-mode . (lambda ()
+;;                        (require 'flycheck-languagetool)))
+;;   :init
+;;   (setq flycheck-languagetool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar"))
 
 (when (memq window-system '(mac ns x))
   (require 'exec-path-from-shell)
@@ -537,12 +554,16 @@
   ;; (require 'org-noter-pdftools)
   )
 
+(use-package! org-roam-bibtex
+  :after org-roam
+  :config
+  (require 'org-ref)) ; optional: if Org Ref is not loaded anywhere else, load it here
 (setq org-attach-use-inheritance nil)
 (require 'org-id)
 (setq org-id-track-globally t)
 (setq org-roam-completion-everywhere t)
 
-(setq bibtex-completion-bibliography (expand-file-name "zotero_refs.bib" org-directory))
+(setq bibtex-completion-bibliography main-ref-file)
 (setq bibtex-completion-library-path pdfs-directory)
 
 
@@ -553,23 +574,22 @@
                             "#+title: ${title}\n
 #+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme\n
 #+OPTIONS: num:nil ^:{} toc:nil\n
-#+INCLUDE: '../header.org'
+#+INCLUDE: ../header.org
 \n")
          :unnarrowed t)
         ("r" "Bibliographic note" plain
+         ""
          :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
                             ":PROPERTIES:
 :ID: %<%Y%m%dT%H%M%S>
 :CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
 :END:
-#+TITLE: ${citekey}: ${title} - (${year}, ${journal})
+#+TITLE: ${citekey}: ${title} - (${date}, ${journal})
 Time-stamp: %<%Y-%m-%d>
 #+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme
 #+OPTIONS: num:nil ^:{} toc:nil
 #+INCLUDE: ../header.org
 \n* Backlinks
-
-- keywords :: %^{keywords}
 
 %?
 
@@ -590,16 +610,14 @@ Time-stamp: %<%Y-%m-%d>
 | *5SS*                                         |     |
 |---------------------------------------------+-----|
 
+\n** Abstract
 
-\n* Specifics comments
+#+BEGIN_ABSTRACT
+${abstract}
+#+END_ABSTRACT
 
-\n* %^{citekey} Highlights
-:PROPERTIES:
-:AUTHOR: %^{author-or-editor}
-:NOTER_DOCUMENT: %^{file}
-:NOTER_PAGE:
-:END:\n"
 
+\n* Specifics comments"
                             )
          :immediate-finish t
          :unnarrowed t
@@ -616,26 +634,112 @@ Time-stamp: %<%Y-%m-%d>
     orb-file-field-extensions '("pdf")
   ))
 
-(setq
- bibtex-actions-bibliography (expand-file-name "zotero_refs.bib" org-directory)
- bibtex-actions-at-point-function 'embark-act
- bibtex-actions-file-open-note-function 'orb-bibtex-actions-edit-note
- )
-;; Set bibliography paths so they are the same.
-(defvar my/bibs refs-files)
+(use-package! bibtex-completion
+  :defer t
+  :config
+  (setq bibtex-completion-additional-search-fields '(keywords)
+        org-cite-global-bibliography main-ref-file
+        bibtex-completion-pdf-field "file")) ; This tell bibtex-completion to look at the File field of the bibtex to figure out which pdf to open
+
+(use-package! bibtex-actions
+  :after embark bibtex-completion
+  :config
+  (add-to-list 'embark-keymap-alist '(bibtex . bibtex-actions-map)))
+
+(use-package! citeproc
+  :defer t)
+
+;;; Org-Cite configuration
+(use-package! oc
+  :after org bibtex-completion bibtex-actions
+  :config
+  (require 'ox)
+  (map! :map org-mode-map
+        :localleader
+        :desc "Insert citation" "@" #'org-cite-insert)
+  (defvar bibtex-actions-bibliography main-ref-file)
+  (setq org-cite-global-bibliography
+        (let ((paths (or bibtex-actions-bibliography
+                         bibtex-completion-bibliography)))
+          ;; Always return bibliography paths as list for org-cite.
+          (if (stringp paths) (list paths) paths)))
+  ;; setup export processor; default csl/citeproc-el, with biblatex for latex
+  (setq org-cite-export-processors '((t csl))))
+
+;;; Org-cite processors
+
+;;;; Core
+
+(use-package! oc-basic
+  :after oc)
+
+(use-package! oc-biblatex
+  :after oc)
+
+(use-package! oc-csl
+  :after oc
+  :config
+  (setq org-cite-csl-styles-dir "~/Zotero/styles"))
+
+(use-package! oc-natbib
+  :after oc)
+
+;;;; Third-party
+
+;; (use-package! oc-csl-activate
+;;   :after oc
+;;   :config
+;;   (defun +org-cite-csl-activate/enable ()
+;;     (interactive)
+;;     (setq org-cite-activate-processor 'csl-activate)
+;;     (add-hook! 'org-mode-hook '((lambda () (cursor-sensor-mode 1)) org-cite-csl-activate-render-all))
+;;     (defadvice! +org-cite-csl-activate-render-all-silent (orig-fn)
+;;       :around #'org-cite-csl-activate-render-all
+;;       (with-silent-modifications (funcall orig-fn)))
+;;     (when (eq major-mode 'org-mode)
+
+
+;;       (with-silent-modifications
+;;         (save-excursion
+;;           (goto-char (point-min))
+;;           (org-cite-activate (point-max)))
+;;         (org-cite-csl-activate-render-all)))))
 
 (use-package! oc-bibtex-actions
-  :bind (("C-c ]" . org-cite-insert)
-         ("M-o" . org-open-at-point)
-         :map minibuffer-local-map
-         ("M-b" . bibtex-actions-insert-preset))
-  :after (embark oc)
+  :when (featurep! :completion vertico)
+  :after oc
+  :demand t
   :config
-  (setq bibtex-actions-bibliography my/bibs
-        org-cite-global-bibliography my/bibs
-        org-cite-insert-processor 'oc-bibtex-actions
+  (setq org-cite-insert-processor 'oc-bibtex-actions
         org-cite-follow-processor 'oc-bibtex-actions
-        org-cite-activate-processor 'oc-bibtex-actions))
+        org-cite-activate-processor 'basic))
+
+(after! oc
+  (defun org-ref-to-org-cite ()
+    "Attempt to convert org-ref citations to org-cite syntax."
+    (interactive)
+    (let* ((cite-conversions '(("cite" . "//b") ("Cite" . "//bc")
+                               ("nocite" . "/n")
+                               ("citep" . "") ("citep*" . "//f")
+                               ("parencite" . "") ("Parencite" . "//c")
+                               ("citeauthor" . "/a/f") ("citeauthor*" . "/a")
+                               ("citeyear" . "/na/b")
+                               ("Citep" . "//c") ("Citealp" . "//bc")
+                               ("Citeauthor" . "/a/cf") ("Citeauthor*" . "/a/c")
+                               ("autocite" . "") ("Autocite" . "//c")
+                               ("notecite" . "/l/b") ("Notecite" . "/l/bc")
+                               ("pnotecite" . "/l") ("Pnotecite" . "/l/bc")))
+           (cite-regexp (rx (regexp (regexp-opt (mapcar #'car cite-conversions) t))
+                            ":" (group (+ (not (any "\n     ,.)]}")))))))
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward cite-regexp nil t)
+          (message (format "[cite%s:@%s]"
+                                 (cdr (assoc (match-string 1) cite-conversions))
+                                 (match-string 2)))
+          (replace-match (format "[cite%s:@%s]"
+                                 (cdr (assoc (match-string 1) cite-conversions))
+                                 (match-string 2))))))))
 
 (use-package! websocket
     :after org-roam)
@@ -812,13 +916,13 @@ abort completely with `C-g'."
 (setq org-export-with-broken-links t)
 (setq org-publish-project-alist
       '(("MyOrg"
-         :base-directory org-directory
+         :base-directory "~/Org/"              ;; FIXME Generalize
          :base-extension "org"
-         :publishing-directory  (expand-file-name "docs/" org-directory)
+         :publishing-directory  "~/Org/docs/"  ;; FIXME Generalize
          :recursive t
          :exclude "./org-html-themes/.*\\|./themes/*"
          :publishing-function org-html-publish-to-html
-         :headline-levels 4             ; Just the default for this project.
+         :headline-levels 4                    ;; Just the default for this project.
          :auto-preamble t)
         ("org-static"
          :base-directory  (expand-file-name "website/" org-directory)
@@ -831,21 +935,6 @@ abort completely with `C-g'."
 
 (use-package! orgdiff :defer t)
 
-(defvar org-latex-extra-special-string-regexps
-  '(("->" . "\\\\textrightarrow{}")
-    ("<-" . "\\\\textleftarrow{}")))
-
-(defun org-latex-convert-extra-special-strings (string)
-  "Convert special characters in STRING to LaTeX."
-  (dolist (a org-latex-extra-special-string-regexps string)
-    (let ((re (car a))
-          (rpl (cdr a)))
-      (setq string (replace-regexp-in-string re rpl string t)))))
-
-(defadvice! org-latex-plain-text-extra-special-a (orig-fn text info)
-  "Make `org-latex-plain-text' handle some extra special strings."
-  :around #'org-latex-plain-text
-  (let ((output (funcall orig-fn text info)))
-    (when (plist-get info :with-special-strings)
-      (setq output (org-latex-convert-extra-special-strings output)))
-    output))
+(use-package! ox-word
+  :after ox
+  )
