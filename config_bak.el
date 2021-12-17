@@ -79,7 +79,7 @@
   (setq org-ellipsis " ▼ "
         org-log-done 'time
         org-enable-roam-support t
-        org-src-window-setup 'other-window ;; FIXME
+        org-src-window-setup 'other-frame ;; FIXME
         org-startup-folded 'overview
         org-hide-emphasis-markers t))
 
@@ -219,89 +219,6 @@
 (use-package! org-web-tools
   :defer t
 )
-
-(use-package! org-super-agenda
-  :commands org-super-agenda-mode)
-(after! org-agenda
-  (org-super-agenda-mode))
-
-(setq org-agenda-skip-scheduled-if-done t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-todo-ignore-deadlines t
-      org-agenda-tags-column 100 ;; from testing this seems to be a good value
-      org-agenda-compact-blocks t)
-
-(setq org-agenda-custom-commands
-      '(("o" "Overview"
-            ((agenda "" ((org-agenda-overriding-header "")
-                        (org-super-agenda-groups
-                         '(
-                           (:auto-group t)
-                           (:name "Today"
-                                  :time-grid t
-                                  :date today
-                                  :order 1)
-                          (:name "Due Today"
-                           :scheduled t
-                           :deadline today
-                           :todo "TODO"
-                           :order 2)
-                          (:name "Due Soon"
-                           :scheduled future
-                           :todo "TODO"
-                           :order 2)
-                          (:name "Overdue"
-                           :deadline past
-                           :todo "TODO"
-                           :face error
-                           :order 1)
-                           )))
-                     )
-                (alltodo "" ((org-agenda-overriding-header "")
-                       (org-super-agenda-groups
-                        '(
-                           (:auto-group t)
-                          (:name "Lectures"
-                           :tag ("@Teaching" "@Lectures")
-                           :order 8)
-                          (:name "Advisoring"
-                           :tag "@Orientations"
-                           :order 8)
-                          (:name "Meetings"
-                           :tag "@Meeting"
-                           :order 5)
-                          (:name "Current Research"
-                           :tag "@Article"
-                           :order 6)
-                          (:name "To read"
-                           :file-path "readings"
-                           :order 8
-                           )
-                          (:name "To writing"
-                           :todo ("STRT")
-                           :order 4)
-                          (:name "Waiting"
-                           :todo ("WAITING" "WAIT" "MAYBE")
-                           :order 20)
-                          (:name "Research groups"
-                           :tag ("@Group")
-                           :order 10)
-                          (:name "University"
-                           :tag ("@UNICAMP")
-                           :order 10)
-                          (:name "Emacs"
-                           :tag ("@Emacs")
-                           :order 80)
-                          (:name "Trivial"
-                           :tag ("@free")
-                           :order 90)
-                          ))))))))
-
-(defadvice! shut-up-org-problematic-hooks (orig-fn &rest args)
-  :around #'org-fancy-priorities-mode
-  :around #'org-superstar-mode
-  (ignore-errors (apply orig-fn args)))
 
 (use-package! graphviz-dot-mode
   :defer t
@@ -616,9 +533,15 @@
   ;; (require 'org-noter-pdftools)
   )
 
-(after! org-roam
-  (setq org-roam-db-location "~/Org/notes/org-roam.db")
-)
+(use-package! org-roam-bibtex
+  :after org-roam
+  :config
+  ;; (require 'org-ref)
+  (setq orb-preformat-keywords
+    '("citekey" "title" "url" "author-or-editor" "keywords" "file" "year" "note")
+    orb-process-file-keyword t
+    orb-file-field-extensions '("pdf")
+  ))
 
 (setq org-attach-use-inheritance nil)
 (require 'org-id)
@@ -641,7 +564,6 @@
 #+hugo_base_dir: ~/BrainDump/\n
 #+hugo_section: notes\n
 #+HUGO_TAGS: placeholder\n
-#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
 #+OPTIONS: num:nil ^:{} toc:nil\n
 \n")
          :unnarrowed t)
@@ -653,7 +575,6 @@
 #+hugo_base_dir: ~/BrainDump/\n
 #+hugo_section: notes\n
 #+HUGO_CATEGORIES: KnowledgeBase\n
-#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
 #+OPTIONS: num:nil ^:{} toc:nil\n
 \n")
          :unnarrowed t)
@@ -665,7 +586,6 @@
 #+hugo_base_dir: ~/BrainDump/\n
 #+hugo_section: notes\n
 #+HUGO_CATEGORIES: Lectures\n
-#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
 #+OPTIONS: num:nil ^:{} toc:nil\n
 \n")
          :unnarrowed t)
@@ -680,59 +600,58 @@
 #+OPTIONS: num:nil ^:{} toc:nil\n
 \n")
          :unnarrowed t)
-;;         ("b" "Bibliographic note" plain
-;;          ""
-;;          :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
-;;                             ":PROPERTIES:
-;; :ID: %<%Y%m%dT%H%M%S>
-;; :CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
-;; :END:
-;; ,#+TITLE: ${citekey}: ${title} - (%^{year}, %^{journal})
-;; Time-stamp: %<%Y-%m-%d>
-;; ,#+hugo_base_dir: ~/BrainDump/\n
-;; ,#+hugo_section: notes\n
-;; ,#+hugo_categories: %^journal
-;; ,#+HUGO_TAGS: %^{keywords}\n
-;; ,#+OPTIONS: num:nil ^:{} toc:nil
-;; ,#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
-;; ,#+cite_export: csl apa.csl
+        ("b" "Bibliographic note" plain
+         ""
+         :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
+                            ":PROPERTIES:
+:ID: %<%Y%m%dT%H%M%S>
+:CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
+:END:
+#+TITLE: ${citekey}: ${title} - (%^{year}, %^{journal})
+Time-stamp: %<%Y-%m-%d>
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: notes\n
+#+hugo_categories: %^journal
+#+HUGO_TAGS: %^{keywords}\n
+#+OPTIONS: num:nil ^:{} toc:nil
+#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
+#+cite_export: csl apa.csl
 
 
-;; \n* FISH-5SS
+\n* FISH-5SS
 
-;; |---------------------------------------------+-----|
-;; | <40>                                        |<50> |
-;; | *Background*                                  |     |
-;; | *Supporting Ideas*                            |     |
-;; | *Purpose*                                     |     |
-;; | *Originality/value (Contribution)*            |     |
-;; | *Relevance*                                   |     |
-;; | *Design/methodology/approach*                 |     |
-;; | *Results*                                     |     |
-;; | *(Interesting) Findings*                      |     |
-;; | *Research limitations/implications (Critics)* |     |
-;; | *Uncategorized stuff*                         |     |
-;; | *5SS*                                         |     |
-;; |---------------------------------------------+-----|
+|---------------------------------------------+-----|
+| <40>                                        |<50> |
+| *Background*                                  |     |
+| *Supporting Ideas*                            |     |
+| *Purpose*                                     |     |
+| *Originality/value (Contribution)*            |     |
+| *Relevance*                                   |     |
+| *Design/methodology/approach*                 |     |
+| *Results*                                     |     |
+| *(Interesting) Findings*                      |     |
+| *Research limitations/implications (Critics)* |     |
+| *Uncategorized stuff*                         |     |
+| *5SS*                                         |     |
+|---------------------------------------------+-----|
 
-;; \n** Abstract
+\n** Abstract
 
-;; ,#+BEGIN_ABSTRACT
-;; ${abstract}
-;; ,#+END_ABSTRACT
+#+BEGIN_ABSTRACT
+${abstract}
+#+END_ABSTRACT
 
-;; \n* Specific notes\n\n
-;; \n* Annotations (zotero)\n\n
-;; \n* Additional Backlinks\n
-;; \n* References\n
+\n* Specific notes\n\n
+\n* Annotations (zotero)\n\n
+\n* Additional Backlinks\n
+\n* References\n
 
-;; ,#+print_bibliography:"
-;;                             )
-;;          :immediate-finish t
-;;          :unnarrowed t
-;;          :type org-roam-bibtex
-;;          :jump-to-captured t )
-        )
+#+print_bibliography:"
+                            )
+         :immediate-finish t
+         :unnarrowed t
+         :type org-roam-bibtex
+         :jump-to-captured t ))
       )
 
 (defun my-orb-latex-note-to-org (citekey)
@@ -789,7 +708,7 @@
         (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords:*}")
         (note . "
 #+OPTIONS: num:nil ^:{} toc:nil
-#+TITLE: ${author editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
+#+TITLE: ${autor editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
 #+hugo_base_dir: ~/BrainDump/
 #+hugo_section: notes
 #+hugo_categories: ${journal shortjournal}
@@ -801,25 +720,22 @@
 
 \n* FISH-5SS
 
-\n** 5SS
-
-\n** Background and motivation
-
-\n** Supporting Ideas and hypothesis
-
-\n** Purpose
-
-\n** Contribution
-
-\n** Relevance
-
-\n** Methodology
-
-\n** Results
-
-\n** Interesting findings and not categorized stuff
-
-\n** Critics
+|---------------------------------------------+-----|
+| <40>                                        |<50> |
+| *Entry*                                       | *Description* |
+|---------------------------------------------+-----|
+| *Background*                                  |     |
+| *Supporting Ideas*                            |     |
+| *Purpose*                                     |     |
+| *Originality/value (Contribution)*            |     |
+| *Relevance*                                   |     |
+| *Design/methodology/approach*                 |     |
+| *Results*                                     |     |
+| *(Interesting) Findings*                      |     |
+| *Research limitations/implications (Critics)* |     |
+| *Uncategorized stuff*                         |     |
+| *5SS*                                         |     |
+|---------------------------------------------+-----|
 
 \n** Abstract
 
@@ -830,13 +746,9 @@ ${abstract}
 \n* Specific notes
 \n* Annotations (zotero)
 \n* Additional Backlinks
-\n* References")))
+\n* References
 
-(setq citar-symbols
-      `((file ,(all-the-icons-octicon "file-pdf" :face 'all-the-icons-red :v-adjust -0.1) . " ")
-        (note ,(all-the-icons-faicon "sticky-note" :face 'all-the-icons-yellow :v-adjust -0.3) . " ")
-        (link ,(all-the-icons-octicon "link" :face 'all-the-icons-blue :v-adjust 0.01) . " ")))
-(setq citar-symbol-separator "  ")
+#+print_bibliography:")))
 
 (use-package! websocket
     :after org-roam)
@@ -874,9 +786,6 @@ ${abstract}
 (setq org-refile-targets '((expand-file-name "projects.org"  gtd-directory :maxlevel . 3)
                            (expand-file-name "reading.org" gtd-directory   :maxlevel . 4)
                            (expand-file-name "someday.org" gtd-directory :level . 1)))
-
-(use-package! vlf-setup
-  :defer-incrementally vlf-tune vlf-base vlf-write vlf-search vlf-occur vlf-follow vlf-ediff vlf)
 
 (setq +zen-text-scale 0.5)
 

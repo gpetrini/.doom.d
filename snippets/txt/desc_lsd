@@ -1,0 +1,25 @@
+# -*- mode: snippet -*-
+# name: desc_lsd
+# uuid:
+# key: <ldesc
+# condition: t
+# --
+
+EQUATION( $1 )
+/*
+  Desc:
+  Heterogeinity:
+  Level:
+  After:
+  LaTeX:
+  Value:
+  Status:
+  Literature Source:
+  Code Source:
+       - K+S (Dosi et al., 2010)):
+       - MMM (Dweck, 2006)):
+       - MKKS (Pedrosa and Lang, 2021)):
+  Change log:
+*/
+
+RESULT(  )

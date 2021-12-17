@@ -42,10 +42,10 @@
        ;;minimap                 ; show a map of the code on the side
        (modeline)                ; snazzy, Atom-inspired modeline, plus API
        nav-flash                 ; blink cursor line after big motions
-       ;                         ; neotree           ; a project drawer, like NERDTree for vim
+       neotree                   ; a project drawer, like NERDTree for vim
        ophints                   ; highlight the region an operation acts on
        (popup +all)              ; tame sudden yet inevitable temporary windows
-       ;;tabs                    ; a tab bar for Emacs
+       (tabs +centaur)                    ; a tab bar for Emacs
        ;                         ; treemacs          ; a project drawer, like neotree but cooler
        unicode                   ; extended unicode support for various languages
        ;                         ; vc-gutter         ; vcs diff in the fringe
@@ -164,7 +164,6 @@
        (org                      ; organize your plain life in plain text
         ;; +pretty                  ; yessss my pretties! (nice unicode symbols)
         +dragndrop               ; drag & drop files/images into org buffers
-        ;                        ; +roam
         +roam2
         +pomodoro
         +jupyter                 ; ipython/jupyter support for babel
@@ -172,6 +171,7 @@
         +org-bullets
         ;                        ; +gnuplot                    ; who doesn't like pretty pictures
         +noter
+        +hugo
         +journal
         +present)                ; using org-mode for presentations
        ;;php                     ; perl's insecure younger brother

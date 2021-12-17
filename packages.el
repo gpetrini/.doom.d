@@ -48,7 +48,6 @@
 ;(unpin! pinned-package another-pinned-package)
 ;; ...Or *all* packages (NOT RECOMMENDED; will likely break things)
 ;(unpin! t)
-(package! org-ref)
 ;(package! interleave)                                        not using anymore as org-noter is far superior.
 (package! ivy-bibtex)
 ;; (package! ox-pandoc)
@@ -96,7 +95,6 @@
 ;; When using bibtex-completion via the `biblio` module
 (unpin! bibtex-completion helm-bibtex ivy-bibtex)
 
-(package! org-roam-server)
 (package! ess-view)
 (package! ess-view-data)
 ;; (package! lsp-julia :recipe (:host github :repo "non-jedi/lsp-julia"))
@@ -112,36 +110,35 @@
 (package! lsp-python-ms :disable t)
 ;; (package! org-noter-pdftools)
 ;; (package! org-pdftools)
-(package! vlf :recipe (:host github :repo "m00natic/vlfi" :files ("*.el"))
-  :pin "cc02f25337..." :disable t)
-(package! org-pandoc-import
-  :recipe (:host github
-           :repo "tecosaur/org-pandoc-import"
-           :files ("*.el" "filters" "preprocessors")))
-(package! company-org-block)
 (package! dashboard)
 
 ;; (package! netlogo-mode :recipe (:host github :repo "tgolsson/netlogo-mode" :files ("*.el" "emacs/")))
 ;; (package! company-netlogo :recipe (:host github :repo "tgolsson/company-netlogo" :files ("*.el")))
 
-(package! org-transclusion
-  :recipe (:host github
-           :repo "nobiot/org-transclusion"
-           :branch "main"
-           :files ("*.el")))
 (package! websocket)
 (package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
 ;; (package! ox-gemini)
 
 (package! orgdiff :recipe (:host github :repo "tecosaur/orgdiff" :files ("*.el")))
 (package! company-tabnine)
-(package! oc-bibtex-action :recipe (:host github :repo "bdarcus/bibtex-actions" :files ("oc-bibtex-action.el")))
+;; (package! oc-bibtex-action :recipe (:host github :repo "bdarcus/bibtex-actions" :files ("oc-bibtex-action.el")))
 (package! flycheck-languagetool :recipe (:host github :repo "emacs-languagetool/flycheck-languagetool" :files ("*.el")))
 (package! org-cite-csl-activate :recipe (:host github :repo "andras-simonyi/org-cite-csl-activate"))
 
-(package! ox-word :recipe (:host github :repo "jkitchin/scimax" :files ("ox-word.el")))
-
+;; (package! ox-word :recipe (:host github :repo "jkitchin/scimax" :files ("ox-word.el")))
+(package! org-ref :recipe (:host github
+                           :repo "jkitchin/org-ref"
+                           ;; :branch "org-ref-2"
+                           ;; :files ("org-ref-ref-links.el" "org-ref-refproc.el")
+                           ))
+(package! citar)
+;; (package! lsp-grammarly)
 
 
 (unpin! ox-pandoc) ;; Changing pandoc repo
-(package! ox-pandoc :recipe (:host github :repo "a-fent/ox-pandoc"))
+(package! ox-pandoc :recipe (:host github :repo "emacsorphanage/ox-pandoc"))
+(package! tldr)
+(package! org-roam-timestamps :recipe (:host github :repo "ThomasFKJorna/org-roam-timestamps"))
+(package! org-web-tools)
+(package! citeproc-el :recipe (:host github :repo "andras-simonyi/citeproc-el"))
+(package! org-super-agenda)

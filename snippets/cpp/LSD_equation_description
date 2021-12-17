@@ -1,0 +1,26 @@
+# -*- mode: snippet -*-
+# name:LSD_Equation
+# key:<lsd
+# --
+
+EQUATION(  )
+/*
+  Desc: $2
+  Heterogeinity: $3
+  Level: $4
+  Literature source
+  Code source: Pedrosa and Lang (2021)
+  After: -
+  Note:
+  Since:
+  Dictionary:
+    - Pedrosa and Lang (2021):
+    - Dweck (2010):
+    - Dosi et al. (2010):
+  DUMMY_EQUATION:
+    -
+  Change log:
+    - First implementation: $5
+,*/
+
+RESULT(  )
