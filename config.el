@@ -604,22 +604,6 @@ Time-stamp: %<%Y-%m-%d>
          :jump-to-captured t ))
       )
 
-(use-package! org-ref
-  :after org
-  :hook (org-mode . org-ref)
-  :config
-  (setq org-ref-default-bibliography main-ref-file)
-  (setq
-    org-ref-notes-function 'orb-edit-note
-    org-ref-completion-library 'org-ref-helm-bibtex
-    org-ref-notes-directory org-notes-directory
-    org-ref-default-citation-link "parencite"
-    org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
-    )
-  (setq bibtex-completion-pdf-extension '(".pdf" ".djvu")
-    bibtex-completion-pdf-field "file")
-  )
-
 (use-package! org-roam-bibtex
   :after org-roam
   :config
@@ -691,9 +675,6 @@ Time-stamp: %<%Y-%m-%d>
 (setq org-refile-targets '((expand-file-name "projects.org"  gtd-directory :maxlevel . 3)
                            (expand-file-name "reading.org" gtd-directory   :maxlevel . 4)
                            (expand-file-name "someday.org" gtd-directory :level . 1)))
-
-(use-package! vlf-setup
-  :defer-incrementally vlf-tune vlf-base vlf-write vlf-search vlf-occur vlf-follow vlf-ediff vlf)
 
 (use-package! org-pandoc-import :after org)
 

@@ -135,3 +135,12 @@
 ;; (package! ox-gemini)
 
 (package! orgdiff :recipe (:host github :repo "tecosaur/orgdiff" :files ("*.el")))
+(package! flycheck-languagetool :recipe (:host github :repo "emacs-languagetool/flycheck-languagetool" :files ("*.el")))
+(package! citar)
+
+
+(unpin! ox-pandoc) ;; Changing pandoc repo
+(package! ox-pandoc :recipe (:host github :repo "emacsorphanage/ox-pandoc"))
+(package! org-web-tools)
+(package! citeproc-el :recipe (:host github :repo "andras-simonyi/citeproc-el"))
+(package! org-super-agenda)

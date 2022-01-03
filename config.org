@@ -1313,15 +1313,6 @@ Waiting the removal of org-ref as a required package.
 #+end_src
 
 
-* Large files
-:PROPERTIES:
-:ID:       48b4aeea-03e3-417b-bb89-142507776b10
-:END:
-
-#+begin_src elisp
-(use-package! vlf-setup
-  :defer-incrementally vlf-tune vlf-base vlf-write vlf-search vlf-occur vlf-follow vlf-ediff vlf)
-#+end_src
 
 * Org-pandoc-import
 :PROPERTIES:
