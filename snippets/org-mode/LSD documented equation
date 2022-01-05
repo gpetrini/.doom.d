@@ -1,0 +1,26 @@
+# -*- mode: snippet -*-
+# name: LSD documented equation
+# key: <lsd
+# expand-env: ((yas-indent-line 'fixed))
+# --
+
+
+EQUATION( "${1:Label}" )
+/*
+  Desc: ${2:Description}
+  Heterogeinity:
+  Level:
+  After:
+  LaTeX:
+  Value:
+  Status:
+  Literature Source:
+    -
+  Code Source:
+    -
+  Change log:
+    - First added `(format-time-string "%Y-%m-%d")` 
+*/
+	v[0] = ${3:Variable};
+
+RESULT()
