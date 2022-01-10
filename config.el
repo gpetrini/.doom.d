@@ -534,115 +534,6 @@
   ;; (require 'org-noter-pdftools)
   )
 
-(setq org-attach-use-inheritance nil)
-(require 'org-id)
-(setq org-id-track-globally t)
-(setq org-roam-completion-everywhere t)
-
-(setq bibtex-completion-bibliography (expand-file-name "zotero_refs.bib" org-directory))
-(setq bibtex-completion-library-path pdfs-directory)
-
-
-(setq org-roam-capture-templates
-      '(("d" "default" plain
-         "%?"
-         :if-new (file+head "${slug}.org"
-                            "#+title: ${title}\n
-#+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme\n
-#+OPTIONS: num:nil ^:{} toc:nil\n
-#+INCLUDE: '../header.org'
-\n")
-         :unnarrowed t)
-        ("r" "Bibliographic note" plain
-         :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
-                            ":PROPERTIES:
-:ID: %<%Y%m%dT%H%M%S>
-:CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
-:END:
-#+TITLE: ${citekey}: ${title} - (${year}, ${journal})
-Time-stamp: %<%Y-%m-%d>
-#+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme
-#+OPTIONS: num:nil ^:{} toc:nil
-#+INCLUDE: ../header.org
-\n* Backlinks
-
-- keywords :: %^{keywords}
-
-%?
-
-\n* FISH-5SS
-
-|---------------------------------------------+-----|
-| <40>                                        |<50> |
-| *Background*                                  |     |
-| *Supporting Ideas*                            |     |
-| *Purpose*                                     |     |
-| *Originality/value (Contribution)*            |     |
-| *Relevance*                                   |     |
-| *Design/methodology/approach*                 |     |
-| *Results*                                     |     |
-| *(Interesting) Findings*                      |     |
-| *Research limitations/implications (Critics)* |     |
-| *Uncategorized stuff*                         |     |
-| *5SS*                                         |     |
-|---------------------------------------------+-----|
-
-
-\n* Specifics comments
-
-\n* %^{citekey} Highlights
-:PROPERTIES:
-:AUTHOR: %^{author-or-editor}
-:NOTER_DOCUMENT: %^{file}
-:NOTER_PAGE:
-:END:\n"
-
-                            )
-         :immediate-finish t
-         :unnarrowed t
-         :type org-roam-bibtex
-         :jump-to-captured t ))
-      )
-
-(use-package! org-roam-bibtex
-  :after org-roam
-  :config
-  (setq orb-preformat-keywords
-    '("citekey" "title" "url" "author-or-editor" "keywords" "file" "year")
-    orb-process-file-keyword t
-    orb-file-field-extensions '("pdf")
-  ))
-
-(setq
- bibtex-actions-bibliography (expand-file-name "zotero_refs.bib" org-directory)
- bibtex-actions-at-point-function 'embark-act
- bibtex-actions-file-open-note-function 'orb-bibtex-actions-edit-note
- )
-
-(setq bibtex-actions-symbols
-  `((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
-            ,(all-the-icons-icon-for-file "foo.pdf" :face 'bibtex-actions-icon-dim)))
-    (note . (,(all-the-icons-icon-for-file "foo.txt") .
-            ,(all-the-icons-icon-for-file "foo.txt" :face 'bibtex-actions-icon-dim)))
-    (link .
-        (,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
-        ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'bibtex-actions-icon-dim)))))
-;; Here we define a face to dim non 'active' icons, but preserve alignment
-(defface bibtex-actions-icon-dim
-    '((((background dark)) :foreground "#282c34")
-     (((background light)) :foreground "#fafafa"))
-     "Face for obscuring/dimming icons"
-     :group 'all-the-icons-faces)
-
-(use-package! websocket
-    :after org-roam)
-
-(use-package! org-roam-ui
-    :after org-roam ;; or :after org
-    :hook (org-roam . org-roam-ui-mode)
-    :config
-)
-
 (setq deft-directory notes-directory
       deft-recursive t
       deft-use-filter-string-for-filename t
@@ -742,22 +633,6 @@ Time-stamp: %<%Y-%m-%d>
                        (setq-local company-backends '(company-org-block))
                        (company-mode +1)))))
 
-(use-package! org-transclusion
-  :defer
-  :after org
-  :init
-  (map!
-   :map global-map "<f12>" #'org-transclusion-add
-   :leader
-   :prefix "n"
-   :desc "Org Transclusion Mode" "t" #'org-transclusion-mode))
-
-(defun export-transcluded ()
-  (interactive)
-  (setq inhibit-read-only t)
-  (org-export-dispatch)
-  (setq inhibit-read-only nil))
-
 (define-key ctl-x-map "\C-i"
   #'endless/ispell-word-then-abbrev)
 
@@ -800,29 +675,6 @@ abort completely with `C-g'."
 (setq save-abbrevs 'silently)
 (setq-default abbrev-mode t)
 
-(use-package! ox-publish)
-
-(setq org-publish-use-timestamps-flag nil) ;; What is this?
-(setq org-export-with-broken-links t)
-(setq org-publish-project-alist
-      '(("MyOrg"
-         :base-directory org-directory
-         :base-extension "org"
-         :publishing-directory  (expand-file-name "docs/" org-directory)
-         :recursive t
-         :exclude "./org-html-themes/.*\\|./themes/*"
-         :publishing-function org-html-publish-to-html
-         :headline-levels 4             ; Just the default for this project.
-         :auto-preamble t)
-        ("org-static"
-         :base-directory  (expand-file-name "website/" org-directory)
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-         :publishing-directory "./public_html/"
-         :recursive t
-         :exclude "./org-html-themes/.*\\|./themes/*"
-         :publishing-function org-publish-attachment)
-        ))
-
 (use-package! orgdiff :defer t)
 
 (defvar org-latex-extra-special-string-regexps
@@ -843,3 +695,304 @@ abort completely with `C-g'."
     (when (plist-get info :with-special-strings)
       (setq output (org-latex-convert-extra-special-strings output)))
     output))
+
+(use-package! org-super-agenda
+  :commands org-super-agenda-mode)
+(after! org-agenda
+  (org-super-agenda-mode))
+
+(setq org-agenda-skip-scheduled-if-done t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-todo-ignore-deadlines t
+      org-agenda-tags-column 100 ;; from testing this seems to be a good value
+      org-agenda-compact-blocks t)
+
+(setq org-agenda-custom-commands
+      '(("o" "Overview"
+            ((agenda "" ((org-agenda-overriding-header "")
+                        (org-super-agenda-groups
+                         '(
+                           (:auto-group t)
+                           (:name "Today"
+                                  :time-grid t
+                                  :date today
+                                  :order 1)
+                          (:name "Due Today"
+                           :scheduled t
+                           :deadline today
+                           :todo "TODO"
+                           :order 2)
+                          (:name "Due Soon"
+                           :scheduled future
+                           :todo "TODO"
+                           :order 2)
+                          (:name "Overdue"
+                           :deadline past
+                           :todo "TODO"
+                           :face error
+                           :order 1)
+                           )))
+                     )
+                (alltodo "" ((org-agenda-overriding-header "")
+                       (org-super-agenda-groups
+                        '(
+                           (:auto-group t)
+                          (:name "Lectures"
+                           :tag ("@Teaching" "@Lectures")
+                           :order 8)
+                          (:name "Advisoring"
+                           :tag "@Orientations"
+                           :order 8)
+                          (:name "Meetings"
+                           :tag "@Meeting"
+                           :order 5)
+                          (:name "Current Research"
+                           :tag "@Article"
+                           :order 6)
+                          (:name "To read"
+                           :file-path "readings"
+                           :order 8
+                           )
+                          (:name "To writing"
+                           :todo ("STRT")
+                           :order 4)
+                          (:name "Waiting"
+                           :todo ("WAITING" "WAIT" "MAYBE")
+                           :order 20)
+                          (:name "Research groups"
+                           :tag ("@Group")
+                           :order 10)
+                          (:name "University"
+                           :tag ("@UNICAMP")
+                           :order 10)
+                          (:name "Emacs"
+                           :tag ("@Emacs")
+                           :order 80)
+                          (:name "Trivial"
+                           :tag ("@free")
+                           :order 90)
+                          ))))))))
+
+(after! org-roam
+  (setq org-roam-db-location "/HDD/Org/notes/org-roam.db")
+)
+
+(setq org-attach-use-inheritance nil)
+(require 'org-id)
+(setq org-id-track-globally t)
+(setq org-roam-completion-everywhere t)
+
+(setq bibtex-completion-bibliography main-ref-file)
+(setq bibtex-completion-library-path pdfs-directory
+      bibtex-completion-pdf-field "File"
+      bibtex-completion-notes-path "/HDD/Org/notes" ;; FIXME generalize
+      )
+
+
+(setq org-roam-capture-templates
+      '(("d" "default" plain
+         "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n
+#+HUGO_AUTO_SET_LASTMOD: t
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: notes\n
+#+HUGO_TAGS: placeholder\n
+#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+#+OPTIONS: num:nil ^:{} toc:nil\n
+\n")
+         :unnarrowed t)
+      ("k" "Knowledge base" plain
+         "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n
+#+HUGO_AUTO_SET_LASTMOD: t
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: notes\n
+#+HUGO_CATEGORIES: KnowledgeBase\n
+#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+#+OPTIONS: num:nil ^:{} toc:nil\n
+\n")
+         :unnarrowed t)
+      ("l" "Lecture notes" plain
+         "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n
+#+HUGO_AUTO_SET_LASTMOD: t
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: notes\n
+#+HUGO_CATEGORIES: Lectures\n
+#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+#+OPTIONS: num:nil ^:{} toc:nil\n
+\n")
+         :unnarrowed t)
+      ("o" "Off office notes" plain
+         "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n
+#+HUGO_AUTO_SET_LASTMOD: t
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: offoffice\n
+#+HUGO_CATEGORIES: OffOffice\n
+#+OPTIONS: num:nil ^:{} toc:nil\n
+\n")
+         :unnarrowed t)
+;;         ("b" "Bibliographic note" plain
+;;          ""
+;;          :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
+;;                             ":PROPERTIES:
+;; :ID: %<%Y%m%dT%H%M%S>
+;; :CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
+;; :END:
+;; ,#+TITLE: ${citekey}: ${title} - (%^{year}, %^{journal})
+;; Time-stamp: %<%Y-%m-%d>
+;; ,#+hugo_base_dir: ~/BrainDump/\n
+;; ,#+hugo_section: notes\n
+;; ,#+hugo_categories: %^journal
+;; ,#+HUGO_TAGS: %^{keywords}\n
+;; ,#+OPTIONS: num:nil ^:{} toc:nil
+;; ,#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+;; ,#+cite_export: csl apa.csl
+
+
+;; \n* FISH-5SS
+
+;; |---------------------------------------------+-----|
+;; | <40>                                        |<50> |
+;; | *Background*                                  |     |
+;; | *Supporting Ideas*                            |     |
+;; | *Purpose*                                     |     |
+;; | *Originality/value (Contribution)*            |     |
+;; | *Relevance*                                   |     |
+;; | *Design/methodology/approach*                 |     |
+;; | *Results*                                     |     |
+;; | *(Interesting) Findings*                      |     |
+;; | *Research limitations/implications (Critics)* |     |
+;; | *Uncategorized stuff*                         |     |
+;; | *5SS*                                         |     |
+;; |---------------------------------------------+-----|
+
+;; \n** Abstract
+
+;; ,#+BEGIN_ABSTRACT
+;; ${abstract}
+;; ,#+END_ABSTRACT
+
+;; \n* Specific notes\n\n
+;; \n* Annotations (zotero)\n\n
+;; \n* Additional Backlinks\n
+;; \n* References\n
+
+;; ,#+print_bibliography:"
+;;                             )
+;;          :immediate-finish t
+;;          :unnarrowed t
+;;          :type org-roam-bibtex
+;;          :jump-to-captured t )
+        )
+      )
+
+(setq! org-cite-csl-styles-dir "~/Zotero/styles")
+
+(setq! ;; FIXME Generalize
+ citar-bibliography '("/HDD/Org/zotero_refs.bib")
+ citar-library-paths '("/HDD/PDFs/")
+ citar-notes-paths '("/HDD/Org/notes/")
+ )
+
+(use-package! citeproc-el :defer t)
+
+(after! oc
+  (defun org-ref-to-org-cite ()
+    "Attempt to convert org-ref citations to org-cite syntax."
+    (interactive)
+    (let* ((cite-conversions '(("cite" . "//b") ("Cite" . "//bc")
+                               ("nocite" . "/n")
+                               ("citep" . "") ("citep*" . "//f")
+                               ("textcite" . "/t")
+                               ("parencite" . "") ("Parencite" . "//c")
+                               ("citeauthor" . "/a/f") ("citeauthor*" . "/a")
+                               ("citeyear" . "/na/b")
+                               ("Citep" . "//c") ("Citealp" . "//bc")
+                               ("Citeauthor" . "/a/cf") ("Citeauthor*" . "/a/c")
+                               ("autocite" . "") ("Autocite" . "//c")
+                               ("notecite" . "/l/b") ("Notecite" . "/l/bc")
+                               ("pnotecite" . "/l") ("Pnotecite" . "/l/bc")))
+           (cite-regexp (rx (regexp (regexp-opt (mapcar #'car cite-conversions) t))
+                            ":" (group (+ (not (any "\n     ,.)]}")))))))
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward cite-regexp nil t)
+          (message (format "[cite%s:@%s]"
+                                 (cdr (assoc (match-string 1) cite-conversions))
+                                 (match-string 2)))
+          (replace-match (format "[cite%s:@%s]"
+                                 (cdr (assoc (match-string 1) cite-conversions))
+                                 (match-string 2))))))))
+
+(setq citar-file-open-note-function 'orb-bibtex-actions-edit-note)
+(setq citar-templates
+      '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
+        (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords:*}")
+        (note . "
+#+OPTIONS: num:nil ^:{} toc:nil
+#+TITLE: ${author editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
+#+hugo_base_dir: ~/BrainDump/
+#+hugo_section: notes
+#+hugo_categories: ${journal shortjournal}
+#+TAGS: ${keywords}
+#+HUGO_TAGS:
+#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+#+cite_export: csl apa.csl
+
+
+\n* FISH-5SS
+
+\n** 5SS
+
+\n** Background and motivation
+
+\n** Supporting Ideas and hypothesis
+
+\n** Purpose
+
+\n** Contribution
+
+\n** Relevance
+
+\n** Methodology
+
+\n** Results
+
+\n** Interesting findings and not categorized stuff
+
+\n** Critics
+
+\n** Abstract
+
+#+BEGIN_ABSTRACT
+${abstract}
+#+END_ABSTRACT
+
+\n* Specific notes
+\n* Annotations (zotero)
+\n* Additional Backlinks
+\n* References")))
+
+(setq citar-symbols
+      `((file ,(all-the-icons-octicon "file-pdf" :face 'all-the-icons-red :v-adjust -0.1) . " ")
+        (note ,(all-the-icons-faicon "sticky-note" :face 'all-the-icons-yellow :v-adjust -0.3) . " ")
+        (link ,(all-the-icons-octicon "link" :face 'all-the-icons-blue :v-adjust 0.01) . " ")))
+(setq citar-symbol-separator "  ")
+
+(use-package! websocket
+    :after org-roam)
+
+(use-package! org-roam-ui
+    :after org-roam ;; or :after org
+    :hook (org-roam . org-roam-ui-mode)
+    :config
+)
+
+(setq org-hugo-base-dir "~/BrainDump/")

@@ -16,34 +16,6 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
 
 
 * Install
-** GCC Emacs
-
-*** Dependencies
-
-#+begin_example
-sudo apt install libxpm-dev libgif-dev libjpeg-dev libpng-dev libtiff-dev libx11-dev libncurses5-dev automake autoconf texinfo libgtk2.0-dev
-sudo add-apt-repository ppa:ubuntu-toolchain-r/ppa #Not sure if it is necessarily
-sudo apt install gcc-10 g++-10 libgccjit0 libgccjit-10-dev libjansson4 libjansson-dev
-#+end_example
-*** Cloning
-
-#+begin_example
-git clone git://git.savannah.gnu.org/emacs.git -b feature/native-comp
-cd emacs
-#+end_example
-
-*** Installing
-
-*OBS:* It takes time (~50min)
-
-#+begin_example
-export CC=/usr/bin/gcc-10 CXX=/usr/bin/gcc-10 % Important to fix dependencies not found
-./autogen.sh
-./configure  --with-mailutils --with-xwidgets --with-modules  --with-imagemagick --with-nativecomp
-make -j2 NATIVE_FULL_AOT=1
-make install
-#+end_example
-
 ** Doom emacs
 
 #+begin_example
@@ -55,9 +27,6 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
 
 
 * Me
-:PROPERTIES:
-:ID:       9ad5be6b-9352-4dea-9363-c6974fe31f25
-:END:
 
 #+BEGIN_SRC elisp
 (setq user-full-name "Gabriel Petrini"
@@ -69,9 +38,6 @@ git clone --depth 1 https://github.com/hlissner/doom-emacs ~/.emacs.d
 
 
 * Rudimentary Settings and definitions
-:PROPERTIES:
-:ID:       f9c43d1b-ca49-43e1-ae47-cb788250a602
-:END:
 
 #+BEGIN_SRC elisp
 ;; (setq package-native-compile t)
@@ -283,9 +249,6 @@ I initially started using this package in order to manage my citations. However,
 (setq doom-fallback-buffer "*dashboard*")
 #+end_src
 * Org-mode
-:PROPERTIES:
-:ID:       0ac56cd6-ed1b-4d4d-a458-2277d20a25b8
-:END:
 #+begin_src elisp
 (after! org
   (require 'org-bullets)  ; Nicer bullets in org-mode
@@ -477,10 +440,91 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
     output))
 #+end_src
 
+
+
+** Agenda
+
+#+begin_src emacs-lisp
+(use-package! org-super-agenda
+  :commands org-super-agenda-mode)
+(after! org-agenda
+  (org-super-agenda-mode))
+
+(setq org-agenda-skip-scheduled-if-done t
+      org-agenda-skip-deadline-if-done t
+      org-agenda-include-deadlines t
+      org-agenda-todo-ignore-deadlines t
+      org-agenda-tags-column 100 ;; from testing this seems to be a good value
+      org-agenda-compact-blocks t)
+
+(setq org-agenda-custom-commands
+      '(("o" "Overview"
+            ((agenda "" ((org-agenda-overriding-header "")
+                        (org-super-agenda-groups
+                         '(
+                           (:auto-group t)
+                           (:name "Today"
+                                  :time-grid t
+                                  :date today
+                                  :order 1)
+                          (:name "Due Today"
+                           :scheduled t
+                           :deadline today
+                           :todo "TODO"
+                           :order 2)
+                          (:name "Due Soon"
+                           :scheduled future
+                           :todo "TODO"
+                           :order 2)
+                          (:name "Overdue"
+                           :deadline past
+                           :todo "TODO"
+                           :face error
+                           :order 1)
+                           )))
+                     )
+                (alltodo "" ((org-agenda-overriding-header "")
+                       (org-super-agenda-groups
+                        '(
+                           (:auto-group t)
+                          (:name "Lectures"
+                           :tag ("@Teaching" "@Lectures")
+                           :order 8)
+                          (:name "Advisoring"
+                           :tag "@Orientations"
+                           :order 8)
+                          (:name "Meetings"
+                           :tag "@Meeting"
+                           :order 5)
+                          (:name "Current Research"
+                           :tag "@Article"
+                           :order 6)
+                          (:name "To read"
+                           :file-path "readings"
+                           :order 8
+                           )
+                          (:name "To writing"
+                           :todo ("STRT")
+                           :order 4)
+                          (:name "Waiting"
+                           :todo ("WAITING" "WAIT" "MAYBE")
+                           :order 20)
+                          (:name "Research groups"
+                           :tag ("@Group")
+                           :order 10)
+                          (:name "University"
+                           :tag ("@UNICAMP")
+                           :order 10)
+                          (:name "Emacs"
+                           :tag ("@Emacs")
+                           :order 80)
+                          (:name "Trivial"
+                           :tag ("@free")
+                           :order 90)
+                          ))))))))
+#+end_src
+
 * Graphviz
-:PROPERTIES:
-:ID:       321c5dc9-49d3-4ec1-ad53-963a795a87db
-:END:
 
 #+begin_src elisp
 (use-package! graphviz-dot-mode
@@ -490,9 +534,6 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 #+end_src
 * Elfeed
 ** Pre-config
-:PROPERTIES:
-:ID:       c01430da-5ed2-4865-acce-b6e7878d8558
-:END:
 
 #+begin_src elisp
 (use-package! elfeed-org
@@ -502,9 +543,6 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 #+end_src
 
 ** Keybindings
-:PROPERTIES:
-:ID:       803de0d8-4172-4b7f-bcff-d2d97408876b
-:END:
 
 #+begin_src elisp
 (map! :map elfeed-search-mode-map
@@ -565,9 +603,6 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 * Presentations
 
 ** Reveal.Js
-:PROPERTIES:
-:ID:       2815599a-160d-4e62-bee7-a51d83474fcd
-:END:
 #+BEGIN_SRC elisp :async t
 (setq org-reveal-root "http://cdn.jsdelivr.net/reveal.js/3.0.0/")
 (setq org-reveal-mathjax t)
@@ -575,9 +610,6 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 
 
 * Grammar and Spelling
-:PROPERTIES:
-:ID:       062a7b0b-ca1d-4d51-b31a-03c0b684cb8b
-:END:
 
 This just configures spelling and grammar checking support.
 
@@ -592,9 +624,6 @@ This just configures spelling and grammar checking support.
 
 
 * Programming languages
-:PROPERTIES:
-:ID:       ec24c007-5127-4bcc-b852-6b1526eecac8
-:END:
 #+begin_src elisp
 (when (memq window-system '(mac ns x))
   (require 'exec-path-from-shell)
@@ -874,9 +903,6 @@ Display inline images after running code
 * LaTeX
 
 ** Latex Process
-:PROPERTIES:
-:ID:       a1e804dc-ee54-4478-b8e1-6f317d061e09
-:END:
 
 #+BEGIN_SRC elisp
 (load! "scimax-org-latex.el")
@@ -990,9 +1016,6 @@ Inspecting org-do-latex-and-related shows that "latex" is the language argument 
 #+end_src
 
 * PDF tools
-:PROPERTIES:
-:ID:       df7993d2-dc70-43de-aab6-bd1845252531
-:END:
 
 #+begin_src elisp
 (setq pdf-annot-activate-created-annotations t
@@ -1001,9 +1024,6 @@ Inspecting org-do-latex-and-related shows that "latex" is the language argument 
 #+end_src
 
 * Org-noter
-:PROPERTIES:
-:ID:       3353c759-0c2d-4133-9733-69d09a1b7f69
-:END:
 
 #+begin_src elisp
 (use-package! org-noter
@@ -1065,14 +1085,28 @@ With a prefix ARG, remove start location."
 
 * Org-roam
 
-#+begin_src elisp
+
+** Database
+#+begin_src emacs-lisp
+(after! org-roam
+  (setq org-roam-db-location "/HDD/Org/notes/org-roam.db")
+)
+#+end_src
+
+** Templates
+
+
+#+begin_src emacs-lisp
 (setq org-attach-use-inheritance nil)
 (require 'org-id)
 (setq org-id-track-globally t)
 (setq org-roam-completion-everywhere t)
 
-(setq bibtex-completion-bibliography (expand-file-name "zotero_refs.bib" org-directory))
-(setq bibtex-completion-library-path pdfs-directory)
+(setq bibtex-completion-bibliography main-ref-file)
+(setq bibtex-completion-library-path pdfs-directory
+      bibtex-completion-pdf-field "File"
+      bibtex-completion-notes-path "/HDD/Org/notes" ;; FIXME generalize
+      )
 
 
 (setq org-roam-capture-templates
@@ -1080,96 +1114,110 @@ With a prefix ARG, remove start location."
          "%?"
          :if-new (file+head "${slug}.org"
                             "#+title: ${title}\n
-,#+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme\n
-,#+OPTIONS: num:nil ^:{} toc:nil\n
-,#+INCLUDE: '../header.org'
+#+HUGO_AUTO_SET_LASTMOD: t
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: notes\n
+#+HUGO_TAGS: placeholder\n
+#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+#+OPTIONS: num:nil ^:{} toc:nil\n
 \n")
          :unnarrowed t)
-        ("r" "Bibliographic note" plain
-         :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
-                            ":PROPERTIES:
-:ID: %<%Y%m%dT%H%M%S>
-:CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
-:END:
-,#+TITLE: ${citekey}: ${title} - (${year}, ${journal})
-Time-stamp: %<%Y-%m-%d>
-,#+SETUPFILE: ../themes/comfy_inline/comfy_inline.theme
-,#+OPTIONS: num:nil ^:{} toc:nil
-,#+INCLUDE: ../header.org
-\n* Backlinks
+      ("k" "Knowledge base" plain
+         "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n
+#+HUGO_AUTO_SET_LASTMOD: t
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: notes\n
+#+HUGO_CATEGORIES: KnowledgeBase\n
+#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+#+OPTIONS: num:nil ^:{} toc:nil\n
+\n")
+         :unnarrowed t)
+      ("l" "Lecture notes" plain
+         "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n
+#+HUGO_AUTO_SET_LASTMOD: t
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: notes\n
+#+HUGO_CATEGORIES: Lectures\n
+#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+#+OPTIONS: num:nil ^:{} toc:nil\n
+\n")
+         :unnarrowed t)
+      ("o" "Off office notes" plain
+         "%?"
+         :if-new (file+head "${slug}.org"
+                            "#+title: ${title}\n
+#+HUGO_AUTO_SET_LASTMOD: t
+#+hugo_base_dir: ~/BrainDump/\n
+#+hugo_section: offoffice\n
+#+HUGO_CATEGORIES: OffOffice\n
+#+OPTIONS: num:nil ^:{} toc:nil\n
+\n")
+         :unnarrowed t)
+;;         ("b" "Bibliographic note" plain
+;;          ""
+;;          :if-new (file+head "%<%Y-%m-%d>_${citekey}.org"
+;;                             ":PROPERTIES:
+;; :ID: %<%Y%m%dT%H%M%S>
+;; :CAPTURED: [%<%Y-%m-%d %H:%M:%S>]
+;; :END:
+;; ,#+TITLE: ${citekey}: ${title} - (%^{year}, %^{journal})
+;; Time-stamp: %<%Y-%m-%d>
+;; ,#+hugo_base_dir: ~/BrainDump/\n
+;; ,#+hugo_section: notes\n
+;; ,#+hugo_categories: %^journal
+;; ,#+HUGO_TAGS: %^{keywords}\n
+;; ,#+OPTIONS: num:nil ^:{} toc:nil
+;; ,#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+;; ,#+cite_export: csl apa.csl
 
-- keywords :: %^{keywords}
 
-%?
+;; \n* FISH-5SS
 
-\n* FISH-5SS
+;; |---------------------------------------------+-----|
+;; | <40>                                        |<50> |
+;; | *Background*                                  |     |
+;; | *Supporting Ideas*                            |     |
+;; | *Purpose*                                     |     |
+;; | *Originality/value (Contribution)*            |     |
+;; | *Relevance*                                   |     |
+;; | *Design/methodology/approach*                 |     |
+;; | *Results*                                     |     |
+;; | *(Interesting) Findings*                      |     |
+;; | *Research limitations/implications (Critics)* |     |
+;; | *Uncategorized stuff*                         |     |
+;; | *5SS*                                         |     |
+;; |---------------------------------------------+-----|
 
-|---------------------------------------------+-----|
-| <40>                                        |<50> |
-| *Background*                                  |     |
-| *Supporting Ideas*                            |     |
-| *Purpose*                                     |     |
-| *Originality/value (Contribution)*            |     |
-| *Relevance*                                   |     |
-| *Design/methodology/approach*                 |     |
-| *Results*                                     |     |
-| *(Interesting) Findings*                      |     |
-| *Research limitations/implications (Critics)* |     |
-| *Uncategorized stuff*                         |     |
-| *5SS*                                         |     |
-|---------------------------------------------+-----|
+;; \n** Abstract
 
+;; ,#+BEGIN_ABSTRACT
+;; ${abstract}
+;; ,#+END_ABSTRACT
 
-\n* Specifics comments
+;; \n* Specific notes\n\n
+;; \n* Annotations (zotero)\n\n
+;; \n* Additional Backlinks\n
+;; \n* References\n
 
-\n* %^{citekey} Highlights
-:PROPERTIES:
-:AUTHOR: %^{author-or-editor}
-:NOTER_DOCUMENT: %^{file}
-:NOTER_PAGE:
-:END:\n"
-
-                            )
-         :immediate-finish t
-         :unnarrowed t
-         :type org-roam-bibtex
-         :jump-to-captured t ))
+;; ,#+print_bibliography:"
+;;                             )
+;;          :immediate-finish t
+;;          :unnarrowed t
+;;          :type org-roam-bibtex
+;;          :jump-to-captured t )
+        )
       )
-
-
 #+end_src
 
 
-* WAIT Org-ref
-#+begin_src elisp :tangle no
-
-(use-package! org-ref
-  :after org
-  ;; :hook (org-mode . org-ref)
-  :config
-  (setq org-ref-default-bibliography main-ref-file)
-  (setq
-    org-ref-notes-function 'orb-edit-note
-    org-ref-completion-library 'org-ref-helm-bibtex
-    org-ref-notes-directory org-notes-directory
-    org-ref-default-citation-link "parencite"
-    org-ref-get-pdf-filename-function 'org-ref-get-pdf-filename-helm-bibtex
-    )
-  (setq bibtex-completion-pdf-extension '(".pdf" ".djvu")
-    bibtex-completion-pdf-field "file")
-  )
-
-#+end_src
-
-
-Waiting to see if org-cite will be enough.
 
 * WAIT Org-roam-bibtex
 
-
-Waiting the removal of org-ref as a required package.
-
-#+begin_src elisp
+#+begin_src emacs-lisp :tangle no
 
 (use-package! org-roam-bibtex
   :after org-roam
@@ -1182,64 +1230,130 @@ Waiting the removal of org-ref as a required package.
 
 #+end_src
 
-* bibtex-actions
+* Org-cite and citar
 
-#+begin_src elisp
-(setq
- bibtex-actions-bibliography (expand-file-name "zotero_refs.bib" org-directory)
- bibtex-actions-at-point-function 'embark-act
- bibtex-actions-file-open-note-function 'orb-bibtex-actions-edit-note
+From [[https://tecosaur.github.io/emacs-config/config.html][tecosaur config]].
+Waiting until tool module is updated.
+
+#+begin_src emacs-lisp
+
+(setq! org-cite-csl-styles-dir "~/Zotero/styles")
+
+(setq! ;; FIXME Generalize
+ citar-bibliography '("/HDD/Org/zotero_refs.bib")
+ citar-library-paths '("/HDD/PDFs/")
+ citar-notes-paths '("/HDD/Org/notes/")
  )
 
-(setq bibtex-actions-symbols
-  `((file . (,(all-the-icons-icon-for-file "foo.pdf" :face 'all-the-icons-dred) .
-            ,(all-the-icons-icon-for-file "foo.pdf" :face 'bibtex-actions-icon-dim)))
-    (note . (,(all-the-icons-icon-for-file "foo.txt") .
-            ,(all-the-icons-icon-for-file "foo.txt" :face 'bibtex-actions-icon-dim)))
-    (link .
-        (,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'all-the-icons-dpurple) .
-        ,(all-the-icons-faicon "external-link-square" :v-adjust 0.02 :face 'bibtex-actions-icon-dim)))))
-;; Here we define a face to dim non 'active' icons, but preserve alignment
-(defface bibtex-actions-icon-dim
-    '((((background dark)) :foreground "#282c34")
-     (((background light)) :foreground "#fafafa"))
-     "Face for obscuring/dimming icons"
-     :group 'all-the-icons-faces)
+(use-package! citeproc-el :defer t)
 #+end_src
 
-* Org-roam-server
-:PROPERTIES:
-:ID:       f14644ae-31d7-4b97-b618-94eea0a11890
-:END:
+** Convert org-ref to org-cite
 
-#+begin_src elisp :tangle no
+Adding a function to convert org-ref citations to org-cite
 
-(require 'org-roam-server)
-(use-package! org-roam-server
-  :after (org-roam server)
-  :config
-  (setq org-roam-server-host "127.0.0.1"
-        org-roam-server-port 8080
-        org-roam-server-export-inline-images t
-        org-roam-server-authenticate nil
-        org-roam-server-network-arrows "to"
-        org-roam-server-network-label-truncate t
-        org-roam-server-network-label-truncate-length 60
-        org-roam-server-network-label-wrap-length 20)
-  (defun org-roam-server-open ()
-    "Ensure the server is active, then open the roam graph."
+#+begin_src emacs-lisp
+(after! oc
+  (defun org-ref-to-org-cite ()
+    "Attempt to convert org-ref citations to org-cite syntax."
     (interactive)
-    (smartparens-global-mode -1)
-    (org-roam-server-mode)
-    (smartparens-global-mode +1)
-    (browse-url-xdg-open (format "http://localhost:%d" org-roam-server-port))
-    )
-  )
+    (let* ((cite-conversions '(("cite" . "//b") ("Cite" . "//bc")
+                               ("nocite" . "/n")
+                               ("citep" . "") ("citep*" . "//f")
+                               ("textcite" . "/t")
+                               ("parencite" . "") ("Parencite" . "//c")
+                               ("citeauthor" . "/a/f") ("citeauthor*" . "/a")
+                               ("citeyear" . "/na/b")
+                               ("Citep" . "//c") ("Citealp" . "//bc")
+                               ("Citeauthor" . "/a/cf") ("Citeauthor*" . "/a/c")
+                               ("autocite" . "") ("Autocite" . "//c")
+                               ("notecite" . "/l/b") ("Notecite" . "/l/bc")
+                               ("pnotecite" . "/l") ("Pnotecite" . "/l/bc")))
+           (cite-regexp (rx (regexp (regexp-opt (mapcar #'car cite-conversions) t))
+                            ":" (group (+ (not (any "\n     ,.)]}")))))))
+      (save-excursion
+        (goto-char (point-min))
+        (while (re-search-forward cite-regexp nil t)
+          (message (format "[cite%s:@%s]"
+                                 (cdr (assoc (match-string 1) cite-conversions))
+                                 (match-string 2)))
+          (replace-match (format "[cite%s:@%s]"
+                                 (cdr (assoc (match-string 1) cite-conversions))
+                                 (match-string 2))))))))
+
+
 #+end_src
+
+#+RESULTS:
+
+** Template
+
+#+begin_src emacs-lisp
+(setq citar-file-open-note-function 'orb-bibtex-actions-edit-note)
+(setq citar-templates
+      '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
+        (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords:*}")
+        (note . "
+,#+OPTIONS: num:nil ^:{} toc:nil
+,#+TITLE: ${author editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
+,#+hugo_base_dir: ~/BrainDump/
+,#+hugo_section: notes
+,#+hugo_categories: ${journal shortjournal}
+,#+TAGS: ${keywords}
+,#+HUGO_TAGS:
+,#+BIBLIOGRAPHY: /HDD/Org/zotero_refs.bib
+,#+cite_export: csl apa.csl
+
+
+\n* FISH-5SS
+
+\n** 5SS
+
+\n** Background and motivation
+
+\n** Supporting Ideas and hypothesis
+
+\n** Purpose
+
+\n** Contribution
+
+\n** Relevance
+
+\n** Methodology
+
+\n** Results
+
+\n** Interesting findings and not categorized stuff
+
+\n** Critics
+
+\n** Abstract
+
+,#+BEGIN_ABSTRACT
+${abstract}
+,#+END_ABSTRACT
+
+\n* Specific notes
+\n* Annotations (zotero)
+\n* Additional Backlinks
+\n* References")))
+#+end_src
+
+** Icons
+
+#+begin_src emacs-lisp
+(setq citar-symbols
+      `((file ,(all-the-icons-octicon "file-pdf" :face 'all-the-icons-red :v-adjust -0.1) . " ")
+        (note ,(all-the-icons-faicon "sticky-note" :face 'all-the-icons-yellow :v-adjust -0.3) . " ")
+        (link ,(all-the-icons-octicon "link" :face 'all-the-icons-blue :v-adjust 0.01) . " ")))
+(setq citar-symbol-separator "  ")
+#+end_src
+
+#+RESULTS:
 
 * Org-roam-gui
 
-#+begin_src elisp
+#+begin_src emacs-lisp
 (use-package! websocket
     :after org-roam)
 
@@ -1250,10 +1364,19 @@ Waiting the removal of org-ref as a required package.
 )
 #+end_src
 
+** org-roam-time-stamps
+
+#+begin_src emacs-lisp :tangle no
+(use-package! org-roam-timestamps
+  :after org-roam
+  :config
+  (org-roam-timestamps-mode)
+  (setq org-roam-timestamps-remember-timestamps t)
+  )
+#+end_src
+
+
 * Deft
-:PROPERTIES:
-:ID:       37ebac66-24db-4895-a0df-787e17ad0758
-:END:
 
 #+begin_src elisp
 (setq deft-directory notes-directory
@@ -1401,34 +1524,6 @@ Waiting the removal of org-ref as a required package.
                        (company-mode +1)))))
 #+end_src
 
-* Org transclusion
-:PROPERTIES:
-:ID:       b5e48c3f-d32f-4be1-84cb-b62f7320b716
-:END:
-
-#+begin_src elisp
-(use-package! org-transclusion
-  :defer
-  :after org
-  :init
-  (map!
-   :map global-map "<f12>" #'org-transclusion-add
-   :leader
-   :prefix "n"
-   :desc "Org Transclusion Mode" "t" #'org-transclusion-mode))
-#+end_src
-
-
-Function to avoid =Text is read only= problem ([[https://github.com/nobiot/org-transclusion/issues/86][Link]]):
-
-#+begin_src elisp
-(defun export-transcluded ()
-  (interactive)
-  (setq inhibit-read-only t)
-  (org-export-dispatch)
-  (setq inhibit-read-only nil))
-#+end_src
-
 * Abbrev autocorrection
 
 [[https://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html][Source]]
@@ -1477,33 +1572,6 @@ abort completely with `C-g'."
 (setq-default abbrev-mode t)
 #+end_src
 
-* Publish
-
-#+begin_src elisp
-(use-package! ox-publish)
-
-(setq org-publish-use-timestamps-flag nil) ;; What is this?
-(setq org-export-with-broken-links t)
-(setq org-publish-project-alist
-      '(("MyOrg"
-         :base-directory org-directory
-         :base-extension "org"
-         :publishing-directory  (expand-file-name "docs/" org-directory)
-         :recursive t
-         :exclude "./org-html-themes/.*\\|./themes/*"
-         :publishing-function org-html-publish-to-html
-         :headline-levels 4             ; Just the default for this project.
-         :auto-preamble t)
-        ("org-static"
-         :base-directory  (expand-file-name "website/" org-directory)
-         :base-extension "css\\|js\\|png\\|jpg\\|gif\\|pdf\\|mp3\\|ogg\\|swf"
-         :publishing-directory "./public_html/"
-         :recursive t
-         :exclude "./org-html-themes/.*\\|./themes/*"
-         :publishing-function org-publish-attachment)
-        ))
-#+end_src
-
 * Org diff
 
 
@@ -1513,4 +1581,43 @@ written a package to streamline the process.
 
 #+begin_src elisp
 (use-package! orgdiff :defer t)
+#+end_src
+* Hugo
+
+#+begin_src emacs-lisp
+(setq org-hugo-base-dir "~/BrainDump/")
+#+end_src
+
+** WAIT Convert hugo tags to org-roam tags
+
+#+begin_src emacs-lisp :tangle no
+(defun gps-duplicate-current-line ()
+    "Duplicates the current line below."
+    (let ((current-line (thing-at-point 'line)))
+      (insert "\n")
+      (insert current-line)))
+
+(defun gps-duplicate-hugo-tags-as-roam-tags ()
+  "Duplicate the hugo_tags as roam_tags to export them with ox-hugo."
+  (let ((current-point (point)))
+    (goto-char (point-min))
+    (if (re-search-forward "^#\\+ROAM_TAGS.+$" nil t)
+        (goto-char point)
+      (let ((hugo_tag (re-search-forward "^#\\+HUGO_TAGS.+$" nil t)))
+        (if hugo_tag
+            (progn (goto-char hugo_tag)
+                   (gps-duplicate-current-line )
+                   (re-search-backward "^#\\+HUGO_TAGS:" nil t)
+                   (replace-match "#+ROAM_TAGS:")
+                   (goto-char current-point)
+                   (forward-line 2))
+          (message "Regex did not match"))))))
+(gps-duplicate-hugo-tags-as-roam-tags)
+
+(defun gps-org-roam-mode-before-save-hook()
+  "Before-save-hook for org-roam to add hugo_tags if roam_tags exist."
+  (when (bound-and-true-p org-roam-mode)
+        (gps-duplicate-hugo-tags-as-roam-tags)))
+(add-hook 'before-save-hook 'gps-org-roam-mode-before-save-hook)
+
 #+end_src
