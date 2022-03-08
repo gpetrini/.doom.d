@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: MKKS reference
+# key: <PL>
+# --
+
+Pedrosa and Lang (2021): ${1:Original}

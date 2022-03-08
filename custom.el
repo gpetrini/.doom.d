@@ -5,6 +5,7 @@
  ;; If there is more than one, they won't work right.
  '(org-agenda-files
    '("~/Org/gtd/inbox.org" "/home/gpetrini/Org/gtd/projects.org" "/home/gpetrini/Org/gtd/readings.org"))
+ '(org-src-window-setup 'other-frame)
  '(package-selected-packages '(org-web-tools))
  '(warning-suppress-log-types
    '(((flycheck syntax-checker))

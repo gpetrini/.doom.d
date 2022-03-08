@@ -142,3 +142,4 @@
 (package! org-web-tools)
 (package! citeproc-el :recipe (:host github :repo "andras-simonyi/citeproc-el"))
 (package! org-super-agenda)
+(package! org-transclusion)

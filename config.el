@@ -786,6 +786,7 @@
 (setq citar-file-open-note-function 'orb-bibtex-actions-edit-note)
 (setq citar-templates
       '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
+        (preview . "${author editor:30}     ${date year issued:4}     ${title:48}")
         (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords:*}")
         (note . "
 #+OPTIONS: num:nil ^:{} toc:nil
@@ -793,8 +794,7 @@
 #+hugo_base_dir: ~/BrainDump/
 #+hugo_section: notes
 #+hugo_categories: ${journal shortjournal}
-#+TAGS: ${keywords}
-#+HUGO_TAGS:
+#+FILETAGS: ${keywords}
 #+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
 #+cite_export: csl apa.csl
 
@@ -978,3 +978,5 @@ abort completely with `C-g'."
 (use-package! orgdiff :defer t)
 
 (setq org-hugo-base-dir "~/BrainDump/")
+
+(use-package! org-transclusion :defer t)

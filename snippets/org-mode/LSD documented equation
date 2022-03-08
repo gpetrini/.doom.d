@@ -12,15 +12,15 @@ EQUATION( "${1:Label}" )
   Level:
   After:
   LaTeX:
-  Value:
-  Status:
+  Returns:
+  Status: STRT. TODO Add to lsd structure file
   Literature Source:
-    -
+    - Godley and Lavoie
   Code Source:
-    -
+    - Pedrosa and Lang (2021): ${3:Original}
   Change log:
     - First added `(format-time-string "%Y-%m-%d")` 
 */
-	v[0] = ${3:Variable};
+	v[0] = ${4:Variable};
 
 RESULT()

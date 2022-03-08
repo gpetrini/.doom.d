@@ -438,6 +438,8 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
   (ignore-errors (apply orig-fn args)))
 #+end_src
 
+** ox-word
+
 * Graphviz
 :PROPERTIES:
 :ID:       321c5dc9-49d3-4ec1-ad53-963a795a87db
@@ -1232,6 +1234,7 @@ Adding a function to convert org-ref citations to org-cite
 (setq citar-file-open-note-function 'orb-bibtex-actions-edit-note)
 (setq citar-templates
       '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
+        (preview . "${author editor:30}     ${date year issued:4}     ${title:48}")
         (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords:*}")
         (note . "
 ,#+OPTIONS: num:nil ^:{} toc:nil
@@ -1239,8 +1242,7 @@ Adding a function to convert org-ref citations to org-cite
 ,#+hugo_base_dir: ~/BrainDump/
 ,#+hugo_section: notes
 ,#+hugo_categories: ${journal shortjournal}
-,#+TAGS: ${keywords}
-,#+HUGO_TAGS:
+,#+FILETAGS: ${keywords}
 ,#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
 ,#+cite_export: csl apa.csl
 
@@ -1503,38 +1505,10 @@ written a package to streamline the process.
 (setq org-hugo-base-dir "~/BrainDump/")
 #+end_src
 
-** WAIT Convert hugo tags to org-roam tags
+* Transclusion
 
-#+begin_src emacs-lisp :tangle no
-(defun gps-duplicate-current-line ()
-    "Duplicates the current line below."
-    (let ((current-line (thing-at-point 'line)))
-      (insert "\n")
-      (insert current-line)))
 
-(defun gps-duplicate-hugo-tags-as-roam-tags ()
-  "Duplicate the hugo_tags as roam_tags to export them with ox-hugo."
-  (let ((current-point (point)))
-    (goto-char (point-min))
-    (if (re-search-forward "^#\\+ROAM_TAGS.+$" nil t)
-        (goto-char point)
-      (let ((hugo_tag (re-search-forward "^#\\+HUGO_TAGS.+$" nil t)))
-        (if hugo_tag
-            (progn (goto-char hugo_tag)
-                   (gps-duplicate-current-line )
-                   (re-search-backward "^#\\+HUGO_TAGS:" nil t)
-                   (replace-match "#+ROAM_TAGS:")
-                   (goto-char current-point)
-                   (forward-line 2))
-          (message "Regex did not match"))))))
-(gps-duplicate-hugo-tags-as-roam-tags)
 
-(defun gps-org-roam-mode-before-save-hook()
-  "Before-save-hook for org-roam to add hugo_tags if roam_tags exist."
-  (when (bound-and-true-p org-roam-mode)
-        (gps-duplicate-hugo-tags-as-roam-tags)))
-(add-hook 'before-save-hook 'gps-org-roam-mode-before-save-hook)
-
+#+begin_src emacs-lisp
+(use-package! org-transclusion :defer t)
 #+end_src
-
-#+RESULTS:
