@@ -980,3 +980,33 @@ abort completely with `C-g'."
 (setq org-hugo-base-dir "~/BrainDump/")
 
 (use-package! org-transclusion :defer t)
+
+(defhydra thesis-nav (:hint nil :color blue)
+"
+Main Files:  _T_hesis _m_anuscript _i_deas _s_etup _o_pen PDF file externaly
+  Chapters:  _0_ Introduction _1_ Ch^1 _2_ Ch^2 _3_ Ch^3 _C_ Conclusion _A_ Appendix
+   Actions:  _c_ Async compile file _t_angle _r_un
+"
+      ("T" (find-file "~/PhD/Writings/thesis.org"))
+      ("m" (find-file "~/PhD/Writings/manuscript.org"))
+      ("i" (find-file "~/Org/notes/phd_dissertation_discussions.org"))
+      ("s" (find-file "~/PhD/Writings/thesis.setup"))
+      ("o" (shell-command "open ~/PhD/Writings/thesis.pdf"))
+      ("0" (find-file "~/PhD/Writings/Introduction/Introduction.org"))
+      ("1" (find-file "~/PhD/Writings/Super_ABM/Research_Paper.org"))
+      ("2" (find-file "~/PhD/Writings/Househing_ABM/Research_Paper.org"))
+      ("3" (find-file "~/PhD/Writings/Spatial_Housing_ABM/Research_Paper.org"))
+      ("C" (find-file "~/PhD/Writings/Conclusion/Conclusion.org"))
+      ("A" (find-file "~/PhD/Writings/Appendix/Appendix.org"))
+      ("c" (org-latex-export-to-pdf :async t))
+      ("t" (org-babel-tangle))
+      ("r" (org-babel-execute-buffer))
+      ;; ("b" ()) ;; for biber
+      ;; ("l" ()) ;; for latex
+      ;; ("N" (shell-command "") :exit t) ;; For LSD no window
+      ;; ("p" (shell-command "./purpure/purpurea.sh") :exit t) ;; For purpurea
+      ("q" nil)
+  )
+(map! :leader
+      :desc "Thesis Navegation"
+      "H t" #'thesis-nav/body)
