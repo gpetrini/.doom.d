@@ -395,6 +395,14 @@
   (setq-default exec-path-from-shell-shell-name "/usr/bin/zsh")
   (exec-path-from-shell-initialize))
 
+(use-package! dap-mode
+  :defer t
+  :config
+  (require 'dap-node)
+  )
+
+(setq dap-auto-configure-features '(sessions locals controls tooltip))
+
 ;; (when (functionp 'module-load)
 ;; associated jupyter-stata with stata (fixes fontification if using pygmentize for html export)
 ;;   (add-to-list 'org-src-lang-modes '("jupyter-stata" . stata))
@@ -478,6 +486,7 @@
         (ess-R-fl-keyword:F&T . t)))
 
 ;; Fix Warning "readline" message
+;; (require 'dap-python)
 (set-popup-rule! "^\\*Python*"  :side 'bottom :size .30) ;; Python console to the bottom ;; FIXME
 
 ;; Disable native completion
