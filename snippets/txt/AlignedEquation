@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: AlignedEquation
+# uuid:
+# key: <al
+# condition: t
+# --
+
+\begin{equation*}
+\begin{align*}
+$1  & = \\
+\end{align*}
+\end{equation*}

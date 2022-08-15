@@ -25,7 +25,7 @@
        ;;ido                     ; the other *other* search engine...
        ;; (ivy +fonts +fuzzy +prescient +icons +childframe)
        ;;ivy                     ; a search engine for love and life
-       (vertico +icons)
+       (vertico +icons +childframe)
 
        :ui
        deft                      ; notational velocity for Emacs
@@ -42,17 +42,17 @@
        ;;minimap                 ; show a map of the code on the side
        (modeline)                ; snazzy, Atom-inspired modeline, plus API
        nav-flash                 ; blink cursor line after big motions
-       neotree                   ; a project drawer, like NERDTree for vim
+       ;; neotree                   ; a project drawer, like NERDTree for vim
        ophints                   ; highlight the region an operation acts on
        (popup +all)              ; tame sudden yet inevitable temporary windows
        ;; (tabs +centaur)                    ; a tab bar for Emacs
-       ;                         ; treemacs          ; a project drawer, like neotree but cooler
+       treemacs          ; a project drawer, like neotree but cooler
        unicode                   ; extended unicode support for various languages
-       ;                         ; vc-gutter         ; vcs diff in the fringe
-       ;                         ; vi-tilde-fringe   ; fringe tildes to mark beyond EOB
+       vc-gutter         ; vcs diff in the fringe
+       ;; vi-tilde-fringe   ; fringe tildes to mark beyond EOB
        (window-select +numbers)  ; visually switch windows
        workspaces                ; tab emulation, persistence & separate workspaces
-       ;                         ; zen               ; distraction-free coding or writing
+       zen               ; distraction-free coding or writing
 
        :editor
        (evil +everywhere)        ; come to the dark side, we have cookies
@@ -71,7 +71,7 @@
        ;;word-wrap               ; soft wrapping with language-aware indent
 
        :emacs
-       (dired +icons)            ; making dired pretty [functional]
+       (dired +icons +dirvish)            ; making dired pretty [functional]
        electric                  ; smarter, keyword-based electric-indent
        (ibuffer +icons)          ; interactive buffer management
        (undo +tree)              ; persistent, smarter undo for your inevitable mistakes
@@ -169,7 +169,7 @@
         +jupyter                 ; ipython/jupyter support for babel
         +pandoc                  ; export-with-pandoc support
         +org-bullets
-        ;                        ; +gnuplot                    ; who doesn't like pretty pictures
+        +gnuplot                    ; who doesn't like pretty pictures
         +noter
         +hugo
         +journal

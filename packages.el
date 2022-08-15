@@ -60,6 +60,7 @@
 (package! info-colors) ; pretty colors
 (package! exec-path-from-shell)
 (package! elfeed)
+(package! elfeed-org)
 (package! org-bullets)
 ;; (package! peep-dired)
 (package! rainbow-mode)
@@ -82,18 +83,18 @@
 ;; (package! vulpea
 ;;   :recipe (:host github :repo "d12frosted/vulpea"))
 
-(package! org-roam-bibtex
-  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
+;;(package! org-roam-bibtex
+;;  :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 ;; When using org-roam via the `+roam` flag
-(package! org-roam
-  :recipe (:host github :repo "org-roam/org-roam" :branch "master"))
-(package! org-roam-server
-  :recipe (:host github :repo "org-roam/org-roam-server" :branch "master"))
-(package! company-org-roam
-  :recipe (:host github :repo "org-roam/company-org-roam" :branch "master"))
-(unpin! org-roam company-org-roam)
+;;(package! org-roam
+;;  :recipe (:host github :repo "org-roam/org-roam" :branch "master"))
+;;(package! org-roam-server
+;;  :recipe (:host github :repo "org-roam/org-roam-server" :branch "master"))
+;;(package! company-org-roam
+;;  :recipe (:host github :repo "org-roam/company-org-roam" :branch "master"))
+;;(unpin! org-roam company-org-roam)
 ;; When using bibtex-completion via the `biblio` module
-(unpin! bibtex-completion helm-bibtex ivy-bibtex)
+;;(unpin! bibtex-completion helm-bibtex ivy-bibtex)
 
 (package! ess-view)
 (package! ess-view-data)
@@ -138,9 +139,27 @@
 (unpin! ox-pandoc) ;; Changing pandoc repo
 (package! ox-pandoc :recipe (:host github :repo "emacsorphanage/ox-pandoc"))
 (package! tldr)
-(package! org-roam-timestamps :recipe (:host github :repo "ThomasFKJorna/org-roam-timestamps"))
+;;(package! org-roam-timestamps :recipe (:host github :repo "ThomasFKJorna/org-roam-timestamps"))
 (package! org-web-tools)
 (package! citeproc-el :recipe (:host github :repo "andras-simonyi/citeproc-el"))
 (package! org-super-agenda)
 (package! org-transclusion)
 (package! dap-mode)
+
+(package! litex-mode :recipe (:host github :repo "Atreyagaurav/litex-mode"))
+(package! nov)
+(package! nov-xwidget :recipe (:host github :repo "chenyanming/nov-xwidget"))
+(package! org-glossary
+  :recipe (:host github :repo "tecosaur/org-glossary"))
+(package! org-pandoc-import
+  :recipe (:host github
+           :repo "tecosaur/org-pandoc-import"
+           :files ("*.el" "filters" "preprocessors")))
+(package! org-auto-tangle)
+
+(package! lsp-bridge
+  :recipe (:host github :repo "manateelazycat/lsp-bridge"))
+
+
+(package! unpackaged
+  :recipe (:host github :repo "alphapapa/unpackaged.el"))

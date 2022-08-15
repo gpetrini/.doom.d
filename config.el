@@ -35,9 +35,8 @@
     org-roam-v2-ack t
  )
 
-(if (eq initial-window-system 'x)                 ; if started by emacs command or desktop file
-    (toggle-frame-maximized)
-  (toggle-frame-fullscreen))
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+(add-hook 'window-setup-hook #'toggle-frame-fullscreen)
 
 ;; (setq org-latex-pdf-process
 ;;       '("pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"
@@ -311,7 +310,7 @@
 (use-package! elfeed-org
   :defer t
   :config
-  (setq rmh-elfeed-org-files (list (expand-file-name "rss/elfeed.org" org-directory))))
+  (setq rmh-elfeed-org-files (list (expand-file-name "~/Org/rss/elfeed.org"))))
 
 (map! :map elfeed-search-mode-map
       :after elfeed-search
@@ -411,7 +410,8 @@
 ;; (add-to-list 'org-latex-minted-langs '(stata "stata"))
 (setq inferior-STA-program-name "/usr/local/bin/jupyter-console")
 
-(setq display-buffer-alist
+(after! ess
+  (setq display-buffer-alist
       `(("*R Dired"
          (display-buffer-reuse-window display-buffer-in-side-window)
          (side . right)
@@ -430,7 +430,7 @@
          (window-width . 0.33)
          (reusable-frames . nil)))
       )
-(setq ess-style 'RStudio
+  (setq ess-style 'RStudio
       ;; auto-width
       ess-auto-width 'window
       ;; let lsp manage lintr
@@ -441,15 +441,22 @@
       ess-use-company nil
       )
 
-(setq ess-r--no-company-meta t)
+  (setq ess-r--no-company-meta t)
 
-(setq ess-ask-for-ess-directory t
+  (setq ess-ask-for-ess-directory nil
+      ;; ess-startup-directory t
       ess-local-process-name "R"
       ansi-color-for-comint-mode 'filter
       comint-scroll-to-bottom-on-input t
       comint-scroll-to-bottom-on-output t
       comint-move-point-for-output t)
 
+;; ESS buffers should not be cleaned up automatically
+  (add-hook 'inferior-ess-mode-hook #'doom-mark-buffer-as-real-h)
+
+  ;; Open ESS R window to the left iso bottom.
+  ;; (set-popup-rule! "^\\*R.*\\*$" :side 'left :size 0.38 :select nil :ttl nil :quit nil :modeline t)
+)
 
 ;; ===========================================================
 ;; IDE Functions
@@ -555,6 +562,10 @@
         ;; magit-delete-by-moving-to-trash nil
         git-commit-summary-max-length 120))
 
+(use-package! lsp-bridge
+  :defer t
+  )
+
 (load! "scimax-org-latex.el")
 
 (setq org-latex-pdf-process
@@ -606,6 +617,7 @@
 (setq pdf-annot-activate-created-annotations t
       pdf-view-display-size 'fit-width
       pdf-view-resize-factor 1.1)
+(add-hook 'pdf-tools-enabled-hook 'pdf-view-midnight-minor-mode)
 
 (use-package! org-noter
   :after (:any org pdf-view)
@@ -816,11 +828,7 @@
 
 \n** Supporting Ideas and hypothesis
 
-\n** Purpose
-
-\n** Contribution
-
-\n** Relevance
+\n** Purpose, Relevance, and Contribution
 
 \n** Methodology
 
@@ -856,12 +864,6 @@ ${abstract}
     :config
 )
 
-(setq deft-directory notes-directory
-      deft-recursive nil ;; FIXME
-      deft-use-filter-string-for-filename t
-      deft-default-extension "org"
-      )
-
 (setq org-capture-templates '(
                               ("t" "Todo [inbox]" entry
                                (file+headline inbox-file-path "Tasks inbox")
@@ -883,6 +885,13 @@ ${abstract}
 (setq org-refile-targets '((expand-file-name "projects.org"  gtd-directory :maxlevel . 3)
                            (expand-file-name "reading.org" gtd-directory   :maxlevel . 4)
                            (expand-file-name "someday.org" gtd-directory :level . 1)))
+
+(setq org-roam-dailies-directory "~/Org/journal/")
+  (setq org-roam-dailies-capture-templates
+           '(("D" "Daily Report" plain (file "~/Org/journal/Template.org")
+            :if-new  (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
+            )
+           ))
 
 (use-package! vlf-setup
   :defer-incrementally vlf-tune vlf-base vlf-write vlf-search vlf-occur vlf-follow vlf-ediff vlf)
@@ -1019,3 +1028,447 @@ Main Files:  _T_hesis _m_anuscript _i_deas _s_etup _o_pen PDF file externaly
 (map! :leader
       :desc "Thesis Navegation"
       "H t" #'thesis-nav/body)
+
+(defhydra hydra-dired (:hint nil :color pink)
+  "
+_+_ mkdir          _v_iew           _m_ark             _(_ details        _i_nsert-subdir    wdired
+_C_opy             _O_ view other   _U_nmark all       _)_ omit-mode      _$_ hide-subdir    C-x C-q : edit
+_D_elete           _o_pen other     _u_nmark           _l_ redisplay      _w_ kill-subdir    C-c C-c : commit
+_R_ename           _M_ chmod        _t_oggle           _g_ revert buf     _e_ ediff          C-c ESC : abort
+_Y_ rel symlink    _G_ chgrp        _E_xtension mark   _s_ort             _=_ pdiff
+_S_ymlink          ^ ^              _F_ind marked      _._ toggle hydra   \\ flyspell
+_r_sync            ^ ^              ^ ^                ^ ^                _?_ summary
+_z_ compress-file  _A_ find regexp
+_Z_ compress       _Q_ repl regexp
+
+T - tag prefix
+"
+  ("\\" dired-do-ispell)
+  ("(" dired-hide-details-mode)
+  (")" dired-omit-mode)
+  ("+" dired-create-directory)
+  ("=" diredp-ediff)         ;; smart diff
+  ("?" dired-summary)
+  ("$" diredp-hide-subdir-nomove)
+  ("A" dired-do-find-regexp)
+  ("C" dired-do-copy)        ;; Copy all marked files
+  ("D" dired-do-delete)
+  ("E" dired-mark-extension)
+  ("e" dired-ediff-files)
+  ("F" dired-do-find-marked-files)
+  ("G" dired-do-chgrp)
+  ("g" revert-buffer)        ;; read all directories again (refresh)
+  ("i" dired-maybe-insert-subdir)
+  ("l" dired-do-redisplay)   ;; relist the marked or singel directory
+  ("M" dired-do-chmod)
+  ("m" dired-mark)
+  ("O" dired-display-file)
+  ("o" dired-find-file-other-window)
+  ("Q" dired-do-find-regexp-and-replace)
+  ("R" dired-do-rename)
+  ("r" dired-do-rsynch)
+  ("S" dired-do-symlink)
+  ("s" dired-sort-toggle-or-edit)
+  ("t" dired-toggle-marks)
+  ("U" dired-unmark-all-marks)
+  ("u" dired-unmark)
+  ("v" dired-view-file)      ;; q to exit, s to search, = gets line #
+  ("w" dired-kill-subdir)
+  ("Y" dired-do-relsymlink)
+  ("z" diredp-compress-this-file)
+  ("Z" dired-do-compress)
+  ("q" nil)
+  ("." nil :color blue))
+
+
+(map! :leader
+      :desc "Dired Navegation"
+      "H d" #'hydra-dired/body)
+
+(defhydra hydra-flycheck
+    (:pre (flycheck-list-errors)
+     :post (quit-windows-on "*Flycheck errors*")
+     :hint nil)
+  "Errors"
+  ("f" flycheck-error-list-set-filter "Filter")
+  ("j" flycheck-next-error "Next")
+  ("k" flycheck-previous-error "Previous")
+  ("gg" flycheck-first-error "First")
+  ("G" (progn (goto-char (point-max)) (flycheck-previous-error)) "Last")
+  ("q" nil))
+
+
+(map! :leader
+      :desc "Flyckeck"
+      "H f" #'hydra-flycheck/body)
+
+(defhydra hydra-macro (:hint nil :color pink :pre
+                             (when defining-kbd-macro
+                                 (kmacro-end-macro 1)))
+  "
+  ^Create-Cycle^   ^Basic^           ^Insert^        ^Save^         ^Edit^
+╭─────────────────────────────────────────────────────────────────────────╯
+     ^_i_^           [_e_] execute    [_n_] insert    [_b_] name      [_'_] previous
+     ^^↑^^           [_d_] delete     [_t_] set       [_K_] key       [_,_] last
+ _j_ ←   → _l_       [_o_] edit       [_a_] add       [_x_] register
+     ^^↓^^           [_r_] region     [_f_] format    [_B_] defun
+     ^_k_^           [_m_] step
+    ^^   ^^          [_s_] swap
+"
+  ("j" kmacro-start-macro :color blue)
+  ("l" kmacro-end-or-call-macro-repeat)
+  ("i" kmacro-cycle-ring-previous)
+  ("k" kmacro-cycle-ring-next)
+  ("r" apply-macro-to-region-lines)
+  ("d" kmacro-delete-ring-head)
+  ("e" kmacro-end-or-call-macro-repeat)
+  ("o" kmacro-edit-macro-repeat)
+  ("m" kmacro-step-edit-macro)
+  ("s" kmacro-swap-ring)
+  ("n" kmacro-insert-counter)
+  ("t" kmacro-set-counter)
+  ("a" kmacro-add-counter)
+  ("f" kmacro-set-format)
+  ("b" kmacro-name-last-macro)
+  ("K" kmacro-bind-to-key)
+  ("B" insert-kbd-macro)
+  ("x" kmacro-to-register)
+  ("'" kmacro-edit-macro)
+  ("," edit-kbd-macro)
+  ("q" nil :color blue))
+
+
+(map! :leader
+      :desc "Macro creating"
+      "H m" #'hydra-macro/body)
+
+(defhydra hydra-git-gutter (:body-pre (git-gutter-mode 1)
+                            :hint nil)
+  "
+Git gutter:
+  _j_: next hunk        _s_tage hunk     _q_uit
+  _k_: previous hunk    _r_evert hunk    _Q_uit and deactivate git-gutter
+  ^ ^                   _p_opup hunk
+  _h_: first hunk
+  _l_: last hunk        set start _R_evision
+"
+  ("j" git-gutter:next-hunk)
+  ("k" git-gutter:previous-hunk)
+  ("h" (progn (goto-char (point-min))
+              (git-gutter:next-hunk 1)))
+  ("l" (progn (goto-char (point-min))
+              (git-gutter:previous-hunk 1)))
+  ("s" git-gutter:stage-hunk)
+  ("r" git-gutter:revert-hunk)
+  ("p" git-gutter:popup-hunk)
+  ("R" git-gutter:set-start-revision)
+  ("q" nil :color blue)
+  ("Q" (progn (git-gutter-mode -1)
+              ;; git-gutter-fringe doesn't seem to
+              ;; clear the markup right away
+              (sit-for 0.1)
+              (git-gutter:clear))
+       :color blue))
+
+
+(map! :leader
+      :desc "git gutter"
+      "H g" #'hydra-git-gutter/body)
+
+(use-package! smerge-mode
+  :defer t
+  :config
+  (defhydra unpackaged/smerge-hydra
+    (:color pink :hint nil :post (smerge-auto-leave))
+    "
+^Move^       ^Keep^               ^Diff^                 ^Other^
+^^-----------^^-------------------^^---------------------^^-------
+_n_ext       _b_ase               _<_: upper/base        _C_ombine
+_p_rev       _u_pper              _=_: upper/lower       _r_esolve
+^^           _l_ower              _>_: base/lower        _k_ill current
+^^           _a_ll                _R_efine
+^^           _RET_: current       _E_diff
+"
+    ("n" smerge-next)
+    ("p" smerge-prev)
+    ("b" smerge-keep-base)
+    ("u" smerge-keep-upper)
+    ("l" smerge-keep-lower)
+    ("a" smerge-keep-all)
+    ("RET" smerge-keep-current)
+    ("\C-m" smerge-keep-current)
+    ("<" smerge-diff-base-upper)
+    ("=" smerge-diff-upper-lower)
+    (">" smerge-diff-base-lower)
+    ("R" smerge-refine)
+    ("E" smerge-ediff)
+    ("C" smerge-combine-with-next)
+    ("r" smerge-resolve)
+    ("k" smerge-kill-current)
+    ("ZZ" (lambda ()
+            (interactive)
+            (save-buffer)
+            (bury-buffer))
+     "Save and bury buffer" :color blue)
+    ("q" nil "cancel" :color blue))
+  :hook (magit-diff-visit-file . (lambda ()
+                                   (when smerge-mode
+                                     (unpackaged/smerge-hydra/body)))))
+
+(use-package! litex-mode
+  :commands litex-mode
+  :hook text-mode)
+(setq litex-keep-sexp-in-buffer t)
+
+(defun my/rdrview-get (url callback)
+  "Get the rdrview representation of URL.
+
+Call CALLBACK with the output."
+  (let* ((buffer (generate-new-buffer "rdrview"))
+         (proc (start-process "rdrview" buffer "rdrview"
+                              url "-T" "title,sitename,body"
+                              "-H")))
+    (set-process-sentinel
+     proc
+     (lambda (process _msg)
+       (let ((status (process-status process))
+             (code (process-exit-status process)))
+         (cond ((and (eq status 'exit) (= code 0))
+                (progn
+                  (funcall callback
+                           (with-current-buffer (process-buffer process)
+                             (buffer-string)))
+                  (kill-buffer (process-buffer process))) )
+               ((or (and (eq status 'exit) (> code 0))
+                    (eq status 'signal))
+                (let ((err (with-current-buffer (process-buffer process)
+                             (buffer-string))))
+                  (kill-buffer (process-buffer process))
+                  (user-error "Error in rdrview: %s" err)))))))
+    proc))
+
+(defun my/rdrview-parse (dom-string)
+  (let ((dom (with-temp-buffer
+               (insert dom-string)
+               (libxml-parse-html-region (point-min) (point-max)))))
+    (let (title sitename content (i 0))
+      (dolist (child (dom-children (car (dom-by-id dom "readability-page-1"))))
+        (when (listp child)
+          (cond
+           ((eq (car child) 'h1)
+            (setq title (dom-text child)))
+           ((eq (car child) 'h2)
+            (setq sitename (dom-text child)))
+           ((eq (car child) 'div)
+            (setq content child)))))
+      (while (and
+              (not (dom-by-tag content 'h1))
+              (dom-search
+               content
+               (lambda (el)
+                 (when (listp el)
+                   (pcase (car el)
+                     ('h2 (setf (car el) 'h1))
+                     ('h3 (setf (car el) 'h2))
+                     ('h4 (setf (car el) 'h3))
+                     ('h5 (setf (car el) 'h4))
+                     ('h6 (setf (car el) 'h5))))))))
+      `((title . ,title)
+        (sitename . ,sitename)
+        (content . ,(with-temp-buffer
+                      (dom-print content)
+                      (buffer-string)))))))
+
+(defvar-local my/elfeed-show-rdrview-html nil)
+
+(defun my/rdrview-elfeed-show ()
+  (interactive)
+  (unless elfeed-show-entry
+    (user-error "No elfeed entry in this buffer!"))
+  (my/rdrview-get
+   (elfeed-entry-link elfeed-show-entry)
+   (lambda (result)
+     (let* ((data (my/rdrview-parse result))
+            (inhibit-read-only t)
+            (title (elfeed-entry-title elfeed-show-entry))
+            (date (seconds-to-time (elfeed-entry-date elfeed-show-entry)))
+            (authors (elfeed-meta elfeed-show-entry :authors))
+            (link (elfeed-entry-link elfeed-show-entry))
+            (tags (elfeed-entry-tags elfeed-show-entry))
+            (tagsstr (mapconcat #'symbol-name tags ", "))
+            (nicedate (format-time-string "%a, %e %b %Y %T %Z" date))
+            (content (alist-get 'content data))
+            (feed (elfeed-entry-feed elfeed-show-entry))
+            (feed-title (elfeed-feed-title feed))
+            (base (and feed (elfeed-compute-base (elfeed-feed-url feed)))))
+       (erase-buffer)
+       (insert (format (propertize "Title: %s\n" 'face 'message-header-name)
+                       (propertize title 'face 'message-header-subject)))
+       (when elfeed-show-entry-author
+         (dolist (author authors)
+           (let ((formatted (elfeed--show-format-author author)))
+             (insert
+              (format (propertize "Author: %s\n" 'face 'message-header-name)
+                      (propertize formatted 'face 'message-header-to))))))
+       (insert (format (propertize "Date: %s\n" 'face 'message-header-name)
+                       (propertize nicedate 'face 'message-header-other)))
+       (insert (format (propertize "Feed: %s\n" 'face 'message-header-name)
+                       (propertize feed-title 'face 'message-header-other)))
+       (when tags
+         (insert (format (propertize "Tags: %s\n" 'face 'message-header-name)
+                         (propertize tagsstr 'face 'message-header-other))))
+       (insert (propertize "Link: " 'face 'message-header-name))
+       (elfeed-insert-link link link)
+       (insert "\n")
+       (cl-loop for enclosure in (elfeed-entry-enclosures elfeed-show-entry)
+                do (insert (propertize "Enclosure: " 'face 'message-header-name))
+                do (elfeed-insert-link (car enclosure))
+                do (insert "\n"))
+       (insert "\n")
+       (if content
+           (elfeed-insert-html content base)
+         (insert (propertize "(empty)\n" 'face 'italic)))
+       (setq-local my/elfeed-show-rdrview-html content)
+       (goto-char (point-min))))))
+
+(setq my/rdrview-template (expand-file-name "~/.doom.d/misc/latex_template_elfeed.tex"))
+
+(cl-defun my/rdrview-render (content type variables callback
+                                     &key file-name overwrite)
+  "Render CONTENT with pandoc.
+
+TYPE is a file extension as supported by pandoc, for instance,
+html or txt.  VARIABLES is an alist that is fed into the
+template.  After the rendering is complete successfully, CALLBACK
+is called with the resulting PDF.
+
+FILE-NAME is a path to the resulting PDF. If nil it's generated
+randomly.
+
+If a file with the given FILE-NAME already exists, the function will
+invoke CALLBACK straight away without doing the rendering, unless
+OVERWRITE is non-nil."
+  (unless file-name
+    (setq file-name (format "/tmp/%d.pdf" (random 100000000))))
+  (let (params
+        (temp-file-name (format "/tmp/%d.%s" (random 100000000) type)))
+    (cl-loop for (key . value) in variables
+             when value
+             do (progn
+                  (push "--variable" params)
+                  (push (format "%s=%s" key value) params)))
+    (setq params (nreverse params))
+    (if (and (file-exists-p file-name) (not overwrite))
+        (funcall callback file-name)
+      (with-temp-file temp-file-name
+        (insert content))
+      (let ((proc (apply #'start-process
+                         "pandoc" (get-buffer-create "*Pandoc*") "pandoc"
+                         temp-file-name "-o" file-name
+                         "--pdf-engine=xelatex" "--template" my/rdrview-template
+                         params)))
+        (set-process-sentinel
+         proc
+         (lambda (process _msg)
+           (let ((status (process-status process))
+                 (code (process-exit-status process)))
+             (cond ((and (eq status 'exit) (= code 0))
+                    (progn
+                      (message "Done!")
+                      (funcall callback file-name)))
+                   ((or (and (eq status 'exit) (> code 0))
+                        (eq status 'signal))
+                    (user-error "Error in pandoc. Check the *Pandoc* buffer")))))))))
+)
+
+(setq my/elfeed-pdf-dir (expand-file-name "~/.elfeed/pdf/"))
+
+(defun my/elfeed-open-pdf (entry overwrite)
+  "Open the current elfeed ENTRY with a pdf viewer.
+
+If OVERWRITE is non-nil, do the rendering even if the resulting
+PDF already exists."
+  (interactive (list elfeed-show-entry current-prefix-arg))
+  (let ((authors (mapcar (lambda (m) (plist-get m :name)) (elfeed-meta entry :authors)))
+        (feed-title (elfeed-feed-title (elfeed-entry-feed entry)))
+        (tags (mapconcat #'symbol-name (elfeed-entry-tags entry) ", "))
+        (date (format-time-string "%a, %e %b %Y"
+                                  (seconds-to-time (elfeed-entry-date entry))))
+        (content (elfeed-deref (elfeed-entry-content entry)))
+        (file-name (concat my/elfeed-pdf-dir
+                           (elfeed-ref-id (elfeed-entry-content entry))
+                           ".pdf"))
+        (main-language "english")
+        (other-language "portuguese"))
+    (unless content
+      (user-error "No content!"))
+    (setq subtitle
+          (cond
+           ((seq-empty-p authors) feed-title)
+           ((and (not (seq-empty-p (car authors)))
+                 (string-match-p (regexp-quote (car authors)) feed-title)) feed-title)
+           (t (concat (string-join authors ", ") "\\\\" feed-title))))
+    (when (member 'ru (elfeed-entry-tags entry))
+      (setq main-language "portuguese")
+      (setq other-language "english"))
+    (my/rdrview-render
+     (if (bound-and-true-p my/elfeed-show-rdrview-html)
+         my/elfeed-show-rdrview-html
+       content)
+     (elfeed-entry-content-type entry)
+     `((title . ,(elfeed-entry-title entry))
+       (subtitle . ,subtitle)
+       (date . ,date)
+       (tags . ,tags)
+       (main-lang . ,main-language)
+       (other-lang . ,other-language))
+     (lambda (file-name)
+       (start-process "xdg-open" nil "xdg-open" file-name))
+     :file-name file-name
+     :overwrite current-prefix-arg)))
+
+(defun my/get-languages (url)
+  (let ((main-lang "english")
+        (other-lang "portuguese"))
+    (when (string-match-p (rx ".br") url)
+      (setq main-lang "portuguese"
+            other-lang "english"))
+    (list main-lang other-lang)))
+
+(defun my/rdrview-open (url overwrite)
+  (interactive
+   (let ((url (read-from-minibuffer
+               "URL: "
+               (if (bound-and-true-p elfeed-show-entry)
+                   (elfeed-entry-link elfeed-show-entry)))))
+     (when (string-empty-p url)
+       (user-error "URL is empty"))
+     (list url current-prefix-arg)))
+  (my/rdrview-get
+   url
+   (lambda (res)
+     (let ((data (my/rdrview-parse res))
+           (langs (my/get-languages url)))
+       (my/rdrview-render
+        (alist-get 'content data)
+        'html
+        `((title . ,(alist-get 'title data))
+          (subtitle . ,(alist-get 'sitename data))
+          (main-lang . ,(nth 0 langs))
+          (other-lang . ,(nth 1 langs)))
+        (lambda (file-name)
+          (start-process "xdg-open" nil "xdg-open" file-name)))))))
+
+(use-package! nov)
+(use-package! nov-xwidget
+  :defer t
+  :after nov
+  :config
+  (map! :map xwidget-webkit-mode-map
+        :n "]" 'nov-xwidget-next-document
+        :n "[" 'nov-xwidget-previous-document
+        :n "gt" 'nov-xwidget-goto-toc)
+  (map! :map nov-mode-map
+        :n "gv" 'nov-xwidget-view))
+
+(use-package! org-pandoc-import :after org)

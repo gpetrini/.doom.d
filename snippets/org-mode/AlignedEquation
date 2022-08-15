@@ -1,0 +1,11 @@
+# -*- mode: snippet -*-
+# name: AlignedEquation
+# key: <al
+# condition: t
+# --
+
+\begin{equation*}
+\begin{align*}
+ $1 & = \\\\
+\end{align*}
+\end{equation*}
