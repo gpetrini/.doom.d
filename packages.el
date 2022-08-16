@@ -86,8 +86,6 @@
 (package! org-roam-bibtex
   :recipe (:host github :repo "org-roam/org-roam-bibtex"))
 ;; When using org-roam via the `+roam` flag
-(package! org-roam
-  :recipe (:host github :repo "org-roam/org-roam" :branch "master"))
 (package! org-roam-server
   :recipe (:host github :repo "org-roam/org-roam-server" :branch "master"))
 (package! company-org-roam
@@ -144,3 +142,5 @@
 (package! org-web-tools)
 (package! citeproc-el :recipe (:host github :repo "andras-simonyi/citeproc-el"))
 (package! org-super-agenda)
+(package! wolfram-mode)
+(package! ob-mathematica)
