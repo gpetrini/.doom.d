@@ -566,6 +566,21 @@
   :defer t
   )
 
+(use-package! wolfram-mode
+  :defer t
+  :config
+  (setq mathematica-command-line "wolframscript -script")
+  ;; (add-to-list 'org-src-lang-modes '("mathematica" . wolfram))
+  )
+(after! 'org
+            (org-babel-do-load-languages 'org-babel-load-languages
+                                         (append org-babel-load-languages
+                                                 '((mathematica . t))
+                                                 ))
+            )
+(load! "./misc/ob-mathematica.el")
+(add-to-list 'org-src-lang-modes '("mathematica" . wolfram))
+
 (load! "scimax-org-latex.el")
 
 (setq org-latex-pdf-process
