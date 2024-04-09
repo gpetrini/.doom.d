@@ -1,6 +1,5 @@
-#+TITLE: My Doom Config
-#+PROPERTY: header-args :tangle "config.el"
-
+#+title: My Doom Config
+#+property: header-args :tangle "config.el"
 
 * Introduction
 
@@ -36,15 +35,6 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
 :END:
 
 #+BEGIN_SRC emacs-lisp
-;; (setq package-native-compile t)
-(setq-default
-    delete-by-moving-to-trash t         ; Delete files to trash
-    tab-width 4                         ; Set width for tabs
-    uniquify-buffer-name-style 'forward ; Uniquify buffer names
-    window-combination-resize t         ; take new window space from all other windows (not just current)
-    x-stretch-cursor t
-    load-prefer-newer t                 ; Native-comp related
- )                                      ; Stretch cursor to the glyph width
 
 (setq evil-want-fine-undo t             ; By default while in insert all changes are one big blob. Be more granular
       auto-save-default t               ; Nobody likes to loose work, I certainly don't
@@ -69,21 +59,15 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
     main-ref-file (expand-file-name "zotero_refs.bib" org-directory)
     org-roam-v2-ack t
  )
+
+(setq
+ org-cite-csl-styles-dir "~/Zotero/styles"
+      )
+(map! "C-c C-SPC" #'dabbrev-completion)
+
 #+END_SRC
 
 
-
-* Full Screen Emacs
-:PROPERTIES:
-:ID:       ab0a9384-3179-42a7-b6aa-cf07a4cb89d9
-:END:
-I like to emacs to be fullscreen when I open it for the first time.
-#+BEGIN_SRC emacs-lisp
-(add-to-list 'initial-frame-alist '(fullscreen . maximized))
-(add-hook 'window-setup-hook #'toggle-frame-fullscreen)
-#+END_SRC
-
-#+RESULTS:
 
 * An Integrated Academic Environment
 :PROPERTIES:
@@ -105,7 +89,19 @@ more appropriate for social sciences and humanities.
 ;;         "pdflatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
 
 (setq org-latex-pdf-process '("latexmk -f -pdf -%latex -shell-escape -interaction=nonstopmode -output-directory=%o %f"))
+;; Pretty code blocs from https://tecosaur.github.io/emacs-config/config.html#pretty-code-blocks
+;; (use-package! engrave-faces-latex
+;;   :after ox-latex)
 
+;; Now let’s have the example block be styled similarly.
+;; (setq org-latex-listings 'engraved)
+;; (defadvice! org-latex-example-block-engraved (orig-fn example-block contents info)
+;;   "Like `org-latex-example-block', but supporting an engraved backend"
+;;   :around #'org-latex-example-block
+;;   (let ((output-block (funcall orig-fn example-block contents info)))
+;;     (if (eq 'engraved (plist-get info :latex-listings))
+;;         (format "\\begin{Code}[alt]\n%s\n\\end{Code}" output-block)
+;;       output-block)))
 #+END_SRC
 
 
@@ -120,16 +116,22 @@ more appropriate for social sciences and humanities.
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 20))
 ;; (setq doom-theme 'doom-material)
 (setq doom-theme 'doom-dracula)
+;; (setq doom-theme 'doom-challenger-deep)
 ;; Line numbers are pretty slow all around. The performance boost of
 ;; disabling them outweighs the utility of always keeping them on.
-(setq display-line-numbers-type nil)
 (setq org-support-shift-select t)
 (after! org
-  (setq org-image-actual-width '(300))
   (use-package! ox-extra
     :config
     (ox-extras-activate '(latex-header-blocks ignore-headlines)))
+
   )
+;; (after! org
+;;   (setq org-highlight-latex-and-related nil)
+;;   )
+
+(setq
+ delete-by-moving-to-trash t)
 (setq evil-normal-state-cursor '(box "orange")
       evil-insert-state-cursor '(bar "orange")
       evil-visual-state-cursor '(hollow "orange"))
@@ -140,316 +142,21 @@ more appropriate for social sciences and humanities.
       window-divider-default-right-width 4)  ; default is 1
 
 (custom-set-faces! '(window-divider :foreground "grey"))
+;; (use-package! org-modern :after org)
+;; (with-eval-after-load 'org (global-org-modern-mode))
+
+(after! dired-rsync
+  (setq dired-rsync-options "-azhuv --info=progress2")
+  )
+;; Fix tabs in the daemon
+(after! centaur-tabs
+  (setq centaur-tabs-set-bar 'right)
+  (centaur-tabs-group-by-projectile-project)
+  )
 #+END_SRC
 
-* Org-mode
 
 
-** General config
-
-:PROPERTIES:
-:ID:       0ac56cd6-ed1b-4d4d-a458-2277d20a25b8
-:END:
-#+begin_src emacs-lisp
-(after! org
-  (require 'org-bullets)  ; Nicer bullets in org-mode
-  (add-hook 'org-mode-hook (lambda () (org-bullets-mode 1)))
-  (setq org-ellipsis " ▼ "
-        org-log-done 'time
-        org-enable-roam-support t
-        org-src-window-setup 'other-window ;; FIXME
-        org-startup-folded 'overview
-        org-hide-emphasis-markers t))
-
-(defun org-archive-done-tasks ()
-  (interactive)
-  (org-map-entries
-   (lambda ()
-     (org-archive-subtree)
-     (setq org-map-continue-from (org-element-property :begin (org-element-at-point))))
-   "/DONE" 'tree))
-
-(add-hook! org-mode :append #'org-appear-mode)
-
-
-(setq
- org-cite-csl-styles-dir "~/Zotero/styles"
- ;; org-cite-global-bibliography '(main-ref-file)
-      )
-
-#+end_src
-
-#+RESULTS:
-
-
-
-
-
-** Headers
-:PROPERTIES:
-:ID:       28baee43-f1c8-4d29-a306-8f052b324545
-:END:
-
-#+begin_src emacs-lisp
-(setq org-babel-default-header-args
-      '((:session . "none")
-        (:results . "output replace")
-        (:exports . "results")
-        (:cache . "no")
-        (:noweb . "no")
-        (:hlines . "no")
-        (:tangle . "no")
-        ))
-#+end_src
-
-
-** Symbols
-:PROPERTIES:
-:ID:       e2279c30-f79d-49f0-8f69-e4b712736458
-:END:
-
-#+begin_src emacs-lisp
-(after! org-superstar
-  (setq org-superstar-headline-bullets-list '("◉" "○" "✸" "✿" "✤" "✜" "◆" "▶")
-        ;; org-superstar-headline-bullets-list '("Ⅰ" "Ⅱ" "Ⅲ" "Ⅳ" "Ⅴ" "Ⅵ" "Ⅶ" "Ⅷ" "Ⅸ" "Ⅹ")
-        org-superstar-prettify-item-bullets t ))
-
-(setq org-ellipsis " ▾ "
-      org-hide-leading-stars t
-      org-priority-highest ?A
-      org-priority-lowest ?E
-      org-priority-faces
-      '((?A . 'all-the-icons-red)
-        (?B . 'all-the-icons-orange)
-        (?C . 'all-the-icons-yellow)
-        (?D . 'all-the-icons-green)
-        (?E . 'all-the-icons-blue)))
-
-
-(appendq! +ligatures-extra-symbols
-          `(:checkbox      "☐"
-            :pending       "◼"
-            :checkedbox    "☑"
-            :list_property "∷"
-            :em_dash       "—"
-            :ellipses      "…"
-            :arrow_right   "→"
-            :arrow_left    "←"
-            :title         "𝙏"
-            :subtitle      "𝙩"
-            :author        "𝘼"
-            :date          "𝘿"
-            :property      "☸"
-            :options       "⌥"
-            :latex_class   "🄲"
-            :latex_header  "⇥"
-            :beamer_header "↠"
-            :attr_latex    "🄛"
-            :attr_html     "🄗"
-            :begin_quote   "❝"
-            :end_quote     "❞"
-            :caption       "☰"
-            :header        "›"
-            :results       "🠶"
-            :begin_export  "⏩"
-            :end_export    "⏪"
-            :properties    "⚙"
-            :end           "∎"
-            :priority_a   ,(propertize "⚑" 'face 'all-the-icons-red)
-            :priority_b   ,(propertize "⬆" 'face 'all-the-icons-orange)
-            :priority_c   ,(propertize "■" 'face 'all-the-icons-yellow)
-            :priority_d   ,(propertize "⬇" 'face 'all-the-icons-green)
-            :priority_e   ,(propertize "❓" 'face 'all-the-icons-blue)))
-(set-ligatures! 'org-mode
-  :merge t
-  :checkbox      "[ ]"
-  :pending       "[-]"
-  :checkedbox    "[X]"
-  :list_property "::"
-  :em_dash       "---"
-  :ellipsis      "..."
-  :arrow_right   "->"
-  :arrow_left    "<-"
-  :title         "#+title:"
-  :subtitle      "#+subtitle:"
-  :author        "#+author:"
-  :date          "#+date:"
-  :property      "#+property:"
-  :options       "#+options:"
-  :latex_class   "#+latex_class:"
-  :latex_header  "#+latex_header:"
-  :beamer_header "#+beamer_header:"
-  :attr_latex    "#+attr_latex:"
-  :attr_html     "#+attr_latex:"
-  :begin_quote   "#+begin_quote"
-  :end_quote     "#+end_quote"
-  :caption       "#+caption:"
-  :header        "#+header:"
-  :begin_export  "#+begin_export"
-  :end_export    "#+end_export"
-  :results       "#+RESULTS:"
-  :property      ":PROPERTIES:"
-  :end           ":END:"
-  :priority_a    "[#A]"
-  :priority_b    "[#B]"
-  :priority_c    "[#C]"
-  :priority_d    "[#D]"
-  :priority_e    "[#E]")
-(plist-put +ligatures-extra-symbols :name "⁍")
-#+end_src
-
-
-** Extra special strings
-:PROPERTIES:
-:ID:       09cfe794-13e8-43ab-b45b-f1fb7b58d489
-:END:
-
-LaTeX already recognises =---= and =--= as em/en-dashes, =\-= as a shy hyphen, and the
-conversion of =...= to =\ldots{}= is hardcoded into ~org-latex-plain-text~ (unlike
-~org-html-plain-text~).
-
-I'd quite like to also recognise =->= and =<-=, so let's set come up with some advice.
-
-#+begin_src emacs-lisp
-(defvar org-latex-extra-special-string-regexps
-  '(("->" . "\\\\textrightarrow{}")
-    ("<-" . "\\\\textleftarrow{}")))
-
-(defun org-latex-convert-extra-special-strings (string)
-  "Convert special characters in STRING to LaTeX."
-  (dolist (a org-latex-extra-special-string-regexps string)
-    (let ((re (car a))
-          (rpl (cdr a)))
-      (setq string (replace-regexp-in-string re rpl string t)))))
-
-(defadvice! org-latex-plain-text-extra-special-a (orig-fn text info)
-  "Make `org-latex-plain-text' handle some extra special strings."
-  :around #'org-latex-plain-text
-  (let ((output (funcall orig-fn text info)))
-    (when (plist-get info :with-special-strings)
-      (setq output (org-latex-convert-extra-special-strings output)))
-    output))
-#+end_src
-
-
-** Org-web-tools
-
-
-#+begin_src emacs-lisp
-(use-package! org-web-tools
-  :defer t
-)
-#+end_src
-
-** Agenda
-
-
-#+begin_src emacs-lisp
-(use-package! org-super-agenda
-  :commands org-super-agenda-mode)
-(after! org-agenda
-  (org-super-agenda-mode))
-
-(setq org-agenda-skip-scheduled-if-done t
-      org-agenda-skip-deadline-if-done t
-      org-agenda-include-deadlines t
-      org-agenda-todo-ignore-deadlines t
-      org-agenda-tags-column 100 ;; from testing this seems to be a good value
-      org-agenda-compact-blocks t)
-
-(setq org-agenda-custom-commands
-      '(("o" "Overview"
-            ((agenda "" ((org-agenda-overriding-header "")
-                        (org-super-agenda-groups
-                         '(
-                           (:auto-group t)
-                           (:name "Today"
-                                  :time-grid t
-                                  :date today
-                                  :order 1)
-                          (:name "Due Today"
-                           :scheduled t
-                           :deadline today
-                           :todo "TODO"
-                           :order 2)
-                          (:name "Due Soon"
-                           :scheduled future
-                           :todo "TODO"
-                           :order 2)
-                          (:name "Overdue"
-                           :deadline past
-                           :todo "TODO"
-                           :face error
-                           :order 1)
-                           )))
-                     )
-                (alltodo "" ((org-agenda-overriding-header "")
-                       (org-super-agenda-groups
-                        '(
-                           (:auto-group t)
-                          (:name "Lectures"
-                           :tag ("@Teaching" "@Lectures")
-                           :order 8)
-                          (:name "Advisoring"
-                           :tag "@Orientations"
-                           :order 8)
-                          (:name "Meetings"
-                           :tag "@Meeting"
-                           :order 5)
-                          (:name "Current Research"
-                           :tag "@Article"
-                           :order 6)
-                          (:name "To read"
-                           :file-path "readings"
-                           :order 8
-                           )
-                          (:name "To writing"
-                           :todo ("STRT")
-                           :order 4)
-                          (:name "Waiting"
-                           :todo ("WAITING" "WAIT" "MAYBE")
-                           :order 20)
-                          (:name "Research groups"
-                           :tag ("@Group")
-                           :order 10)
-                          (:name "University"
-                           :tag ("@UNICAMP")
-                           :order 10)
-                          (:name "Emacs"
-                           :tag ("@Emacs")
-                           :order 80)
-                          (:name "Trivial"
-                           :tag ("@free")
-                           :order 90)
-                          ))))))))
-#+end_src
-
-
-** Fix problematic hooks
-
-
-[[https://tecosaur.github.io/emacs-config/config.html#fix-problematic-hooks][source]]
-
-#+begin_src emacs-lisp
-(defadvice! shut-up-org-problematic-hooks (orig-fn &rest args)
-  :around #'org-fancy-priorities-mode
-  :around #'org-superstar-mode
-  (ignore-errors (apply orig-fn args)))
-#+end_src
-
-** ox-word
-
-
-** Auto-tangle
-
-#+begin_src emacs-lisp :tangle no
-(use-package org-auto-tangle
-  :defer t
-  :hook (org-mode . org-auto-tangle-mode)
-  :config
-  (setq org-auto-tangle-default nil)
-  )
-#+end_src
 
 * Graphviz
 :PROPERTIES:
@@ -462,82 +169,6 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
   :commands graphviz-dot-mode
   :mode ("\\.dot\\'" "\\.gz\\'"))
 #+end_src
-* Elfeed
-** Pre-config
-:PROPERTIES:
-:ID:       c01430da-5ed2-4865-acce-b6e7878d8558
-:END:
-
-#+begin_src emacs-lisp
-(use-package! elfeed-org
-  :defer t
-  :config
-  (setq rmh-elfeed-org-files (list (expand-file-name "~/Org/rss/elfeed.org"))))
-#+end_src
-
-#+RESULTS:
-
-** Keybindings
-:PROPERTIES:
-:ID:       803de0d8-4172-4b7f-bcff-d2d97408876b
-:END:
-
-#+begin_src emacs-lisp
-(map! :map elfeed-search-mode-map
-      :after elfeed-search
-      [remap kill-this-buffer] "q"
-      [remap kill-buffer] "q"
-      :n doom-leader-key nil
-      :n "q" #'+rss/quit
-      :n "e" #'elfeed-update
-      :n "r" #'elfeed-search-untag-all-unread
-      :n "u" #'elfeed-search-tag-all-unread
-      :n "s" #'elfeed-search-live-filter
-      :n "RET" #'elfeed-search-show-entry
-      :n "p" #'elfeed-show-pdf
-      :n "+" #'elfeed-search-tag-all
-      :n "-" #'elfeed-search-untag-all
-      :n "S" #'elfeed-search-set-filter
-      :n "b" #'elfeed-search-browse-url
-      :n "y" #'elfeed-search-yank)
-(map! :map elfeed-show-mode-map
-      :after elfeed-show
-      [remap kill-this-buffer] "q"
-      [remap kill-buffer] "q"
-      :n doom-leader-key nil
-      :nm "q" #'+rss/delete-pane
-      :nm "o" #'ace-link-elfeed
-      :nm "RET" #'org-ref-elfeed-add
-      :nm "n" #'elfeed-show-next
-      :nm "N" #'elfeed-show-prev
-      :nm "p" #'elfeed-show-pdf
-      :nm "+" #'elfeed-show-tag
-      :nm "-" #'elfeed-show-untag
-      :nm "s" #'elfeed-show-new-live-search
-      :nm "y" #'elfeed-show-yank)
-
-(defun gps/elfeed-load-db-and-open ()
-  "Load the elfeed db from disk before updating."
-  (interactive)
-  (elfeed)
-  (elfeed-goodies/setup)
-  (elfeed-db-load)
-  (elfeed-search-update--force)
-  (elfeed-update))
-
-;;write to disk when quiting
-(defun gps/elfeed-save-db-and-bury ()
-  "Wrapper to save the elfeed db to disk before burying buffer"
-  (interactive)
-  (elfeed-db-save)
-  (quit-window))
-
-(defun gps/elfeed-mark-all-as-read ()
-  (interactive)
-  (mark-whole-buffer)
-  (elfeed-search-untag-all-unread))
-#+end_src
-
 * Presentations
 
 ** Reveal.Js
@@ -550,7 +181,7 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 #+END_SRC
 
 
-* Grammar and Spelling
+* TODO Grammar and Spelling
 :PROPERTIES:
 :ID:       062a7b0b-ca1d-4d51-b31a-03c0b684cb8b
 :END:
@@ -558,26 +189,36 @@ I'd quite like to also recognise =->= and =<-=, so let's set come up with some a
 This just configures spelling and grammar checking support.
 
 #+BEGIN_SRC emacs-lisp
-(add-to-list 'ispell-aspell-dictionary-alist (ispell-aspell-find-dictionary "en_US"))
-(setq ispell-program-name (executable-find "aspell")
-      ispell-dictionary "en_US")
+;; (add-to-list 'ispell-aspell-dictionary-alist (ispell-aspell-find-dictionary "en"))
+;; (setq ispell-program-name (executable-find "aspell")
+;;       ispell-dictionary "en")
 (setq flyspell-correct-popup t)
-(setq langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool.jar")
-(setq langtool-language-tool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar")
+(after! langtool
+  (setq langtool-disabled-rules '("WHITESPACE_RULE")
+        langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool.jar"
+        langtool-language-tool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar"
+        )
+  )
 
-;; (use-package! lsp-grammarly
-;;   :defer t
-;;   :hook (text-mode . (lambda ()
-;;                        (require 'lsp-grammarly)
-;;                        (lsp))))  ; or lsp-deferred
-
-;; (use-package! flycheck-languagetool
-;;   :defer t
-;;   :hook (text-mode . (lambda ()
-;;                        (require 'flycheck-languagetool)))
-;;   :init
-;;   (setq flycheck-languagetool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar"))
-
+(use-package! jinx
+  :defer t
+  :init
+  (add-hook 'doom-init-ui-hook #'global-jinx-mode)
+  :config
+  ;; Use my custom dictionary
+  (setq jinx-languages "en_US")
+  ;; Extra face(s) to ignore
+  (push 'org-inline-src-block
+        (alist-get 'org-mode jinx-exclude-faces))
+  ;; Take over the relevant bindings.
+  (after! ispell
+    (global-set-key [remap ispell-word] #'jinx-correct))
+  (after! evil-commands
+    (global-set-key [remap evil-next-flyspell-error] #'jinx-next)
+    (global-set-key [remap evil-prev-flyspell-error] #'jinx-previous))
+  ;; I prefer for `point' to end up at the start of the word,
+  ;; not just after the end.
+  (advice-add 'jinx-next :after (lambda (_) (left-word))))
 #+END_SRC
 
 
@@ -585,22 +226,13 @@ This just configures spelling and grammar checking support.
 :PROPERTIES:
 :ID:       ec24c007-5127-4bcc-b852-6b1526eecac8
 :END:
+
+** General
+
 #+begin_src emacs-lisp
-(when (memq window-system '(mac ns x))
-  (require 'exec-path-from-shell)
-  (setq-default exec-path-from-shell-shell-name "/usr/bin/zsh")
-  (exec-path-from-shell-initialize))
-
-(use-package! dap-mode
-  :defer t
-  :config
-  (require 'dap-node)
-  )
-
-(setq dap-auto-configure-features '(sessions locals controls tooltip))
+(setq! tree-sitter-load-path '( "/home/gpetrini/.config/emacs/tree-sitter/" "/home/gpetrini/.config/emacs/.local/straight/build-29.3/tree-sitter-langs/bin/" "/home/gpetrini/.tree-sitter/bin/")
+       )
 #+end_src
-
-
 
 ** Stata
 :PROPERTIES:
@@ -619,7 +251,7 @@ ado-cus.el changed to include fake time
 
     Add the following lines to your init.el:
 
-#+BEGIN_SRC emacs-lisp
+#+BEGIN_SRC emacs-lisp :tangle no
 ;; (when (functionp 'module-load)
 ;; associated jupyter-stata with stata (fixes fontification if using pygmentize for html export)
 ;;   (add-to-list 'org-src-lang-modes '("jupyter-stata" . stata))
@@ -633,106 +265,6 @@ ado-cus.el changed to include fake time
 : /usr/local/bin/jupyter-console
 
 
-** R
-:PROPERTIES:
-:ID:       aa92bfce-dd66-4f60-97da-414ef2163f02
-:END:
-
-#+BEGIN_SRC emacs-lisp
-
-(after! ess
-  (setq display-buffer-alist
-      `(("*R Dired"
-         (display-buffer-reuse-window display-buffer-in-side-window)
-         (side . right)
-         (slot . -1)
-         (window-width . 0.33)
-         (reusable-frames . nil))
-        ("*R"
-         (display-buffer-reuse-window display-buffer-in-side-window)
-         (side . right)
-         (window-width . 0.5)
-         (reusable-frames . nil))
-        ("*Help"
-         (display-buffer-reuse-window display-buffer-below-selected)
-         (side . left)
-         (slot . 1)
-         (window-width . 0.33)
-         (reusable-frames . nil)))
-      )
-  (setq ess-style 'RStudio
-      ;; auto-width
-      ess-auto-width 'window
-      ;; let lsp manage lintr
-      ess-use-flymake nil
-      ;; Stop R repl eval from blocking emacs.
-      ess-eval-visibly 'nowait
-      ess-use-eldoc nil
-      ess-use-company nil
-      )
-
-  (setq ess-r--no-company-meta t)
-
-  (setq ess-ask-for-ess-directory nil
-      ;; ess-startup-directory t
-      ess-local-process-name "R"
-      ansi-color-for-comint-mode 'filter
-      comint-scroll-to-bottom-on-input t
-      comint-scroll-to-bottom-on-output t
-      comint-move-point-for-output t)
-
-;; ESS buffers should not be cleaned up automatically
-  (add-hook 'inferior-ess-mode-hook #'doom-mark-buffer-as-real-h)
-
-  ;; Open ESS R window to the left iso bottom.
-  ;; (set-popup-rule! "^\\*R.*\\*$" :side 'left :size 0.38 :select nil :ttl nil :quit nil :modeline t)
-)
-
-;; ===========================================================
-;; IDE Functions
-;; ===========================================================
-
-;; Bring up empty R script and R console for quick calculations
-(defun ess-tide-scratch ()
-  (interactive)
-  (progn
-    (delete-other-windows)
-    (setq new-buf (get-buffer-create "scratch.R"))
-    (switch-to-buffer new-buf)
-    (R-mode)
-    (setq w1 (selected-window))
-    (setq w1name (buffer-name))
-    (setq w2 (split-window w1 nil t))
-    (if (not (member "*R*" (mapcar (function buffer-name) (buffer-list))))
-        (R))
-    (set-window-buffer w2 "*R*")
-    (set-window-buffer w1 w1name)))
-#+END_SRC
-
-
- Syntax highlighting is nice, so let’s turn all of that on
-
-
-#+begin_src emacs-lisp
-(setq ess-R-font-lock-keywords
-      '((ess-R-fl-keyword:keywords . t)
-        (ess-R-fl-keyword:constants . t)
-        (ess-R-fl-keyword:modifiers . t)
-        (ess-R-fl-keyword:fun-defs . t)
-        (ess-R-fl-keyword:assign-ops . t)
-        (ess-R-fl-keyword:%op% . t)
-        (ess-fl-keyword:fun-calls . t)
-        (ess-fl-keyword:numbers . t)
-        (ess-fl-keyword:operators . t)
-        (ess-fl-keyword:delimiters . t)
-        (ess-fl-keyword:= . t)
-        (ess-R-fl-keyword:F&T . t)))
-#+end_src
-
-** Julia
-
-
-[[https://discourse.julialang.org/t/working-setup-for-emacs-org-mode/41574/4][Source]]
 
 ** Python
 :PROPERTIES:
@@ -746,85 +278,7 @@ In order to install dependencies, run ([[https://github.com/gjstein/emacs.d/blob
 
 
 
-Display inline images after running code
 
-#+BEGIN_SRC emacs-lisp
-;; Fix Warning "readline" message
-;; (require 'dap-python)
-(set-popup-rule! "^\\*Python*"  :side 'bottom :size .30) ;; Python console to the bottom ;; FIXME
-
-;; Disable native completion
-
-(after! python
-
-  (setq python-shell-completion-native-enable nil)
-  (set-company-backend! 'python-mode 'elpy-company-backend)
-  (setq python-shell-interpreter "/usr/bin/python3"
-        org-babel-python-command "/usr/bin/python3")
-  )
-(after! elpy
-  (set-company-backend! 'elpy-mode
-    '(elpy-company-backend :with company-files company-yasnippet)))
-
-;; (add-hook 'python-mode-hook 'eglot-ensure)
-#+END_SRC
-
-
-*** Company
-:PROPERTIES:
-:ID:       8ea81be8-430a-49a1-b0f8-2927ef0c51b4
-:END:
-
-#+begin_src emacs-lisp
-(after! python
-  (set-company-backend! 'python-mode 'elpy-company-backend))
-(after! company
-  (setq company-idle-delay 0
-        company-tooltip-limit 10
-        company-dabbrev-downcase nil
-        company-show-numbers t
-        company-minimum-prefix-length 3)
-  (add-hook 'evil-normal-state-entry-hook #'company-abort)) ;; make aborting less annoying.
-(setq-default history-length 1000)
-(setq-default prescient-history-length 1000)
-
-(set-company-backend! 'org-mode nil)
-(use-package! company-tabnine
-  :defer t
-  )
-(after! company
-  (add-to-list 'company-backends 'company-tabnine))
-#+end_src
-
-** LSP
-:PROPERTIES:
-:ID:       f3ed513f-42c5-4cf0-ad94-32bffa0f9a64
-:END:
-
-#+begin_src emacs-lisp
-;; In case we get a wrong workspace root, we can delete it with lsp-workspace-folders-remove
-(after! lsp-mode
-  (setq lsp-auto-guess-root nil))
-(set-popup-rule! "^\\*lsp-help" :side 'right :size .50 :select t :vslot 1)
-
-;; Disable lsp flycheck checker and use flake8
-(after! lsp-mode
-  (setq lsp-diagnostic-package :none))
-
-(after! flycheck
-  (add-hook 'pyhon-mode-local-vars-hook
-            (lambda ()
-              (when (flycheck-may-enable-checker 'python-flake8)
-                (flycheck-select-checker 'python-flake8)))))
-;; (setq flycheck-disabled-checkers 'lsp)
-
-(after! lsp-mode
-  (setq lsp-eldoc-enable-hover nil
-        lsp-signature-auto-activate nil
-        ;; lsp-enable-on-type-formatting nil
-        ;; lsp-enable-symbol-highlighting nil
-        lsp-enable-file-watchers nil))
-#+end_src
 
 ** Magit
 :PROPERTIES:
@@ -839,151 +293,10 @@ Display inline images after running code
         magit-inhibit-save-previous-winconf t
         magit-log-arguments '("--graph" "--decorate" "--color")
         ;; magit-delete-by-moving-to-trash nil
-        git-commit-summary-max-length 120))
-#+end_src
-** Netlogo
-
-*** NetLogo mode and company-netlogo
-:PROPERTIES:
-:ID:       3a86c393-efc9-49f6-a6d4-df918e6d18af
-:END:
-
-#+begin_src emacs-lisp :tangle no
-(load! "netlogo/netlogo-mode")
-(load! "netlogo/company-netlogo")
-
-(set-company-backend! 'netlogo-mode '(:separate company-netlogo company-yasnippet))
-#+end_src
-
-
-
-
-** LSP-bridge
-
-#+begin_src emacs-lisp
-(use-package! lsp-bridge
-  :defer t
-  )
-#+end_src
-
-** Wolfram
-
-[[https://rgoswami.me/posts/org-mathematica/][Source]]
-
-#+begin_src emacs-lisp
-(use-package! wolfram-mode
-  :defer t
-  :config
-  (setq mathematica-command-line "wolframscript -script")
-  ;; (add-to-list 'org-src-lang-modes '("mathematica" . wolfram))
-  )
-(after! 'org
-            (org-babel-do-load-languages 'org-babel-load-languages
-                                         (append org-babel-load-languages
-                                                 '((mathematica . t))
-                                                 ))
-            )
-(load! "./misc/ob-mathematica.el")
-(add-to-list 'org-src-lang-modes '("mathematica" . wolfram))
-#+end_src
-
-
-*** Hacking ob-mathematica
-
-Based on this comment on reddit ([[https://www.reddit.com/r/orgmode/comments/nfd7q8/orgmode_mathematica/][see]]):
-
-#+begin_quote
-In Org mode version 9.6, ob-mathematica function =org-babel-expand-body:mathematica=, change =(org-babel-get-header params :var)= to =(org-babel--get-vars params)= solves the error for me.
-#+end_quote
-
-In the original version of ob-mathematica, the command was not found.
-So I had to adjust the path for wolframscript.
-
-#+begin_src emacs-lisp :tangle ./misc/ob-mathematica.el
-;;; ob-mathematica.el --- org-babel functions for Mathematica evaluation
-
-;; Copyright (C) 2014 Yi Wang
-
-;; Authors: Yi Wang
-;; Keywords: literate programming, reproducible research
-;; Homepage: https://github.com/tririver/wy-els/blob/master/ob-mathematica.el
-;; Distributed under the GNU GPL v2 or later
-
-;; Org-Babel support for evaluating Mathematica source code.
-
-;;; Code:
-(require 'ob)
-(require 'ob-ref)
-(require 'ob-comint)
-(require 'ob-eval)
-
-(declare-function org-trim "org" (s &optional keep-lead))
-
-;; Optionally require mma.el for font lock, etc
-(require 'mma nil 'noerror)
-(add-to-list 'org-src-lang-modes '("mathematica" . "mma"))
-
-(defvar org-babel-tangle-lang-exts)
-(add-to-list 'org-babel-tangle-lang-exts '("mathematica" . "m"))
-
-(defvar org-babel-default-header-args:mathematica '())
-
-(defvar org-babel-mathematica-command "wolframscript -script" ;; For wolfram 13
-  "Name of the command for executing Mathematica code.")
-
-(defvar org-babel-mathematica-command-alt "math -noprompt"
-  "Name of the command for executing Mathematica code.")
-
-(defun org-babel-expand-body:mathematica (body params)
-  "Expand BODY according to PARAMS, return the expanded body."
-  (let ((vars (org-babel--get-vars params)))
-    (concat
-     (mapconcat ;; define any variables
-      (lambda (pair)
-	(format "%s=%s;"
-		(car pair)
-		(org-babel-mathematica-var-to-mathematica (cdr pair))))
-      vars "\n")
-     "\nPrint[\n" body "\n]\n"
-      )
-    ))
-
-(defun org-babel-execute:mathematica (body params)
-  "Execute a block of Mathematica code with org-babel.  This function is
-called by `org-babel-execute-src-block'"
-  (let* ((result-params (cdr (assq :result-params params)))
-	 (full-body (org-babel-expand-body:mathematica body params))
-	 (tmp-script-file (org-babel-temp-file "mathematica-"))
-	 (cmd org-babel-mathematica-command))
-    ;; actually execute the source-code block
-    (with-temp-file tmp-script-file (insert full-body))
-    ;; (with-temp-file "/tmp/dbg" (insert full-body))
-    ((lambda (raw)
-       (if (or (member "code" result-params)
-	       (member "pp" result-params)
-	       (and (member "output" result-params)
-		    (not (member "table" result-params))))
-	   raw
-	 (org-babel-script-escape (org-trim raw))))
-    (org-babel-eval (concat cmd " " tmp-script-file) ""))))
-
-(defun org-babel-prep-session:mathematica (session params)
-  "This function does nothing so far"
-  (error "Currently no support for sessions"))
-
-(defun org-babel-prep-session:mathematica (session body params)
-  "This function does nothing so far"
-  (error "Currently no support for sessions"))
-
-(defun org-babel-mathematica-var-to-mathematica (var)
-  "Convert an elisp value to a Mathematica variable.
-Convert an elisp value, VAR, into a string of Mathematica source code
-specifying a variable of the same value."
-  (if (listp var)
-      (concat "{" (mapconcat #'org-babel-mathematica-var-to-mathematica var ", ") "}")
-    (format "%S" var)))
-
-(provide 'ob-mathematica)
+        git-commit-summary-max-length 120
+        magit-diff-refine-hunk 'all
+        ))
+(setq auth-sources '("~/.authinfo"))
 #+end_src
 
 
@@ -1015,84 +328,7 @@ specifying a variable of the same value."
 
 #+BEGIN_SRC emacs-lisp
 (setq org-latex-prefer-user-labels t)
-(setq org-latex-caption-above nil)
 #+END_SRC
-
-** Math support
-:PROPERTIES:
-:ID:       6070e801-b991-4dab-8932-58175a6a54c4
-:END:
-#+begin_src emacs-lisp
-(use-package! cdlatex
-    :after (:any org-mode LaTeX-mode)
-    :hook
-    ((LaTeX-mode . turn-on-cdlatex)
-     (org-mode . turn-on-org-cdlatex)))
-
-(use-package! company-math
-    :after (:any org-mode TeX-mode)
-    :config
-    (set-company-backend! 'org-mode 'company-math-symbols-latex)
-    (set-company-backend! 'TeX-mode 'company-math-symbols-latex)
-    (set-company-backend! 'org-mode 'company-latex-commands)
-    (set-company-backend! 'TeX-mode 'company-latex-commands)
-    (setq company-tooltip-align-annotations t)
-    (setq company-math-allow-latex-symbols-in-faces t))
-#+end_src
-
-** Tufte booker
-:PROPERTIES:
-:ID:       edda38cc-1212-4a28-94a8-256e9d330981
-:END:
-#+begin_src emacs-lisp
-(add-to-list
- 'org-latex-classes
- '(("tufte-book"
-    "\\documentclass[a4paper, sfsidenotes, openany, justified]{tufte-book}"
-    ("\\part{%s}" . "\\part*{%s}")
-    ("\\chapter{%s}" . "\\chapter*{%s}")
-    ("\\section{%s}" . "\\section*{%s}")
-    ("utf8" . "utf8x")
-    ("\\subsection{%s}" . "\\subsection*{%s}"))))
-#+end_src
-** Default refs
-:PROPERTIES:
-:ID:       3dcb1860-7b51-4ff3-a5ae-1c1c62ac5b4d
-:END:
-
-#+begin_src emacs-lisp
-(setq reftex-default-bibliography refs-files)
-#+end_src
-** Viewer
-:PROPERTIES:
-:ID:       78bce554-5c5f-40ae-b07c-7b8e88895f48
-:END:
-
-#+begin_src emacs-lisp
-(setq +latex-viewers '(evince pdf-tools okular))
-#+end_src
-
-** Prittier highlighting
-:PROPERTIES:
-:ID:       7ad5df1c-7f6e-49c5-8cb3-c60e94435f5a
-:END:
-
-First off, we want those fragments to look good.
-
-#+begin_src emacs-lisp
-(setq org-highlight-latex-and-related '(native script entities))
-
-#+end_src
-
- However, by using native highlighting the org-block face is added, and that doesn’t look too great — particularly when the fragments are previewed.
-
-Ideally org-src-font-lock-fontify-block wouldn’t add the org-block face, but we can avoid advising that entire function by just adding another face with :inherit default which will override the background colour.
-
-Inspecting org-do-latex-and-related shows that "latex" is the language argument passed, and so we can override the background as discussed above.
-
-#+begin_src emacs-lisp
-(add-to-list 'org-src-block-faces '("latex" (:inherit default :extend t)))
-#+end_src
 
 * PDF tools
 :PROPERTIES:
@@ -1103,90 +339,9 @@ Inspecting org-do-latex-and-related shows that "latex" is the language argument 
 (setq pdf-annot-activate-created-annotations t
       pdf-view-display-size 'fit-width
       pdf-view-resize-factor 1.1)
-(add-hook 'pdf-tools-enabled-hook 'pdf-view-midnight-minor-mode)
-#+end_src
-
-* Org-noter
-:PROPERTIES:
-:ID:       3353c759-0c2d-4133-9733-69d09a1b7f69
-:END:
-
-#+begin_src emacs-lisp
-(use-package! org-noter
-  :after (:any org pdf-view)
-  :config
-  (setq
-   ;; The WM can handle splits
-   org-noter-notes-window-location 'other-frame
-   ;; Please stop opening frames
-   org-noter-always-create-frame nil
-   ;; I want to see the whole file
-   org-noter-hide-other nil
-   ;; Everything is relative to the rclone mega
-   org-noter-notes-search-path (list org-directory)
-   org-noter-notes-window-location 'horizontal-split
-   bibtex-completion-pdf-field "file"
-   )
-  ;; (require 'org-noter-pdftools)
-  )
 #+end_src
 
 
-* WAIT Org-pdftools
-
-#+begin_src emacs-lisp :tangle no
-(use-package! org-noter-pdftools
-  :after org-noter
-  :config
-  ;; Add a function to ensure precise note is inserted
-  (defun org-noter-pdftools-insert-precise-note (&optional toggle-no-questions)
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((org-noter-insert-note-no-questions (if toggle-no-questions
-                                                   (not org-noter-insert-note-no-questions)
-                                                 org-noter-insert-note-no-questions))
-           (org-pdftools-use-isearch-link t)
-           (org-pdftools-use-freestyle-annot t))
-       (org-noter-insert-note (org-noter--get-precise-info)))))
-
-  ;; fix https://github.com/weirdNox/org-noter/pull/93/commits/f8349ae7575e599f375de1be6be2d0d5de4e6cbf
-  (defun org-noter-set-start-location (&optional arg)
-    "When opening a session with this document, go to the current location.
-With a prefix ARG, remove start location."
-    (interactive "P")
-    (org-noter--with-valid-session
-     (let ((inhibit-read-only t)
-           (ast (org-noter--parse-root))
-           (location (org-noter--doc-approx-location (when (called-interactively-p 'any) 'interactive))))
-       (with-current-buffer (org-noter--session-notes-buffer session)
-         (org-with-wide-buffer
-          (goto-char (org-element-property :begin ast))
-          (if arg
-              (org-entry-delete nil org-noter-property-note-location)
-            (org-entry-put nil org-noter-property-note-location
-                           (org-noter--pretty-print-location location))))))))
-  (with-eval-after-load 'pdf-annot
-    (add-hook 'pdf-annot-activate-handler-functions #'org-noter-pdftools-jump-to-note)))
-#+end_src
-
-* Org-roam-bibtex
-
-
-Waiting the removal of org-ref as a required package.
-
-#+begin_src emacs-lisp :tangle no
-
-(use-package! org-roam-bibtex
-  :after org-roam
-  :config
-  ;; (require 'org-ref)
-  (setq orb-preformat-keywords
-    '("citekey" "title" "url" "author-or-editor" "keywords" "file" "year" "note")
-    orb-process-file-keyword t
-    orb-file-field-extensions '("pdf")
-  ))
-
-#+end_src
 
 * Org-roam
 
@@ -1210,8 +365,8 @@ Waiting the removal of org-ref as a required package.
       bibtex-completion-notes-path "~/Org/notes" ;; FIXME generalize
       )
 
-
-(setq org-roam-capture-templates
+(setq!  citar-org-roam-subdir nil)
+(setq! org-roam-capture-templates
       '(("d" "default" plain
          "%?"
          :if-new (file+head "${slug}.org"
@@ -1348,47 +503,7 @@ Waiting until tool module is updated.
  citar-library-paths '("/HDD/PDFs/")
  citar-notes-paths '("~/Org/notes/")
  )
-
-(use-package! citeproc-el :defer t)
 #+end_src
-
-** Convert org-ref to org-cite
-
-Adding a function to convert org-ref citations to org-cite
-
-#+begin_src emacs-lisp
-(after! oc
-  (defun org-ref-to-org-cite ()
-    "Attempt to convert org-ref citations to org-cite syntax."
-    (interactive)
-    (let* ((cite-conversions '(("cite" . "//b") ("Cite" . "//bc")
-                               ("nocite" . "/n")
-                               ("citep" . "") ("citep*" . "//f")
-                               ("textcite" . "/t")
-                               ("parencite" . "") ("Parencite" . "//c")
-                               ("citeauthor" . "/a/f") ("citeauthor*" . "/a")
-                               ("citeyear" . "/na/b")
-                               ("Citep" . "//c") ("Citealp" . "//bc")
-                               ("Citeauthor" . "/a/cf") ("Citeauthor*" . "/a/c")
-                               ("autocite" . "") ("Autocite" . "//c")
-                               ("notecite" . "/l/b") ("Notecite" . "/l/bc")
-                               ("pnotecite" . "/l") ("Pnotecite" . "/l/bc")))
-           (cite-regexp (rx (regexp (regexp-opt (mapcar #'car cite-conversions) t))
-                            ":" (group (+ (not (any "\n     ,.)]}")))))))
-      (save-excursion
-        (goto-char (point-min))
-        (while (re-search-forward cite-regexp nil t)
-          (message (format "[cite%s:@%s]"
-                                 (cdr (assoc (match-string 1) cite-conversions))
-                                 (match-string 2)))
-          (replace-match (format "[cite%s:@%s]"
-                                 (cdr (assoc (match-string 1) cite-conversions))
-                                 (match-string 2))))))))
-
-
-#+end_src
-
-#+RESULTS:
 
 ** Template
 
@@ -1401,10 +516,7 @@ Adding a function to convert org-ref citations to org-cite
         (note . "
 ,#+OPTIONS: num:nil ^:{} toc:nil
 ,#+TITLE: ${author editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
-,#+hugo_base_dir: ~/BrainDump/
-,#+hugo_section: notes
-,#+hugo_categories: ${journal shortjournal}
-,#+FILETAGS: ${keywords}
+,#+FILETAGS: ${keywords journal shortjournal}
 ,#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
 ,#+cite_export: csl apa.csl
 
@@ -1439,25 +551,23 @@ ${abstract}
 \n* References")))
 #+end_src
 
-** Icons
 
-#+begin_src emacs-lisp
-(setq citar-symbols
-      `((file ,(all-the-icons-octicon "file-pdf" :face 'all-the-icons-red :v-adjust -0.1) . " ")
-        (note ,(all-the-icons-faicon "sticky-note" :face 'all-the-icons-yellow :v-adjust -0.3) . " ")
-        (link ,(all-the-icons-octicon "link" :face 'all-the-icons-blue :v-adjust 0.01) . " ")))
-(setq citar-symbol-separator "  ")
+* OXR: org crossreference
+
+#+begin_src emacs-lisp :tangle no
+
+(use-package! oxr :defer t)
 #+end_src
-
-#+RESULTS:
 
 * Org-roam-gui
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package! websocket
+    :defer t
     :after org-roam)
 
 (use-package! org-roam-ui
+    :defer t
     :after org-roam ;; or :after org
     :hook (org-roam . org-roam-ui-mode)
     :config
@@ -1468,6 +578,7 @@ ${abstract}
 
 #+begin_src emacs-lisp :tangle no
 (use-package! org-roam-timestamps
+  :defer t
   :after org-roam
   :config
   (org-roam-timestamps-mode)
@@ -1475,203 +586,6 @@ ${abstract}
   )
 #+end_src
 
-* GTD
-
-** Capture templates
-:PROPERTIES:
-:ID:       97941191-689d-4398-ab2b-8c189d1742be
-:END:
-
-#+begin_src emacs-lisp
-(setq org-capture-templates '(
-                              ("t" "Todo [inbox]" entry
-                               (file+headline inbox-file-path "Tasks inbox")
-                               "* TODO %i%?")
-                              ("w" "Writing inbox" entry
-                               (file+headline inbox-file-path "Writing inbox")
-                               "* TODO %i%?")
-                              ("f" "Fleeting notes" entry
-                               (file+headline inbox-file-path "Fleeting notes")
-                               "* WAIT %i%?")
-                              ("r" "Readings inbox" entry
-                               (file+headline inbox-file-path "Reading Inbox")
-                               "* %(org-cliplink-capture) %^g" :prepend t)
-                              ("n" "News inbox" entry
-                               (file+headline inbox-file-path "News Inbox")
-                               "* %t %(org-cliplink-capture) %^g" :prepend t)
-                              ))
-#+end_src
-** Refile
-:PROPERTIES:
-:ID:       fc05838e-3058-462e-b4ab-ef9590d357f8
-:END:
-
-#+begin_src emacs-lisp
-(setq org-refile-targets '((expand-file-name "projects.org"  gtd-directory :maxlevel . 3)
-                           (expand-file-name "reading.org" gtd-directory   :maxlevel . 4)
-                           (expand-file-name "someday.org" gtd-directory :level . 1)))
-#+end_src
-
-
-** Journal
-
-#+begin_src emacs-lisp
-(setq org-roam-dailies-directory "~/Org/journal/")
-  (setq org-roam-dailies-capture-templates
-           '(("D" "Daily Report" plain (file "~/Org/journal/Template.org")
-            :if-new  (file+head "%<%Y-%m-%d>.org" "#+title: %<%Y-%m-%d>")
-            )
-           ))
-#+end_src
-
-
-
-
-
-* WAIT Large files
-:PROPERTIES:
-:ID:       48b4aeea-03e3-417b-bb89-142507776b10
-:END:
-
-#+begin_src emacs-lisp :tangle yes
-(use-package! vlf-setup
-  :defer-incrementally vlf-tune vlf-base vlf-write vlf-search vlf-occur vlf-follow vlf-ediff vlf)
-#+end_src
-
-* Write-room
-:PROPERTIES:
-:ID:       ce347438-fec6-4f5b-8635-ef8310fa44d5
-:END:
-
-#+begin_src emacs-lisp
-(setq +zen-text-scale 0.5)
-
-
-
-(defvar +zen-serif-p t
-  "Whether to use a serifed font with `mixed-pitch-mode'.")
-(after! writeroom-mode
-  (defvar-local +zen--original-org-indent-mode-p nil)
-  (defvar-local +zen--original-mixed-pitch-mode-p nil)
-  (defvar-local +zen--original-solaire-mode-p nil)
-  (defvar-local +zen--original-org-pretty-table-mode-p nil)
-  (defun +zen-enable-mixed-pitch-mode-h ()
-    "Enable `mixed-pitch-mode' when in `+zen-mixed-pitch-modes'."
-    (when (apply #'derived-mode-p +zen-mixed-pitch-modes)
-      (if writeroom-mode
-          (progn
-            (setq +zen--original-solaire-mode-p solaire-mode)
-            (solaire-mode -1)
-            (setq +zen--original-mixed-pitch-mode-p mixed-pitch-mode)
-            (funcall (if +zen-serif-p #'mixed-pitch-serif-mode #'mixed-pitch-mode) 1))
-        (funcall #'mixed-pitch-mode (if +zen--original-mixed-pitch-mode-p 1 -1))
-        (when +zen--original-solaire-mode-p (solaire-mode 1)))))
-  (pushnew! writeroom--local-variables
-            'display-line-numbers
-            'visual-fill-column-width
-            'org-adapt-indentation
-            'org-superstar-headline-bullets-list
-            'org-superstar-remove-leading-stars)
-  (add-hook 'writeroom-mode-enable-hook
-            (defun +zen-prose-org-h ()
-              "Reformat the current Org buffer appearance for prose."
-              (when (eq major-mode 'org-mode)
-                (setq display-line-numbers nil
-                      visual-fill-column-width 60
-                      org-adapt-indentation nil)
-                (when (featurep 'org-superstar)
-                  (setq-local org-superstar-headline-bullets-list '("🙘" "🙙" "🙚" "🙛")
-                              ;; org-superstar-headline-bullets-list '("🙐" "🙑" "🙒" "🙓" "🙔" "🙕" "🙖" "🙗")
-                              org-superstar-remove-leading-stars t)
-                  (org-superstar-restart))
-                (setq
-                 +zen--original-org-indent-mode-p org-indent-mode
-                 +zen--original-org-pretty-table-mode-p (bound-and-true-p org-pretty-table-mode))
-                (org-indent-mode -1)
-                (org-pretty-table-mode 1))))
-  (add-hook 'writeroom-mode-disable-hook
-            (defun +zen-nonprose-org-h ()
-              "Reverse the effect of `+zen-prose-org'."
-              (when (eq major-mode 'org-mode)
-                (when (featurep 'org-superstar)
-                  (org-superstar-restart))
-                (when +zen--original-org-indent-mode-p (org-indent-mode 1))
-                ;; (unless +zen--original-org-pretty-table-mode-p (org-pretty-table-mode -1))
-                ))))
-#+end_src
-
-* Abbrev autocorrection
-
-[[https://endlessparentheses.com/ispell-and-abbrev-the-perfect-auto-correct.html][Source]]
-
-#+begin_src emacs-lisp
-(define-key ctl-x-map "\C-i"
-  #'endless/ispell-word-then-abbrev)
-
-(defun endless/simple-get-word ()
-  (car-safe (save-excursion (ispell-get-word nil))))
-
-(defun endless/ispell-word-then-abbrev (p)
-  "Call `ispell-word', then create an abbrev for it.
-With prefix P, create local abbrev. Otherwise it will
-be global.
-If there's nothing wrong with the word at point, keep
-looking for a typo until the beginning of buffer. You can
-skip typos you don't want to fix with `SPC', and you can
-abort completely with `C-g'."
-  (interactive "P")
-  (let (bef aft)
-    (save-excursion
-      (while (if (setq bef (endless/simple-get-word))
-                 ;; Word was corrected or used quit.
-                 (if (ispell-word nil 'quiet)
-                     nil ; End the loop.
-                   ;; Also end if we reach `bob'.
-                   (not (bobp)))
-               ;; If there's no word at point, keep looking
-               ;; until `bob'.
-               (not (bobp)))
-        (backward-word)
-        (backward-char))
-      (setq aft (endless/simple-get-word)))
-    (if (and aft bef (not (equal aft bef)))
-        (let ((aft (downcase aft))
-              (bef (downcase bef)))
-          (define-abbrev
-            (if p local-abbrev-table global-abbrev-table)
-            bef aft)
-          (message "\"%s\" now expands to \"%s\" %sally"
-                   bef aft (if p "loc" "glob")))
-      (user-error "No typo at or before point"))))
-
-(setq save-abbrevs 'silently)
-(setq-default abbrev-mode t)
-#+end_src
-
-* Org diff
-
-
-It's quite nice to compare Org files, and the richest way to compare content is
-probably =latexdiff=. There are a few annoying steps involved here, and so I've
-written a package to streamline the process.
-
-#+begin_src emacs-lisp
-(use-package! orgdiff :defer t)
-#+end_src
-
-* Hugo
-
-#+begin_src emacs-lisp
-(setq org-hugo-base-dir "~/BrainDump/")
-#+end_src
-
-* Transclusion
-
-
-
-#+begin_src emacs-lisp
-(use-package! org-transclusion :defer t)
-#+end_src
 
 * Hydras
 
@@ -1935,488 +849,12 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 * Litex-mode
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package! litex-mode
+  :defer t
   :commands litex-mode
   :hook text-mode)
 (setq litex-keep-sexp-in-buffer t)
-#+end_src
-
-* Elfeed to pdf
-:PROPERTIES:
-:header-args: emacs-lisp :tangle yes
-:END:
-
-This chunks are inspired by [[https://sqrtminusone.xyz/posts/2022-05-09-pdf/][this blog post]].
-All details are retrieved from there.
-
-** rdrview
-
-*** Integrating rdrview with Emacs
-
-#+begin_src emacs-lisp
-(defun my/rdrview-get (url callback)
-  "Get the rdrview representation of URL.
-
-Call CALLBACK with the output."
-  (let* ((buffer (generate-new-buffer "rdrview"))
-         (proc (start-process "rdrview" buffer "rdrview"
-                              url "-T" "title,sitename,body"
-                              "-H")))
-    (set-process-sentinel
-     proc
-     (lambda (process _msg)
-       (let ((status (process-status process))
-             (code (process-exit-status process)))
-         (cond ((and (eq status 'exit) (= code 0))
-                (progn
-                  (funcall callback
-                           (with-current-buffer (process-buffer process)
-                             (buffer-string)))
-                  (kill-buffer (process-buffer process))) )
-               ((or (and (eq status 'exit) (> code 0))
-                    (eq status 'signal))
-                (let ((err (with-current-buffer (process-buffer process)
-                             (buffer-string))))
-                  (kill-buffer (process-buffer process))
-                  (user-error "Error in rdrview: %s" err)))))))
-    proc))
-#+end_src
-
-
-#+begin_src emacs-lisp
-(defun my/rdrview-parse (dom-string)
-  (let ((dom (with-temp-buffer
-               (insert dom-string)
-               (libxml-parse-html-region (point-min) (point-max)))))
-    (let (title sitename content (i 0))
-      (dolist (child (dom-children (car (dom-by-id dom "readability-page-1"))))
-        (when (listp child)
-          (cond
-           ((eq (car child) 'h1)
-            (setq title (dom-text child)))
-           ((eq (car child) 'h2)
-            (setq sitename (dom-text child)))
-           ((eq (car child) 'div)
-            (setq content child)))))
-      (while (and
-              (not (dom-by-tag content 'h1))
-              (dom-search
-               content
-               (lambda (el)
-                 (when (listp el)
-                   (pcase (car el)
-                     ('h2 (setf (car el) 'h1))
-                     ('h3 (setf (car el) 'h2))
-                     ('h4 (setf (car el) 'h3))
-                     ('h5 (setf (car el) 'h4))
-                     ('h6 (setf (car el) 'h5))))))))
-      `((title . ,title)
-        (sitename . ,sitename)
-        (content . ,(with-temp-buffer
-                      (dom-print content)
-                      (buffer-string)))))))
-#+end_src
-
-
-*** Using rdrview from elfeed
-
-#+begin_src emacs-lisp
-(defvar-local my/elfeed-show-rdrview-html nil)
-
-(defun my/rdrview-elfeed-show ()
-  (interactive)
-  (unless elfeed-show-entry
-    (user-error "No elfeed entry in this buffer!"))
-  (my/rdrview-get
-   (elfeed-entry-link elfeed-show-entry)
-   (lambda (result)
-     (let* ((data (my/rdrview-parse result))
-            (inhibit-read-only t)
-            (title (elfeed-entry-title elfeed-show-entry))
-            (date (seconds-to-time (elfeed-entry-date elfeed-show-entry)))
-            (authors (elfeed-meta elfeed-show-entry :authors))
-            (link (elfeed-entry-link elfeed-show-entry))
-            (tags (elfeed-entry-tags elfeed-show-entry))
-            (tagsstr (mapconcat #'symbol-name tags ", "))
-            (nicedate (format-time-string "%a, %e %b %Y %T %Z" date))
-            (content (alist-get 'content data))
-            (feed (elfeed-entry-feed elfeed-show-entry))
-            (feed-title (elfeed-feed-title feed))
-            (base (and feed (elfeed-compute-base (elfeed-feed-url feed)))))
-       (erase-buffer)
-       (insert (format (propertize "Title: %s\n" 'face 'message-header-name)
-                       (propertize title 'face 'message-header-subject)))
-       (when elfeed-show-entry-author
-         (dolist (author authors)
-           (let ((formatted (elfeed--show-format-author author)))
-             (insert
-              (format (propertize "Author: %s\n" 'face 'message-header-name)
-                      (propertize formatted 'face 'message-header-to))))))
-       (insert (format (propertize "Date: %s\n" 'face 'message-header-name)
-                       (propertize nicedate 'face 'message-header-other)))
-       (insert (format (propertize "Feed: %s\n" 'face 'message-header-name)
-                       (propertize feed-title 'face 'message-header-other)))
-       (when tags
-         (insert (format (propertize "Tags: %s\n" 'face 'message-header-name)
-                         (propertize tagsstr 'face 'message-header-other))))
-       (insert (propertize "Link: " 'face 'message-header-name))
-       (elfeed-insert-link link link)
-       (insert "\n")
-       (cl-loop for enclosure in (elfeed-entry-enclosures elfeed-show-entry)
-                do (insert (propertize "Enclosure: " 'face 'message-header-name))
-                do (elfeed-insert-link (car enclosure))
-                do (insert "\n"))
-       (insert "\n")
-       (if content
-           (elfeed-insert-html content base)
-         (insert (propertize "(empty)\n" 'face 'italic)))
-       (setq-local my/elfeed-show-rdrview-html content)
-       (goto-char (point-min))))))
-
-#+end_src
-
-
-** LaTeX and pandoc
-
-*** Template
-
-#+begin_src latex :tangle ./misc/latex_template_elfeed.tex
-\documentclass[a4paper, 12pt]{extarticle}
-
-% ====== Math ======
-\usepackage{amsmath} % Math stuff
-\usepackage{amssymb}
-\usepackage{mathspec}
-
-% ====== List ======
-\usepackage{enumitem}
-\usepackage{etoolbox}
-\setlist{nosep, topsep=-10pt} % Remove sep-s beetween list elements
-\setlist[enumerate]{label*=\arabic*.}
-\setlist[enumerate,1]{after=\vspace{0.5\baselineskip}}
-\setlist[itemize,1]{after=\vspace{0.5\baselineskip}}
-
-\AtBeginEnvironment{itemize}{%
-  \setlist[enumerate]{label=\arabic*.}
-  \setlist[enumerate,1]{after=\vspace{0\baselineskip}}
-}
-
-\providecommand{\tightlist}{%
-  \setlength{\itemsep}{0pt}\setlength{\parskip}{0pt}}
-
-% ====== Link ======
-
-\usepackage{xcolor}
-\usepackage{hyperref} % Links
-\hypersetup{
-  colorlinks=true,
-  citecolor=blue,
-  filecolor=blue,
-  linkcolor=blue,
-  urlcolor=blue,
-}
-
-% Linebreaks for urls
-\expandafter\def\expandafter\UrlBreaks\expandafter{\UrlBreaks%  save the current one
-  \do\a\do\b\do\c\do\d\do\e\do\f\do\g\do\h\do\i\do\j%
-  \do\k\do\l\do\m\do\n\do\o\do\p\do\q\do\r\do\s\do\t%
-  \do\u\do\v\do\w\do\x\do\y\do\z\do\A\do\B\do\C\do\D%
-  \do\E\do\F\do\G\do\H\do\I\do\J\do\K\do\L\do\M\do\N%
-  \do\O\do\P\do\Q\do\R\do\S\do\T\do\U\do\V\do\W\do\X%
-  \do\Y\do\Z}
-
-% ====== Table ======
-\usepackage{array}
-\usepackage{booktabs}
-\usepackage{longtable}
-\usepackage{multirow}
-\usepackage{calc}
-
-% ====== Images ======
-\usepackage{graphicx} % Pictures
-
-\makeatletter
-\def\maxwidth{\ifdim\Gin@nat@width>\linewidth\linewidth\else\Gin@nat@width\fi}
-\def\maxheight{\ifdim\Gin@nat@height>\textheight\textheight\else\Gin@nat@height\fi}
-\makeatother
-% Scale images if necessary, so that they will not overflow the page
-% margins by default, and it is still possible to overwrite the defaults
-% using explicit options in \includegraphics[width, height, ...]{}
-\setkeys{Gin}{width=\maxwidth,height=\maxheight,keepaspectratio}
-% Set default figure placement to htbp
-\makeatletter
-\def\fps@figure{htbp}
-\makeatother
-
-\newcommand{\noimage}{%
-  \setlength{\fboxsep}{-\fboxrule}%
-  \fbox{\phantom{\rule{150pt}{100pt}}}% Framed box
-}
-
-\makeatletter
-\patchcmd{\Gin@ii}
-  {\begingroup}% <search>
-  {\begingroup\renewcommand{\@latex@error}[2]{\noimage}}% <replace>
-  {}% <success>
-  {}% <failure>
-\makeatother
-% ====== Misc ======
-\usepackage{fancyvrb}
-
-\usepackage{csquotes}
-
-\usepackage[normalem]{ulem}
-
-% Quotes and verses style
-\AtBeginEnvironment{quote}{\singlespacing}
-\AtBeginEnvironment{verse}{\singlespacing}
-
-% ====== Text spacing ======
-\usepackage{setspace} % String spacing
-\onehalfspacing{}
-
-\usepackage{indentfirst}
-\setlength\parindent{0cm}
-\setlength\parskip{6pt}
-
-% ====== Page layout ======
-\usepackage[ % Margins
-left=2cm,
-right=2cm,
-top=2cm,
-bottom=2cm
-]{geometry}
-
-% ====== Document sectioning ======
-\usepackage{titlesec}
-
-\titleformat*{\section}{\bfseries}
-\titleformat*{\subsection}{\bfseries}
-\titleformat*{\subsubsection}{\bfseries}
-\titleformat*{\paragraph}{\bfseries}
-\titleformat*{\subparagraph}{\bfseries\itshape}% chktex 6
-
-\titlespacing*{\section}{0cm}{12pt}{3pt}
-\titlespacing*{\subsection}{0cm}{12pt}{3pt}
-\titlespacing*{\subsubsection}{0cm}{12pt}{0pt}
-\titlespacing*{\paragraph}{0pt}{6pt}{6pt}
-\titlespacing*{\subparagraph}{0pt}{6pt}{3pt}
-
-\makeatletter
-\providecommand{\subtitle}[1]{
-  \apptocmd{\@title}{\par {\large #1 \par}}{}{}
-}
-\makeatother
-
-% ====== Pandoc =======
-$if(highlighting-macros)$
-$highlighting-macros$
-$endif$
-
-% ====== Language ======
-\usepackage{polyglossia}
-\setdefaultlanguage{$main-lang$}
-\setotherlanguage{$other-lang$}
-\defaultfontfeatures{Ligatures={TeX}}
-\setmainfont{Open Sans}
-\newfontfamily\cyrillicfont{Open Sans}
-
-\setmonofont[Scale=0.9]{DejaVu Sans Mono}
-
-
-\usepackage{microtype}
-\setlength{\emergencystretch}{3pt}
-
-$if(title)$
-\title{$title$}
-$endif$
-$if(subtitle)$
-\subtitle{$subtitle$}
-$endif$
-
-$if(author)$
-\author{$for(author)$$author$$sep$ \and $endfor$}
-$endif$
-$if(date)$
-\date{$date$}
-$endif$
-
-\begin{document}
-\maketitle{}
-
-$body$
-\end{document}
-#+end_src
-
-*** Invoking pandoc
-
-#+begin_src emacs-lisp
-(setq my/rdrview-template (expand-file-name "~/.doom.d/misc/latex_template_elfeed.tex"))
-#+end_src
-
-#+RESULTS:
-
-
-**** Render
-
-#+begin_src emacs-lisp
-(cl-defun my/rdrview-render (content type variables callback
-                                     &key file-name overwrite)
-  "Render CONTENT with pandoc.
-
-TYPE is a file extension as supported by pandoc, for instance,
-html or txt.  VARIABLES is an alist that is fed into the
-template.  After the rendering is complete successfully, CALLBACK
-is called with the resulting PDF.
-
-FILE-NAME is a path to the resulting PDF. If nil it's generated
-randomly.
-
-If a file with the given FILE-NAME already exists, the function will
-invoke CALLBACK straight away without doing the rendering, unless
-OVERWRITE is non-nil."
-  (unless file-name
-    (setq file-name (format "/tmp/%d.pdf" (random 100000000))))
-  (let (params
-        (temp-file-name (format "/tmp/%d.%s" (random 100000000) type)))
-    (cl-loop for (key . value) in variables
-             when value
-             do (progn
-                  (push "--variable" params)
-                  (push (format "%s=%s" key value) params)))
-    (setq params (nreverse params))
-    (if (and (file-exists-p file-name) (not overwrite))
-        (funcall callback file-name)
-      (with-temp-file temp-file-name
-        (insert content))
-      (let ((proc (apply #'start-process
-                         "pandoc" (get-buffer-create "*Pandoc*") "pandoc"
-                         temp-file-name "-o" file-name
-                         "--pdf-engine=xelatex" "--template" my/rdrview-template
-                         params)))
-        (set-process-sentinel
-         proc
-         (lambda (process _msg)
-           (let ((status (process-status process))
-                 (code (process-exit-status process)))
-             (cond ((and (eq status 'exit) (= code 0))
-                    (progn
-                      (message "Done!")
-                      (funcall callback file-name)))
-                   ((or (and (eq status 'exit) (> code 0))
-                        (eq status 'signal))
-                    (user-error "Error in pandoc. Check the *Pandoc* buffer")))))))))
-)
-#+end_src
-
-
-*** Opening elfeed entries
-
-#+begin_src emacs-lisp
-(setq my/elfeed-pdf-dir (expand-file-name "~/.elfeed/pdf/"))
-
-(defun my/elfeed-open-pdf (entry overwrite)
-  "Open the current elfeed ENTRY with a pdf viewer.
-
-If OVERWRITE is non-nil, do the rendering even if the resulting
-PDF already exists."
-  (interactive (list elfeed-show-entry current-prefix-arg))
-  (let ((authors (mapcar (lambda (m) (plist-get m :name)) (elfeed-meta entry :authors)))
-        (feed-title (elfeed-feed-title (elfeed-entry-feed entry)))
-        (tags (mapconcat #'symbol-name (elfeed-entry-tags entry) ", "))
-        (date (format-time-string "%a, %e %b %Y"
-                                  (seconds-to-time (elfeed-entry-date entry))))
-        (content (elfeed-deref (elfeed-entry-content entry)))
-        (file-name (concat my/elfeed-pdf-dir
-                           (elfeed-ref-id (elfeed-entry-content entry))
-                           ".pdf"))
-        (main-language "english")
-        (other-language "portuguese"))
-    (unless content
-      (user-error "No content!"))
-    (setq subtitle
-          (cond
-           ((seq-empty-p authors) feed-title)
-           ((and (not (seq-empty-p (car authors)))
-                 (string-match-p (regexp-quote (car authors)) feed-title)) feed-title)
-           (t (concat (string-join authors ", ") "\\\\" feed-title))))
-    (when (member 'ru (elfeed-entry-tags entry))
-      (setq main-language "portuguese")
-      (setq other-language "english"))
-    (my/rdrview-render
-     (if (bound-and-true-p my/elfeed-show-rdrview-html)
-         my/elfeed-show-rdrview-html
-       content)
-     (elfeed-entry-content-type entry)
-     `((title . ,(elfeed-entry-title entry))
-       (subtitle . ,subtitle)
-       (date . ,date)
-       (tags . ,tags)
-       (main-lang . ,main-language)
-       (other-lang . ,other-language))
-     (lambda (file-name)
-       (start-process "xdg-open" nil "xdg-open" file-name))
-     :file-name file-name
-     :overwrite current-prefix-arg)))
-#+end_src
-
-
-
-*** Opening arbitrary sites
-
-#+begin_src emacs-lisp
-(defun my/get-languages (url)
-  (let ((main-lang "english")
-        (other-lang "portuguese"))
-    (when (string-match-p (rx ".br") url)
-      (setq main-lang "portuguese"
-            other-lang "english"))
-    (list main-lang other-lang)))
-
-(defun my/rdrview-open (url overwrite)
-  (interactive
-   (let ((url (read-from-minibuffer
-               "URL: "
-               (if (bound-and-true-p elfeed-show-entry)
-                   (elfeed-entry-link elfeed-show-entry)))))
-     (when (string-empty-p url)
-       (user-error "URL is empty"))
-     (list url current-prefix-arg)))
-  (my/rdrview-get
-   url
-   (lambda (res)
-     (let ((data (my/rdrview-parse res))
-           (langs (my/get-languages url)))
-       (my/rdrview-render
-        (alist-get 'content data)
-        'html
-        `((title . ,(alist-get 'title data))
-          (subtitle . ,(alist-get 'sitename data))
-          (main-lang . ,(nth 0 langs))
-          (other-lang . ,(nth 1 langs)))
-        (lambda (file-name)
-          (start-process "xdg-open" nil "xdg-open" file-name)))))))
-#+end_src
-
-#+RESULTS:
-
-* Nov-related
-
-#+begin_src emacs-lisp
-(use-package! nov)
-(use-package! nov-xwidget
-  :defer t
-  :after nov
-  :config
-  (map! :map xwidget-webkit-mode-map
-        :n "]" 'nov-xwidget-next-document
-        :n "[" 'nov-xwidget-previous-document
-        :n "gt" 'nov-xwidget-goto-toc)
-  (map! :map nov-mode-map
-        :n "gv" 'nov-xwidget-view))
-
-
 #+end_src
 
 * Org-glossary
@@ -2425,10 +863,14 @@ PDF already exists."
 (use-package! org-glossary :after org)
 #+end_src
 
-* Pandoc-relatd
 
-** Org-pandoc import
 
-#+begin_src emacs-lisp
-(use-package! org-pandoc-import :after org)
+
+
+* WAIT LLMs clients
+
+#+begin_src emacs-lisp :tangle no
+(use-package! gptel
+  :defer t
+  )
 #+end_src

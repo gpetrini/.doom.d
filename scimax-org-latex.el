@@ -88,11 +88,11 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 
 ;; this is for code syntax highlighting in export. you need to use
 ;; -shell-escape with latex, and install pygments.
-(setq org-latex-listings 'minted)
-(setq org-latex-minted-options
-      '(("frame" "lines")
-	("fontsize" "\\scriptsize")
-	("linenos" "")))
+;; (setq org-latex-listings 'minted)
+;; (setq org-latex-minted-options
+;;       '(("frame" "lines")
+;; 	("fontsize" "\\scriptsize")
+;; 	("linenos" "")))
 
 ;; avoid getting \maketitle right after begin{document}
 ;; you should put \maketitle if and where you want it.

@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: LSD interact
+# key: <inter
+# --
+
+INTERACT(\"$1\", $1);

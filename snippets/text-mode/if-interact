@@ -1,0 +1,6 @@
+# -*- mode: snippet -*-
+# name: if-interact
+# key: <iit
+# --
+
+if ( $1 > VS( ECO, "check_tolerance" )){INTERACT(\"$1\", $1);};

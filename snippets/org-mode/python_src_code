@@ -1,9 +1,0 @@
-# -*- mode: snippet -*-
-# name:python_src_code 
-# key:<p
-# --
-
-
-#+BEGIN_SRC python
-
-#+END_SRC
