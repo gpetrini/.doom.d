@@ -280,6 +280,12 @@ In order to install dependencies, run ([[https://github.com/gjstein/emacs.d/blob
 
 
 
+** Dynare
+
+#+begin_src emacs-lisp
+(load! "~/dynare/scripts/dynare.el")
+#+end_src
+
 ** Magit
 :PROPERTIES:
 :ID:       953bffb5-6de5-41d7-a517-6f113d1112e1
@@ -299,6 +305,22 @@ In order to install dependencies, run ([[https://github.com/gjstein/emacs.d/blob
 (setq auth-sources '("~/.authinfo"))
 #+end_src
 
+
+** matlab
+
+#+begin_src emacs-lisp
+(add-to-list 'auto-mode-alist '("\\.m$" . matlab-mode))
+
+(setq matlab-shell-command "matlab")
+(setq matlab-shell-command-switches (list "-nodesktop"))
+#+end_src
+
+** Julia
+
+#+begin_src emacs-lisp
+;; (setq! julia-snail-executable "~/.juliaup/bin/julia")
+;; (setq! eglot-jl-julia-command "/home/gpetrini/.juliaup/bin/julia")
+#+end_src
 
 
 * LaTeX
@@ -548,7 +570,9 @@ ${abstract}
 \n* Specific notes
 \n* Annotations (zotero)
 \n* Additional Backlinks
-\n* References")))
+\n* References"
+
+              )))
 #+end_src
 
 
@@ -593,7 +617,7 @@ ${abstract}
 
 This hydras is inspired by [[https://write.as/dani/writing-a-phd-thesis-with-org-mode][Dani's]] configuration
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (defhydra thesis-nav (:hint nil :color blue)
 "
 Main Files:  _T_hesis _m_anuscript _i_deas _s_etup _o_pen PDF file externaly
@@ -631,7 +655,7 @@ Main Files:  _T_hesis _m_anuscript _i_deas _s_etup _o_pen PDF file externaly
 
 [[https://github.com/abo-abo/hydra/wiki/Dired][Source]]
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (defhydra hydra-dired (:hint nil :color pink)
   "
 _+_ mkdir          _v_iew           _m_ark             _(_ details        _i_nsert-subdir    wdired
@@ -694,7 +718,7 @@ T - tag prefix
 
 ** Flycheck
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (defhydra hydra-flycheck
     (:pre (flycheck-list-errors)
      :post (quit-windows-on "*Flycheck errors*")
@@ -716,7 +740,7 @@ T - tag prefix
 
 ** Macro
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (defhydra hydra-macro (:hint nil :color pink :pre
                              (when defining-kbd-macro
                                  (kmacro-end-macro 1)))
@@ -761,7 +785,7 @@ T - tag prefix
 
 ** Git-gutter
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (defhydra hydra-git-gutter (:body-pre (git-gutter-mode 1)
                             :hint nil)
   "
@@ -799,53 +823,7 @@ Git gutter:
 
 
 
-** Smerge mode
 
-#+begin_src emacs-lisp
-(use-package! smerge-mode
-  :defer t
-  :config
-  (defhydra unpackaged/smerge-hydra
-    (:color pink :hint nil :post (smerge-auto-leave))
-    "
-^Move^       ^Keep^               ^Diff^                 ^Other^
-^^-----------^^-------------------^^---------------------^^-------
-_n_ext       _b_ase               _<_: upper/base        _C_ombine
-_p_rev       _u_pper              _=_: upper/lower       _r_esolve
-^^           _l_ower              _>_: base/lower        _k_ill current
-^^           _a_ll                _R_efine
-^^           _RET_: current       _E_diff
-"
-    ("n" smerge-next)
-    ("p" smerge-prev)
-    ("b" smerge-keep-base)
-    ("u" smerge-keep-upper)
-    ("l" smerge-keep-lower)
-    ("a" smerge-keep-all)
-    ("RET" smerge-keep-current)
-    ("\C-m" smerge-keep-current)
-    ("<" smerge-diff-base-upper)
-    ("=" smerge-diff-upper-lower)
-    (">" smerge-diff-base-lower)
-    ("R" smerge-refine)
-    ("E" smerge-ediff)
-    ("C" smerge-combine-with-next)
-    ("r" smerge-resolve)
-    ("k" smerge-kill-current)
-    ("ZZ" (lambda ()
-            (interactive)
-            (save-buffer)
-            (bury-buffer))
-     "Save and bury buffer" :color blue)
-    ("q" nil "cancel" :color blue))
-  :hook (magit-diff-visit-file . (lambda ()
-                                   (when smerge-mode
-                                     (unpackaged/smerge-hydra/body)))))
-#+end_src
-
-** Current article related
-
-** OS related
 
 * Litex-mode
 
@@ -867,10 +845,167 @@ _p_rev       _u_pper              _=_: upper/lower       _r_esolve
 
 
 
+* Tramp
+
+The following config is necessary to make per-projects files in the server
+
+#+begin_src emacs-lisp
+(setq enable-remote-dir-locals t)
+#+end_src
+
 * WAIT LLMs clients
 
 #+begin_src emacs-lisp :tangle no
-(use-package! gptel
+;; (use-package! gptel
+;;   :defer t
+;;   )
+
+;; we recommend using use-package to organize your init.el
+(use-package! codeium
+    :defer t
+    :init
+    ;; use globally
+    (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
+    ;; or on a hook
+    ;; (add-hook 'python-mode-hook
+    ;;     (lambda ()
+    ;;         (setq-local completion-at-point-functions '(codeium-completion-at-point))))
+
+    ;; if you want multiple completion backends, use cape (https://github.com/minad/cape):
+    ;; (add-hook 'python-mode-hook
+    ;;     (lambda ()
+    ;;         (setq-local completion-at-point-functions
+    ;;             (list (cape-super-capf #'codeium-completion-at-point #'lsp-completion-at-point)))))
+    ;; an async company-backend is coming soon!
+
+
+    :config
+    (setq use-dialog-box nil) ;; do not use popup boxes
+
+    ;; if you don't want to use customize to save the api-key
+    ;; (setq codeium/metadata/api_key "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx")
+
+    ;; get codeium status in the modeline
+    (setq codeium-mode-line-enable
+        (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+    (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
+
+    ;; use M-x codeium-diagnose to see apis/fields that would be sent to the local language server
+    (setq codeium-api-enabled
+        (lambda (api)
+            (memq api '(GetCompletions Heartbeat CancelRequest GetAuthToken RegisterUser auth-redirect AcceptCompletion))))
+    ;; You can overwrite all the codeium configs!
+    ;; for example, we recommend limiting the string sent to codeium for better performance
+    (defun my-codeium/document/text ()
+        (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
+    ;; if you change the text, you should also change the cursor_offset
+    ;; warning: this is measured by UTF-8 encoded bytes
+    (defun my-codeium/document/cursor_offset ()
+        (codeium-utf8-byte-length
+            (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
+    (setq codeium/document/text 'my-codeium/document/text)
+    (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset))
+#+end_src
+
+* denode
+
+#+begin_src emacs-lisp
+
+(use-package! denode
   :defer t
-  )
+  :config
+  (setq
+   denote-save-buffers nil
+   denote-sort-keywords t
+   denote-file-type nil
+   denote-prompts '(title keywords)
+   denote-rename-confirmations '(rewrite-front-matter modify-file-name)
+   denote-date-prompt-use-org-read-date t
+   denote-backlinks-show-context t
+   )
+)
+
+(setq! denote-directory (expand-file-name "~/Org/"))
+(setq! denote-templates
+       '((biblio . "
+,#+title: ${author editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
+,#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
+
+
+\n* FISH-5SS
+
+\n** 5SS
+
+\n** Background and motivation
+
+\n** Supporting Ideas and hypothesis
+
+\n** Purpose, Relevance, and Contribution
+
+\n** Methodology
+
+\n** Results
+
+\n** Interesting findings and not categorized stuff
+
+\n** Critics
+
+\n** Abstract
+
+,#+BEGIN_ABSTRACT
+${abstract}
+,#+END_ABSTRACT
+
+\n* Specific notes
+\n* Annotations (zotero)
+\n* Additional Backlinks
+\n* References"
+)
+         (plain . nil)
+         )
+       )
+#+end_src
+
+* Agenda
+
+#+begin_src emacs-lisp
+(setq org-tag-alist
+      '(;; Places
+        ("@home" . ?H)
+        ("@work" . ?W)
+
+        ;; Devices
+        ("@computer" . ?C)
+        ("@phone" . ?P)
+        ("@server" . ?S)
+
+
+        ;; Institutions
+        ("@hwr" . ?h)
+        ("@santanna" . ?s)
+        ("@unicamp" . ?u)
+        ("@ysi" . ?y)
+
+        ;; Activities
+        ("@bureaucracy" . ?b)
+        ("@planning" . ?n)
+        ("@coding" . ?c)
+        ("@tests" . ?t)
+        ("@reading" . ?r)
+        ("@writing" . ?w)
+        ("@review" . ?v)
+        ("@dissertation" . ?d)
+        ("@paper" . ?p)
+        ("@email" . ?e)
+        ("@meetings" . ?m)
+        ("@personal" . ?l)
+        ("@free" . ?f)
+        ))
+(setq org-agenda-files '("~/Org/Personal.org"
+                         "~/Org/YSI.org"
+                         "~/PhD/Writings/AB-SFC-SSM-Dot-Com/AB-SFC-SSM-Dot-Com.org"
+                         "~/Documents/KS_vs_DSGE/KS_vs_DSGE.org"
+                         "~/LSD/Work/PhD/mkks_irf/mkks_irf.org"
+                         ;; "~/Documents/KS-DA-Calibration/KS-DA-Calibration.org"
+                         ))
 #+end_src
