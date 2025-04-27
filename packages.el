@@ -59,8 +59,8 @@
 
 
 
-(package! websocket)
-(package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
+;; (package! websocket)
+;; (package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
 
 (package! orgdiff :recipe (:host github :repo "tecosaur/orgdiff" :files ("*.el")))
 (package! flycheck-languagetool :recipe (:host github :repo "emacs-languagetool/flycheck-languagetool" :files ("*.el")))
@@ -72,8 +72,8 @@
 (package! ox-pandoc :recipe (:host github :repo "emacsorphanage/ox-pandoc"))
 (package! tldr)
 ;; (package! litex-mode :recipe (:host github :repo "Atreyagaurav/litex-mode"))
-;; (package! org-glossary
-;;   :recipe (:host github :repo "tecosaur/org-glossary"))
+(package! org-glossary
+  :recipe (:host github :repo "tecosaur/org-glossary"))
 ;; (package! org-pandoc-import
 ;;   :recipe (:host github
 ;;            :repo "tecosaur/org-pandoc-import"
@@ -88,11 +88,28 @@
 
 ;; (package! oxr
 ;;   :recipe (:host github :repo "bdarcus/oxr"))
-(package! citar-org-roam :disable t) ;; Breaks org-roam template.
+;; (package! citar-org-roam :disable t) ;; Breaks org-roam template.
 ;; (package! engrave-faces :recipe (:repo "tecosaur/engrave-faces"))
 
-(package! corfu-terminal)
-
 (package! jinx)
-;; (package! org-modern)
 ;; (package! gptel)
+;; (package! codeium :recipe (:host github :repo "Exafunction/codeium.el"))
+
+(package! matlab-mode)
+
+(package! denote :recipe (:host github :repo "protesilaos/denote"))
+(package! denote-org :recipe (:host github :repo "protesilaos/denote-org"))
+(package! consult-denote :recipe (:host github :repo "protesilaos/consult-denote"))
+(package! denote-menu :recipe (:host github :repo "namilus/denote-menu"))
+(package! citar-denote :recipe (:host github :repo "pprevos/citar-denote"))
+(package! denote-explore  :recipe (:host github :repo "pprevos/denote-explore"))
+(package! org-transclusion)
+
+(package! olivetti
+  :recipe (:host github :repo "rnkn/olivetti"))
+
+
+(package! nov)
+
+;; (package! eglot-grammarly
+;;   :recipe (:host github :repo "emacs-grammarly/eglot-grammarly"))

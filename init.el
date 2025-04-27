@@ -25,12 +25,16 @@
        ;;ido                     ; the other *other* search engine...
        ;; (ivy +fonts +fuzzy +prescient +icons +childframe)
        ;;ivy                     ; a search engine for love and life
-       (vertico +icons +childframe)
+       (vertico
+        +icons
+        ;; +childframe
+        )
        (corfu
         +icons
         +orderless
         +dabbrev
-        +dict)
+        ;;+dict
+	)
 
        :ui
        deft                      ; notational velocity for Emacs
@@ -40,8 +44,7 @@
                                         ;                         ; (emoji +github +unicode)  ; 🙂
        ;;fill-column             ; a `fill-column' indicator
        hl-todo                   ; highlight TODO/FIXME/NOTE/DEPRECATED/HACK/REVIEW
-       hydra
-       ;; indent-guides             ; highlighted indent columns
+       indent-guides             ; highlighted indent columns
        (ligatures
         +extra)                  ; ligatures and symbols to make your code pretty again
        ;;minimap                 ; show a map of the code on the side
@@ -52,7 +55,9 @@
        neotree                   ; a project drawer, like NERDTree for vim
        ophints                   ; highlight the region an operation acts on
        (popup +default)              ; tame sudden yet inevitable temporary windows
-       tabs                    ; a tab bar for Emacs
+       (smooth-scroll
+        +interpolate)
+       ;; tabs                    ; a tab bar for Emacs
        treemacs          ; a project drawer, like neotree but cooler
        unicode                   ; extended unicode support for various languages
        ;; vc-gutter         ; vcs diff in the fringe
@@ -80,6 +85,7 @@
        :emacs
        (dired +icons +dirvish)            ; making dired pretty [functional]
        electric                  ; smarter, keyword-based electric-indent
+       eww
        (ibuffer +icons)          ; interactive buffer management
        (undo +tree)              ; persistent, smarter undo for your inevitable mistakes
        vc                        ; version-control and Emacs, sitting in a tree
@@ -88,24 +94,24 @@
        ;; eshell                  ; the elisp shell that works everywhere
        ;; shell                   ; simple shell REPL for Emacs
        ;; term                    ; basic terminal emulator for Emacs
-       ;; vterm                   ; the best terminal emulation in Emacs
+       vterm                   ; the best terminal emulation in Emacs
 
        :checkers
-       syntax                    ; tasing you for every semicolon you forget
+       (syntax +flymake +icons +childframe)                    ; tasing you for every semicolon you forget
        (spell +flyspell +aspell) ; tasing you for misspelling mispelling
        grammar                   ; tasing grammar mistake every you make
 
        :tools
        ;;ansible
-       (debugger +dap)                  ; FIXME stepping through code, to help you add bugs
+       (debugger)                  ; FIXME stepping through code, to help you add bugs
        ;;direnv
        ;;docker
        ;;editorconfig            ; let someone else argue about tabs vs spaces
        ;; ein               ; tame Jupyter notebooks with emacs
        (eval +overlay)           ; run code, run (also, repls)
        ;;gist                    ; interacting with github gists
-                                        ;                         ; (lookup                      ; helps you navigate your code and documentation
-                                        ;                         ;  +dictionary)                 ; dictionary/thesaurus is nice
+       (lookup                      ; helps you navigate your code and documentation
+        +dictionary)                 ; dictionary/thesaurus is nice
        (lsp
         ;; +peek
         +eglot
@@ -154,20 +160,20 @@
        ;;fstar                   ; (dependent) types and (monadic) effects and Z3
        ;;gdscript                ; the language you waited for
        ;;(go +lsp)               ; the hipster dialect
-                                        ;                         ; (haskell +dante +lsp)  ; a language that's lazier than I am
+       ;;(haskell +dante +lsp)  ; a language that's lazier than I am
        ;;hy                      ; readability of scheme w/ speed of python
        ;;idris                   ; a language you can depend on
        ;;json                    ; At least it ain't XML
        ;; (java +lsp)       ; the poster child for carpal tunnel syndrome
        ;;javascript              ; all(hope(abandon(ye(who(enter(here))))))
-                                        ;                         ; (julia +lsp)             ; a better, faster MATLAB
+       (julia +lsp +snail +tree-sitter)             ; a better, faster MATLAB
        ;;kotlin                  ; a better, slicker Java(Script)
        (latex                    ; writing papers in Emacs has never been so fun
-        +latexmk                 ; what else would you use?
         +cdlatex                 ; quick maths symbols
         +fold                    ; fold the clutter away nicities
         +reftex
-        +lsp)                          ;
+        +lsp
+        )                          ;
        ;;lean
        ;;factor
        ;;ledger                  ; an accounting system in Emacs
@@ -179,11 +185,10 @@
        (org                      ; organize your plain life in plain text
         +pretty                  ; yessss my pretties! (nice unicode symbols)
         +dragndrop               ; drag & drop files/images into org buffers
-        +roam2
+        ;; +roam2
         ;; +pomodoro
         ;; +jupyter                 ; ipython/jupyter support for babel
         +pandoc                  ; export-with-pandoc support
-        +org-bullets
         +gnuplot                    ; who doesn't like pretty pictures
         +noter
         +tree-sitter
@@ -191,7 +196,7 @@
         ;; +journal
         +present)                ; using org-mode for presentations
        ;;php                     ; perl's insecure younger brother
-       ;;plantuml                ; diagrams for confusing people more
+       plantuml                ; diagrams for confusing people more
        ;;purescript              ; javascript, but functional
        (python
         +lsp
@@ -217,10 +222,10 @@
        ;;swift                   ; who asked for emoji variables?
        ;;terra                   ; Earth and Moon in alignment for performance.
        ;;web                     ; the tubes
-       ;;yaml                    ; JSON, but readable
+                                        ;yaml                    ; JSON, but readable
 
        :email
-                                        ;                         ; (mu4e +gmail)
+       ;; (mu4e +gmail +org)
        ;;notmuch
        ;;(wanderlust +gmail)
 
@@ -234,5 +239,5 @@
        literate
        (default
         +bindings
-                                        ;                       ; +smartparens
+        +smartparens
         )) ;

@@ -48,12 +48,11 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
 (setq
     storage-directory "/HDD/"           ;
     org-directory "~/Org/"
-    org-roam-directory (expand-file-name "notes/" org-directory)
     org-agenda-files '(expand-file-name "agenda.org" org-directory)
-    org-notes-directory org-roam-directory
+    org-notes-directory org-directory
     gtd-directory (expand-file-name "gtd/" org-directory)
     inbox-file-path (expand-file-name "inbox.org" gtd-directory)
-    notes-directory (expand-file-name "notes" org-directory)
+    notes-directory org-directory
     pdfs-directory  (expand-file-name "PDFs/" storage-directory)
     refs-files '((expand-file-name "zotero_refs.bib" org-directory))
     main-ref-file (expand-file-name "zotero_refs.bib" org-directory)
@@ -112,9 +111,9 @@ more appropriate for social sciences and humanities.
 
 #+BEGIN_SRC emacs-lisp
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
-;; (setq  doom-font (font-spec :family "Fira Mono" :size 20))
+(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 25))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 20))
-;; (setq doom-theme 'doom-material)
+;; (setq doom-theme 'doom-material-dark)
 (setq doom-theme 'doom-dracula)
 ;; (setq doom-theme 'doom-challenger-deep)
 ;; Line numbers are pretty slow all around. The performance boost of
@@ -149,10 +148,12 @@ more appropriate for social sciences and humanities.
   (setq dired-rsync-options "-azhuv --info=progress2")
   )
 ;; Fix tabs in the daemon
-(after! centaur-tabs
-  (setq centaur-tabs-set-bar 'right)
-  (centaur-tabs-group-by-projectile-project)
-  )
+;; (after! centaur-tabs
+;;   (setq centaur-tabs-set-bar 'right)
+;;   (centaur-tabs-group-by-projectile-project)
+;;   )
+(add-to-list 'initial-frame-alist '(fullscreen . maximized))
+
 #+END_SRC
 
 
@@ -195,8 +196,8 @@ This just configures spelling and grammar checking support.
 (setq flyspell-correct-popup t)
 (after! langtool
   (setq langtool-disabled-rules '("WHITESPACE_RULE")
-        langtool-language-tool-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool.jar"
-        langtool-language-tool-server-jar "/opt/LanguageTool-stable/LanguageTool-5.5/languagetool-server.jar"
+        langtool-language-tool-jar "/opt/LanguageTool-5.5/languagetool.jar"
+        langtool-language-tool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar"
         )
   )
 
@@ -219,6 +220,12 @@ This just configures spelling and grammar checking support.
   ;; I prefer for `point' to end up at the start of the word,
   ;; not just after the end.
   (advice-add 'jinx-next :after (lambda (_) (left-word))))
+
+;; (use-package! eglot-grammarly
+;;   :defer t  ; defer package loading
+;;   :hook ((text-mode org-mode). (lambda ()
+;;                                       (require 'eglot-grammarly)
+;;                                       (eglot-ensure))))
 #+END_SRC
 
 
@@ -283,8 +290,9 @@ In order to install dependencies, run ([[https://github.com/gjstein/emacs.d/blob
 ** Dynare
 
 #+begin_src emacs-lisp
-(load! "~/dynare/scripts/dynare.el")
+(load! "~/.config/doom/dynare.el")
 #+end_src
+
 
 ** Magit
 :PROPERTIES:
@@ -318,10 +326,31 @@ In order to install dependencies, run ([[https://github.com/gjstein/emacs.d/blob
 ** Julia
 
 #+begin_src emacs-lisp
-;; (setq! julia-snail-executable "~/.juliaup/bin/julia")
-;; (setq! eglot-jl-julia-command "/home/gpetrini/.juliaup/bin/julia")
+(setq! julia-snail-executable "~/.juliaup/bin/julia")
+(setq! eglot-jl-julia-command "/home/gpetrini/.juliaup/bin/julia")
 #+end_src
 
+
+** C/C++
+
+#+begin_src emacs-lisp
+;; (setq-hook! 'c-mode-hook +format-inhibit t)
+;; (setq-hook! 'c++-mode-hook +format-inhibit t)
+#+end_src
+
+** Format
+
+#+begin_src emacs-lisp
+(setq +format-on-save-disabled-modes
+      '(emacs-lisp-mode  ; elisp's mechanisms are good enough
+        sql-mode         ; sqlformat is currently broken
+        tex-mode         ; latexindent is broken
+        c-mode
+        cc-mode
+        c++-mode
+        latex-mode))
+
+#+end_src
 
 * LaTeX
 
@@ -384,7 +413,7 @@ In order to install dependencies, run ([[https://github.com/gjstein/emacs.d/blob
 (setq bibtex-completion-bibliography main-ref-file)
 (setq bibtex-completion-library-path pdfs-directory
       bibtex-completion-pdf-field "File"
-      bibtex-completion-notes-path "~/Org/notes" ;; FIXME generalize
+      bibtex-completion-notes-path "~/Org" ;; FIXME generalize
       )
 
 (setq!  citar-org-roam-subdir nil)
@@ -523,23 +552,23 @@ Waiting until tool module is updated.
 (setq! ;; FIXME Generalize
  citar-bibliography '("~/Org/zotero_refs.bib")
  citar-library-paths '("/HDD/PDFs/")
- citar-notes-paths '("~/Org/notes/")
+ citar-notes-paths '("~/Org")
  )
 #+end_src
 
 ** Template
 
 #+begin_src emacs-lisp
-(setq citar-file-open-note-function 'orb-bibtex-actions-edit-note)
 (setq citar-templates
       '((main . "${author editor:30}     ${date year issued:4}     ${title:48}")
         (preview . "${author editor:30}     ${date year issued:4}     ${title:48}")
         (suffix . "          ${=key= id:15}    ${=type=:12}    ${tags keywords:*}")
         (note . "
 ,#+OPTIONS: num:nil ^:{} toc:nil
-,#+TITLE: ${author editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
-,#+FILETAGS: ${keywords journal shortjournal}
+,#+TITLE: ${author}: (${date year}, ${shortjournal})
+,#+SUBTITLE: ${author editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
 ,#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
+,#+SIGNATURE: ~/Org/zotero_refs.bib
 ,#+cite_export: csl apa.csl
 
 
@@ -837,8 +866,9 @@ Git gutter:
 
 * Org-glossary
 
-#+begin_src emacs-lisp :tangle no
-(use-package! org-glossary :after org)
+#+begin_src emacs-lisp
+(use-package! org-glossary
+  :hook (org-mode . org-glossary-mode))
 #+end_src
 
 
@@ -907,11 +937,11 @@ The following config is necessary to make per-projects files in the server
     (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset))
 #+end_src
 
-* denode
+* denote
 
 #+begin_src emacs-lisp
 
-(use-package! denode
+(use-package! denote
   :defer t
   :config
   (setq
@@ -923,15 +953,11 @@ The following config is necessary to make per-projects files in the server
    denote-date-prompt-use-org-read-date t
    denote-backlinks-show-context t
    )
-)
+  )
 
 (setq! denote-directory (expand-file-name "~/Org/"))
 (setq! denote-templates
        '((biblio . "
-,#+title: ${author editor}: ${title} - (${date year issued:4}, ${journal shortjournal})
-,#+BIBLIOGRAPHY: ~/Org/zotero_refs.bib
-
-
 \n* FISH-5SS
 
 \n** 5SS
@@ -953,18 +979,34 @@ The following config is necessary to make per-projects files in the server
 \n** Abstract
 
 ,#+BEGIN_ABSTRACT
-${abstract}
+%^{abstract}
 ,#+END_ABSTRACT
 
 \n* Specific notes
 \n* Annotations (zotero)
 \n* Additional Backlinks
+
+
 \n* References"
-)
+          )
          (plain . nil)
          )
+       citar-denote-template 'biblio
        )
+
+(use-package! citar-denote
+  :defer t
+  :init
+  (citar-denote-mode)
+  )
+
+(use-package! denote-org
+  :defer t
+  :after org
+  )
 #+end_src
+
+#+RESULTS:
 
 * Agenda
 
@@ -1008,4 +1050,31 @@ ${abstract}
                          "~/LSD/Work/PhD/mkks_irf/mkks_irf.org"
                          ;; "~/Documents/KS-DA-Calibration/KS-DA-Calibration.org"
                          ))
+#+end_src
+
+
+
+* Transclusion
+
+#+begin_src emacs-lisp
+(use-package! org-transclusion
+  :after org
+  :init
+  (map!
+   :map global-map "<f12>" #'org-transclusion-add
+   :leader
+   :prefix "n"
+   :desc "Org Transclusion Mode" "t" #'org-transclusion-mode))
+#+end_src
+
+* Shells
+
+#+begin_src emacs-lisp
+(setq shell-file-name (executable-find
+      "bash"))
+(setq-default vterm-shell
+      "/usr/bin/fish")
+(setq-default explicit-shell-file-name
+      "/usr/bin/fish")
+
 #+end_src

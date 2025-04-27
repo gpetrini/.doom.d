@@ -6,9 +6,9 @@
  '(grep-find-ignored-directories
    '("SCCS" "RCS" "CVS" "MCVS" ".src" ".svn" ".git" ".hg" ".bzr" "_MTN" "_darcs" "{arch}" "{ARCHIVE}"))
  '(magit-todos-insert-after '(bottom) nil nil "Changed by setter of obsolete option `magit-todos-insert-at'")
- '(org-highlight-latex-and-related nil)
- '(org-safe-remote-resources '("\\`https://fniessen\\.github\\.io\\(?:/\\|\\'\\)"))
- '(package-selected-packages '(eglot)))
+ '(org-safe-remote-resources
+   '("\\`/ssh:research\\.ews\\.santannapisa\\.it:/home/gpetrini/Documents/KS_vs_DSGE/code/K\\+S/description\\.txt\\'" "\\`https://fniessen\\.github\\.io\\(?:/\\|\\'\\)"))
+ '(safe-local-variable-values '((+format-inhibit . t))))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.

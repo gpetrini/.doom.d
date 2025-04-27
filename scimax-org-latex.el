@@ -55,7 +55,7 @@
 	("theorems, skins" "tcolorbox" t)
 	
 	;; Abnt related configuration
-	("style=authoryear,extrayear,uniquename=init,giveninits,justify,repeattitles,doi=false,isbn=false,url=true,maxcitenames=2,natbib=true,backend=biber" "biblatex" t)
+	("style=authoryear,extrayear,uniquename=init,giveninits,justify,repeattitles,doi=false,isbn=false,url=true,minnames=2,maxcitenames=2,natbib=true,backend=biber" "biblatex" t)
         ;; ("style=abnt,noslsn,extrayear,uniquename=init,giveninits,justify,sccite,
         ;; scbib,repeattitles,doi=false,isbn=false,url=false,maxcitenames=2,
         ;; natbib=true,backend=biber" "biblatex" t)
@@ -189,12 +189,12 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 		       "\nmouse-1 to toggle."))
   (overlay-put (ov-at) 'local-map (let ((map (make-sparse-keymap)))
 				    (define-key map (kbd "C-c C-x C-l")
-				      (lambda (interactive)
-					(funcall scimax-toggle-latex-fragment-func)))
+				                (lambda (interactive)
+					          (funcall scimax-toggle-latex-fragment-func)))
 				    (define-key map [mouse-1]
-				      `(lambda ()
-					 (interactive)
-					 (org-remove-latex-fragment-image-overlays ,beg ,end)))
+				                `(lambda ()
+					           (interactive)
+					           (org-remove-latex-fragment-image-overlays ,beg ,end)))
 				    map)))
 
 
@@ -273,31 +273,31 @@ JUSTIFICATION is a symbol for 'left, 'center or 'right."
 	(counter -1)
 	(numberp))
     (setq results (cl-loop for (begin .  env) in
-			(org-element-map (org-element-parse-buffer) 'latex-environment
-			  (lambda (env)
-			    (cons
-			     (org-element-property :begin env)
-			     (org-element-property :value env))))
-			collect
-			(cond
-			 ((and (string-match "\\\\begin{equation}" env)
-			       (not (string-match "\\\\tag{" env)))
-			  (cl-incf counter)
-			  (cons begin counter))
-			 ((string-match "\\\\begin{align}" env)
-			  (prog2
-			      (cl-incf counter)
-			      (cons begin counter)
-			    (with-temp-buffer
-			      (insert env)
-			      (goto-char (point-min))
-			      ;; \\ is used for a new line. Each one leads to a number
-			      (cl-incf counter (count-matches "\\\\$"))
-			      ;; unless there are nonumbers.
-			      (goto-char (point-min))
-			      (cl-decf counter (count-matches "\\nonumber")))))
-			 (t
-			  (cons begin nil)))))
+			   (org-element-map (org-element-parse-buffer) 'latex-environment
+			     (lambda (env)
+			       (cons
+			        (org-element-property :begin env)
+			        (org-element-property :value env))))
+			   collect
+			   (cond
+			    ((and (string-match "\\\\begin{equation}" env)
+			          (not (string-match "\\\\tag{" env)))
+			     (cl-incf counter)
+			     (cons begin counter))
+			    ((string-match "\\\\begin{align}" env)
+			     (prog2
+			         (cl-incf counter)
+			         (cons begin counter)
+			       (with-temp-buffer
+			         (insert env)
+			         (goto-char (point-min))
+			         ;; \\ is used for a new line. Each one leads to a number
+			         (cl-incf counter (count-matches "\\\\$"))
+			         ;; unless there are nonumbers.
+			         (goto-char (point-min))
+			         (cl-decf counter (count-matches "\\nonumber")))))
+			    (t
+			     (cons begin nil)))))
 
     (when (setq numberp (cdr (assoc (point) results)))
       (setf (car args)
