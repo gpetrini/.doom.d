@@ -1281,42 +1281,6 @@ Please set the variable `org-directory' to the location where you keep your org 
 #+end_src
 
 
-** Gcal
-
-#+begin_src emacs-lisp :tangle no
-
-;; OBS: If this file does not exist already, create an empty file titled `oauth2-auto.plist` inside your `USER-EMACS-DIRECTORY` and run `org-gcal-fetch`.
-
-(setq org-gcal-client-id "720984839444-ik338ube2pcfph3jio4l8r5rotjvvlq5.apps.googleusercontent.com"
-      org-gcal-client-secret "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"
-      org-gcal-fetch-file-alist '(
-                                  ("g155468@dac.unicamp.br" . "~/Dropbox/GTD/Gcal-Readings.org")
-                                  ("c_suq957n1pt1pg3hj4l4irkvauc@group.calendar.google.com" . "~/Dropbox/GTD/Gcal-Sanduiche.org")
-                                  ("unicamp.br_it3j901am0drhg87mg5h3u1dn0@group.calendar.google.com" .  "~/Dropbox/GTD/Gcal-PED.org")
-                                  ("unicamp.br_e10v173uj3d5i160ik0n0q1ua4@group.calendar.google.com" .  "~/Dropbox/GTD/Gcal-Writings.org")
-                                  ;; Submissions
-                                  ("unicamp.br_n57hmuqovvkm7ca5n2m7dl7jl8@group.calendar.google.com" .  "~/Dropbox/GTD/Gcal-Writings.org")
-                                  ("c_mtjr95l6e9194mhrrlg4erj3pg@group.calendar.google.com" . "~/Dropbox/GTD/Gcal-Supervision.org")
-                                  ("unicamp.br_d3q0ramvem9jv3pea5at5tpb04@group.calendar.google.com" . "~/Dropbox/GTD/Gcal-Reviews.org")
-                                  ("unicamp.br_7a0l3mgbgr44q4mdjcmood9gr8@group.calendar.google.com" . "~/Dropbox/GTD/Gcal-SantAnna.org")
-                                  ("unicamp.br_f4bb4tcl134c075vq82oc7e12o@group.calendar.google.com" . "~/Dropbox/GTD/Gcal-Dissertation.org")
-                                  ("c_c16eca421b987fdacfb0ae461df81f1b1bf2186448e9401ab3102dd74c8d0471@group.calendar.google.com" . "~/Dropbox/GTD/Gcal-Univesp.org")
-                                  ("gpetrinidasilveira@gmail.com" . "~/Dropbox/GTD/Gcal-Personal.org")
-                                  ;; ("" . "~/Dropbox/GTD/Gcal-Groups.org")
-                                  ))
-
-(setq plstore-cache-passphrase-for-symmetric-encryption t)
-
-#+end_src
-
-#+RESULTS:
-: t
-
-
-
-
-
-
 
 ** Clocking and effort
 
