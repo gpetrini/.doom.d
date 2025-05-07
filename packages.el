@@ -113,3 +113,8 @@
 
 ;; (package! eglot-grammarly
 ;;   :recipe (:host github :repo "emacs-grammarly/eglot-grammarly"))
+(package! org-super-agenda)
+(package! org-ql)
+(package! origami)
+(package! org-analyzer)
+(package! org-timeblock  :recipe (:host github :repo "ichernyshovvv/org-timeblock"))

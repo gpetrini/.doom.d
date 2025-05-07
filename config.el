@@ -450,7 +450,6 @@ ${abstract}
 
         ;; Devices
         ("@computer" . ?C)
-        ("@phone" . ?P)
         ("@server" . ?S)
 
 
@@ -459,6 +458,8 @@ ${abstract}
         ("@santanna" . ?s)
         ("@unicamp" . ?u)
         ("@ysi" . ?y)
+        ("@univesp" . ?U)
+        ("@PED" . ?P)
 
         ;; Activities
         ("@bureaucracy" . ?b)
@@ -474,14 +475,232 @@ ${abstract}
         ("@meetings" . ?m)
         ("@personal" . ?l)
         ("@free" . ?f)
+        ("@DotCom" . ?D)
         ))
-(setq org-agenda-files '("~/Org/Personal.org"
-                         "~/Org/YSI.org"
+(setq org-agenda-files '(
                          "~/PhD/Writings/AB-SFC-SSM-Dot-Com/AB-SFC-SSM-Dot-Com.org"
                          "~/Documents/KS_vs_DSGE/KS_vs_DSGE.org"
                          "~/LSD/Work/PhD/mkks_irf/mkks_irf.org"
-                         ;; "~/Documents/KS-DA-Calibration/KS-DA-Calibration.org"
+                         "~/Documents/KS-DA-Calibration/KS-DA-Calibration.org"
+                         "~/Documents/Deflating_WIOD_Tables/TODOs.org"
+                         "~/Documents/LSDCompare/README.org"
+                         "~/Dropbox/GTD/YSI.org"
+                         "~/Dropbox/GTD/Agenda.org"
+                         "~/Dropbox/GTD/Inbox.org"
                          ))
+
+
+(use-package! org-super-agenda
+  :after org-agenda
+  :init
+  (setq org-agenda-include-deadlines t
+        ;;       org-agenda-show-future-repeats t
+        ;;       ;; org-agenda-repeating-timestamp-show-all t
+        ;;       org-agenda-skip-scheduled-if-deadline-is-shown nil
+        ;;       org-agenda-compact-blocks t
+        ;;       ;; org-agenda-show-all-dates t
+        org-agenda-start-day nil
+        org-agenda-span 'week
+        ;;       ;; org-agenda-span 1
+        ;;       org-deadline-warning-days 1
+        org-agenda-start-on-weekday nil)
+  :config
+  (org-super-agenda-mode)
+  )
+
+
+(setq org-agenda-custom-commands
+      '(
+        ("o" "Super view"
+         ((agenda "" ((org-agenda-overriding-header "")
+                      (org-super-agenda-groups
+                       '(
+                         (
+                          :name "Already Done"
+                          :todo "DONE"
+                          :log t
+                          :order 2
+                          )
+                         (:name "Overdue"
+                          :and (:deadline past :todo ("TODO" "NEXT" "WAITING"))
+                          :and (:scheduled past :todo ("TODO" "NEXT" "WAITING"))
+                          :order 3)
+                         (:name "Due Later"
+                          :and (:deadline future :todo ("TODO" "NEXT" "WAITING"))
+                          :order 11)
+                         (:name "Today"
+                          :time-grid t
+                          :scheduled today
+                          :deadline today
+                          :order 1)
+                         ))))
+          ;; FIXME Add untaggeds
+          (alltodo "" ((org-agenda-overriding-header "All TODOs")
+                       (org-super-agenda-groups
+                        '(
+                          (:name "Scheduled Soon"
+                           :scheduled future
+                           :order 10)
+                          (:name "Inbox"
+                           :tag "inbox"
+                           :order 1)
+                          (:name "Important"
+                           :discard (:tag "Archived")
+                           :and (:priority "A" :deadline t)
+                           :order 2)
+                          (:name "Meetings"
+                           :tag "@meetings"
+                           :discard (:not (:todo ("TODO" "WAITING" "NEXT" )))
+                           :order 3)
+                          (:name "Conferences and Workshops"
+                           :tag "@Events"
+                           :order 3)
+                          (:name "Agent-Based Model chapter"
+                           :tag "@DotCom"
+                           :order 4
+                           )
+                          (:name "DSGE Comparison paper"
+                           :tag "@DSGEComp"
+                           :order 5
+                           )
+                          (:name "LSD Comparison package"
+                           :tag "@LSDComp"
+                           :order 5
+                           )
+                          (:name "PED"
+                           :tag "@PED"
+                           :order 6
+                           )
+                          (:name "Input Output Growth Decomposition"
+                           :tag "IODefl"
+                           :order 7
+                           )
+                          (:name "YSI Related"
+                           :tag "@YSI"
+                           :order 8
+                           )
+                          (:name "Univesp"
+                           :tag "@univesp"
+                           :order 9)
+                          (:name "GEMAP"
+                           :and (:tag "@Gemap" :tag "@Groups")
+                           :order 11)
+                          (:name "Chores"
+                           :tag "chores"
+                           :order 12)
+                          (:name "Computer related"
+                           :tag "@computer"
+                           :order 13)
+                          (:name "Archive"
+                           :tag "Archived"
+                           :order 100
+                           )
+                          (:name "Unimportant"
+                           :todo ("SOMEDAY" "MAYBE" "CHECK" "TO-READ" "TO-WATCH")
+                           :order 100)
+                          (:name "Waiting..."
+                           :todo "WAITING"
+                           :order 98)
+                          )
+                        )
+                       )
+                   )
+          )
+         )
+        )
+      )
+(use-package! origami
+  :after org-agenda
+  )
+
+(map! :desc "Next line"
+      :map org-super-agenda-header-map
+      "j" 'org-agenda-next-line)
+
+(map! :desc "Next line"
+      :map org-super-agenda-header-map
+      "k" 'org-agenda-previous-line)
+
+;; Custom styles for dates in agenda
+(custom-set-faces!
+  '(org-agenda-date :inherit outline-1 :height 1.15)
+  '(org-agenda-date-today :inherit outline-2 :height 1.15)
+  '(org-agenda-date-weekend :inherit outline-1 :height 1.15)
+  '(org-agenda-date-weekend-today :inherit outline-2 :height 1.15)
+  '(org-super-agenda-header :inherit custom-button :weight bold :height 1.05)
+  `(link :foreground unspecified :underline nil :background ,(nth 1 (nth 7 doom-themes--colors)))
+  '(org-link :foreground unspecified))
+
+(setq org-agenda-prefix-format '(
+                                 (agenda . "  %?-2i %t ")
+                                 (todo . " %i %-12:c")
+                                 (alltodo . " %i %-12:c")
+                                 (tags . " %i %-12:c")
+                                 (search . " %i %-12:c")))
+(setq org-agenda-category-icon-alist
+      `(("Teaching" ,(list (nerd-icons-faicon "nf-fa-graduation_cap" :height 0.8)) nil nil :ascent center)
+        ("Home" ,(list (nerd-icons-faicon "nf-fa-home" :v-adjust 0.005)) nil nil :ascent center)
+        ("inbox" ,(list (nerd-icons-faicon "nf-fa-edit" :height 0.9)) nil nil :ascent center)
+        ("PhD" ,(list (nerd-icons-faicon "nf-fa-pen" :height 0.9)) nil nil :ascent center)
+        ("paper" ,(list (nerd-icons-faicon "nf-fa-newspaper" :height 0.9)) nil nil :ascent center)
+        ("Univesp" ,(list (nerd-icons-faicon "nf-fa-dollar" :height 0.9)) nil nil :ascent center)
+        ("package" ,(list (nerd-icons-faicon "nf-fa-box" :height 0.9)) nil nil :ascent center)
+        ("Events" ,(list (nerd-icons-faicon "nf-fa-plane_departure" :height 0.9)) nil nil :ascent center)
+        ("Computer" ,(list (nerd-icons-faicon "nf-fa-computer_mouse" :height 0.9)) nil nil :ascent center)
+        ("Docs" ,(list (nerd-icons-faicon "nf-fa-wpforms" :height 0.9)) nil nil :ascent center)
+        ("Meeting" ,(list (nerd-icons-faicon "nf-fa-message" :height 0.9)) nil nil :ascent center)
+        ("group" ,(list (nerd-icons-faicon "nf-fa-group" :height 0.9)) nil nil :ascent center)
+))
+
+(use-package! org-timeblock
+  :after org-agenda
+  )
+
+(use-package! org-analyzer
+  :after org-agenda
+    )
+(setq org-analyzer-wrapper-command "org-analyzer")
+(setq org-analyzer-jar-file-name "/opt/org-analyzer.jar")
+(setq org-analyzer-java-program "/opt/org-analyzer") ;; Is not actually java, buta  wrapper shell script
+
+(defun org-analyzer-start-process (org-dir)
+  "Start the org analyzer process .
+Argument ORG-DIR is where the org-files are located."
+  (org-analyzer-cleanup-process-state)
+  (unless (file-exists-p org-dir)
+    (warn "org-analyzer was started with org-directory set to
+  \"%s\"\nbut this directory does not exist.
+Please set the variable `org-directory' to the location where you keep your org files."
+           org-directory))
+    (let* ((name (format " *org-analyzer [org-dir:%s]*" org-dir))
+           (proc-buffer (generate-new-buffer name))
+           (proc nil))
+      (setq org-analyzer-process-buffer proc-buffer)
+      (with-current-buffer proc-buffer
+        (setq default-directory (if (file-exists-p org-dir)
+                                    org-dir default-directory)
+              proc (condition-case err
+                       (let ((process-connection-type nil)
+                             (process-environment process-environment))
+                         (start-process name
+                                        (current-buffer)
+                                        org-analyzer-wrapper-command
+                                        "--port"
+                                        (format "%d" org-analyzer-http-port)
+                                        "--started-from-emacs"
+                      (if (file-exists-p org-dir) org-dir "")))
+                     (error
+                      (concat "Can't start org-analyzer (%s: %s)"
+                (car err) (cadr err)))))
+        (set-process-query-on-exit-flag proc nil)
+        (set-process-filter proc #'org-analyzer-process-filter))
+      proc-buffer))
+
+(setq
+ org-global-properties (quote ((
+                                "Effort_ALL" .
+                                "0:05 0:10 0:20 0:30 0:45 1:00 1:30 2:00 2:30 3:00 4:00 5:00 6:00 7:00 8:00")))
+ )
 
 (use-package! org-transclusion
   :after org
