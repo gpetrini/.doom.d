@@ -116,7 +116,9 @@
         ;; +peek
         +eglot
         )
-       (magit +forge)                     ; a git porcelain for Emacs
+       llm
+       (magit ;; +forge
+	      )                     ; a git porcelain for Emacs
        make                    ; run make tasks from Emacs
        (pass                     ; password manager for nerds
         +auth)                   ; to enable auth-source-pass
@@ -136,6 +138,7 @@
 
        :lang
        ;;agda                    ; types of types of types of types...
+       beancount
        (cc                         ; C/C++/Obj-C madness
         +tree-sitter
         +lsp
@@ -186,14 +189,14 @@
         +pretty                  ; yessss my pretties! (nice unicode symbols)
         +dragndrop               ; drag & drop files/images into org buffers
         ;; +roam2
-        ;; +pomodoro
+        +pomodoro
         ;; +jupyter                 ; ipython/jupyter support for babel
         +pandoc                  ; export-with-pandoc support
         +gnuplot                    ; who doesn't like pretty pictures
         +noter
         +tree-sitter
         ;; +hugo
-        ;; +journal
+        +journal
         +present)                ; using org-mode for presentations
        ;;php                     ; perl's insecure younger brother
        plantuml                ; diagrams for confusing people more
@@ -202,7 +205,7 @@
         +lsp
         +tree-sitter
                                         ;                        ; +mspyls
-                                        ;                        ; +pyright
+        +pyright
         )                        ; beautiful is better than ugly
        ;;qt                      ; the 'cutest' gui framework ever
        ;;racket                  ; a DSL for DSLs

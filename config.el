@@ -379,6 +379,14 @@ ${abstract}
 
 (setq enable-remote-dir-locals t)
 
+(setq
+ gptel-model 'mathstral:latest
+ gptel-default-mode 'org-mode
+ gptel-backend (gptel-make-ollama "Ollama"
+                 :host "localhost:50000"
+                 :stream t
+                 :models '(mathstral:latest)))
+
 (use-package! denote
   :defer t
   :config
@@ -386,8 +394,7 @@ ${abstract}
    denote-save-buffers nil
    denote-sort-keywords t
    denote-file-type nil
-   denote-prompts '(title keywords)
-   denote-rename-confirmations '(rewrite-front-matter modify-file-name)
+   denote-prompts ''(rewrite-front-matter modify-file-name)
    denote-date-prompt-use-org-read-date t
    denote-backlinks-show-context t
    )
@@ -442,6 +449,15 @@ ${abstract}
   :defer t
   :after org
   )
+
+(setq org-agenda-time-grid
+      '((daily today require-timed)
+        (630 700 730 800 830 900 930 1000 1030 1100 1130
+         1200 1230 1300 1330 1400 1430 1500 1530
+         1600 1630 1700 1730 1800 1830 1900 1930 2000
+         2030 2100 2130 2200 2230
+         )
+        "......" "----------------"))
 
 (setq org-tag-alist
       '(;; Places
@@ -575,6 +591,9 @@ ${abstract}
                            :tag "IODefl"
                            :order 7
                            )
+                          (:name "ABM-PJ paper"
+                           :tag "@ABMPJ"
+                           :order 8)
                           (:name "YSI Related"
                            :tag "@YSI"
                            :order 8
@@ -631,12 +650,14 @@ ${abstract}
   `(link :foreground unspecified :underline nil :background ,(nth 1 (nth 7 doom-themes--colors)))
   '(org-link :foreground unspecified))
 
+
+
 (setq org-agenda-prefix-format '(
-                                 (agenda . "  %?-2i %t ")
-                                 (todo . " %i %-12:c")
-                                 (alltodo . " %i %-12:c")
-                                 (tags . " %i %-12:c")
-                                 (search . " %i %-12:c")))
+                                 (agenda . " %?-2i %t ")
+                                 (todo . "[%e]  %i %-12:c ")
+                                 (alltodo . "[%e]  %i %-12:c [%e] ")
+                                 (tags . "[%e]  %i %-12:c")
+                                 (search . "[%e]  %i %-12:c")))
 (setq org-agenda-category-icon-alist
       `(("Teaching" ,(list (nerd-icons-faicon "nf-fa-graduation_cap" :height 0.8)) nil nil :ascent center)
         ("Home" ,(list (nerd-icons-faicon "nf-fa-home" :v-adjust 0.005)) nil nil :ascent center)
@@ -701,6 +722,11 @@ Please set the variable `org-directory' to the location where you keep your org 
                                 "Effort_ALL" .
                                 "0:05 0:10 0:20 0:30 0:45 1:00 1:30 2:00 2:30 3:00 4:00 5:00 6:00 7:00 8:00")))
  )
+
+(after! org-journal
+  (setq org-journal-dir "~/Dropbox/GTD/")
+  (setq org-journal-file-type 'yearly)
+  )
 
 (use-package! org-transclusion
   :after org
