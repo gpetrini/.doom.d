@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name:unumbered-equation
+# key:<uneq
+# --
+
+\begin{equation*}
+$1
+\end{equation*}
