@@ -51,7 +51,7 @@
 
 (package! org-pretty-tags)
 ;; (package! peep-dired)
-(package! rainbow-mode)
+;; (package! rainbow-mode)
 (package! academic-phrases)
 (package! async)
 
@@ -63,7 +63,7 @@
 ;; (package! org-roam-ui :recipe (:host github :repo "org-roam/org-roam-ui" :files ("*.el" "out")))
 
 (package! orgdiff :recipe (:host github :repo "tecosaur/orgdiff" :files ("*.el")))
-(package! flycheck-languagetool :recipe (:host github :repo "emacs-languagetool/flycheck-languagetool" :files ("*.el")))
+(package! flymake-languagetool :recipe (:host github :repo "emacs-languagetool/flymake-languagetool"))
 
 ;; (package! citar)
 
@@ -89,7 +89,7 @@
 ;; (package! oxr
 ;;   :recipe (:host github :repo "bdarcus/oxr"))
 ;; (package! citar-org-roam :disable t) ;; Breaks org-roam template.
-;; (package! engrave-faces :recipe (:repo "tecosaur/engrave-faces"))
+(package! engrave-faces :recipe (:repo "tecosaur/engrave-faces"))
 
 (package! jinx)
 ;; (package! gptel)
@@ -99,6 +99,7 @@
 
 (package! denote :recipe (:host github :repo "protesilaos/denote"))
 (package! denote-org :recipe (:host github :repo "protesilaos/denote-org"))
+(package! denote-sequence :recipe (:host github :repo "protesilaos/denote-sequence"))
 (package! consult-denote :recipe (:host github :repo "protesilaos/consult-denote"))
 (package! denote-menu :recipe (:host github :repo "namilus/denote-menu"))
 (package! citar-denote :recipe (:host github :repo "pprevos/citar-denote"))
@@ -115,6 +116,28 @@
 ;;   :recipe (:host github :repo "emacs-grammarly/eglot-grammarly"))
 (package! org-super-agenda)
 (package! org-ql)
-(package! origami)
-(package! org-analyzer)
 (package! org-timeblock  :recipe (:host github :repo "ichernyshovvv/org-timeblock"))
+
+(package! flymake-vale  :recipe (:host github :repo "tpeacock19/flymake-vale"))
+(package! flycheck-grammarly)
+
+
+(package! eglot-ltex  :recipe (:host github :repo "emacs-languagetool/eglot-ltex"))
+(package! realgud)
+(package! org-gcal)
+(package! org-alert)
+;; (package! exec-path-from-shell)
+
+(package! calfw-blocks  :recipe (:host github :repo "ml729/calfw-blocks"))
+
+
+(package! eglot-tempel :recipe (:host github :repo "fejfighter/eglot-tempel"))
+(package! tempel)
+(package! tempel-collection)
+
+(package! org-gtd)
+(package! djvu)
+
+(package! org-repeat-by-cron)
+
+(package! tmr)

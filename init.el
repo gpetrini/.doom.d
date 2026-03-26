@@ -58,13 +58,14 @@
        (smooth-scroll
         +interpolate)
        ;; tabs                    ; a tab bar for Emacs
-       treemacs          ; a project drawer, like neotree but cooler
+       (treemacs)          ; a project drawer, like neotree but cooler
        unicode                   ; extended unicode support for various languages
        ;; vc-gutter         ; vcs diff in the fringe
        ;; vi-tilde-fringe   ; fringe tildes to mark beyond EOB
        (window-select +numbers)  ; visually switch windows
        workspaces                ; tab emulation, persistence & separate workspaces
-       zen               ; distraction-free coding or writing
+       (zen               ; distraction-free coding or writing
+        +focus)
 
        :editor
        (evil +everywhere)        ; come to the dark side, we have cookies
@@ -80,6 +81,10 @@
        ;;parinfer                ; turn lisp into python, sort of
        ;;rotate-text             ; cycle region at point between text candidates
        snippets                  ; my elves. They type so I don't have to
+       (whitespace
+        +guess
+        +trim
+        )
        word-wrap               ; soft wrapping with language-aware indent
 
        :emacs
@@ -87,6 +92,7 @@
        electric                  ; smarter, keyword-based electric-indent
        eww
        (ibuffer +icons)          ; interactive buffer management
+       tramp
        (undo +tree)              ; persistent, smarter undo for your inevitable mistakes
        vc                        ; version-control and Emacs, sitting in a tree
 
@@ -98,7 +104,9 @@
 
        :checkers
        (syntax +flymake +icons +childframe)                    ; tasing you for every semicolon you forget
-       (spell +flyspell +aspell) ; tasing you for misspelling mispelling
+       (spell
+        +flyspell
+        +hunspell) ; tasing you for misspelling mispelling
        grammar                   ; tasing grammar mistake every you make
 
        :tools
@@ -114,9 +122,10 @@
         +dictionary)                 ; dictionary/thesaurus is nice
        (lsp
         ;; +peek
+        +booster
         +eglot
         )
-       llm
+       ;; llm
        (magit ;; +forge
 	      )                     ; a git porcelain for Emacs
        make                    ; run make tasks from Emacs
@@ -156,7 +165,7 @@
        ;;erlang                  ; an elegant language for a more civilized age
        (ess
         +lsp
-        +tree-sitter
+        ;; +tree-sitter
         )                ; emacs speaks statistics
        ;;faust                   ; dsp, but you get to keep your soul
        ;;fsharp                  ; ML stands for Microsoft's Language
@@ -169,7 +178,7 @@
        ;;json                    ; At least it ain't XML
        ;; (java +lsp)       ; the poster child for carpal tunnel syndrome
        ;;javascript              ; all(hope(abandon(ye(who(enter(here))))))
-       (julia +lsp +snail +tree-sitter)             ; a better, faster MATLAB
+       ;; (julia +lsp +snail +tree-sitter)             ; a better, faster MATLAB
        ;;kotlin                  ; a better, slicker Java(Script)
        (latex                    ; writing papers in Emacs has never been so fun
         +cdlatex                 ; quick maths symbols
@@ -189,14 +198,12 @@
         +pretty                  ; yessss my pretties! (nice unicode symbols)
         +dragndrop               ; drag & drop files/images into org buffers
         ;; +roam2
-        +pomodoro
         ;; +jupyter                 ; ipython/jupyter support for babel
         +pandoc                  ; export-with-pandoc support
         +gnuplot                    ; who doesn't like pretty pictures
-        +noter
-        +tree-sitter
-        ;; +hugo
-        +journal
+        ;; +noter
+        ;; +tree-sitter
+        ;; +journal
         +present)                ; using org-mode for presentations
        ;;php                     ; perl's insecure younger brother
        plantuml                ; diagrams for confusing people more
@@ -204,8 +211,9 @@
        (python
         +lsp
         +tree-sitter
-                                        ;                        ; +mspyls
-        +pyright
+        +uv
+        ;; +mspyls
+        ;; +pyright
         )                        ; beautiful is better than ugly
        ;;qt                      ; the 'cutest' gui framework ever
        ;;racket                  ; a DSL for DSLs
@@ -228,14 +236,15 @@
                                         ;yaml                    ; JSON, but readable
 
        :email
-       ;; (mu4e +gmail +org)
+       (mu4e +gmail +org +mbsync)
        ;;notmuch
        ;;(wanderlust +gmail)
 
        :app
        calendar
+       everywhere
        ;;irc                     ; how neckbeards socialize
-       ;; (rss +org)                ; emacs as an RSS reader
+       (rss +org)                ; emacs as an RSS reader
        ;;twitter                 ; twitter client https://twitter.com/vnought
 
        :config
