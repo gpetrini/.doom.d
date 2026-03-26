@@ -1,0 +1,245 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/gpetrini/.config/doom/config.org
+
+
+* Agenda views
+:PROPERTIES:
+:ARCHIVE_TIME: 2026-01-09 Fri 09:32
+:ARCHIVE_FILE: ~/.config/doom/config.org
+:ARCHIVE_OLPATH: Agenda
+:ARCHIVE_CATEGORY: config
+:END:
+
+#+begin_src emacs-lisp
+(setq org-agenda-time-grid
+      '((daily today require-timed)
+        (630 700 730 800 830 900 930 1000 1030 1100 1130
+             1200 1230 1300 1330 1400 1430 1500 1530
+             1600 1630 1700 1730 1800 1830 1900 1930 2000
+             2030 2100 2130 2200 2230
+             )
+        "......" "----------------"))
+
+(setq org-tag-alist
+      '(;; Places
+        ("@home" . ?H)
+        ("@work" . ?W)
+
+        ;; Devices
+        ("@computer" . ?C)
+        ("@server" . ?S)
+
+
+        ;; Institutions
+        ("@hwr" . ?h)
+        ("@santanna" . ?s)
+        ("@unicamp" . ?u)
+        ("@ysi" . ?y)
+        ("@univesp" . ?U)
+        ("@PED" . ?P)
+        ("@MADE" . ?M)
+
+        ;; Activities
+        ("@bureaucracy" . ?b)
+        ("@planning" . ?n)
+        ("@coding" . ?c)
+        ("@tests" . ?t)
+        ("@reading" . ?r)
+        ("@studing" . ?g)
+        ("@concurso" . ?o)
+        ("@writing" . ?w)
+        ("@Review" . ?v)
+        ("@dissertation" . ?d)
+        ("@paper" . ?p)
+        ("@email" . ?e)
+        ("@meetings" . ?m)
+        ("@personal" . ?l)
+        ("@free" . ?f)
+        ))
+
+(setq org-agenda-files '("~/Dropbox/GTD/"))
+
+
+(use-package! org-super-agenda
+  :after org-agenda
+  :init
+  (setq org-agenda-include-deadlines t
+        ;;       org-agenda-show-future-repeats t
+        ;;       ;; org-agenda-repeating-timestamp-show-all t
+        org-agenda-skip-scheduled-if-deadline-is-shown nil
+        ;;       org-agenda-compact-blocks t
+        ;;       ;; org-agenda-show-all-dates t
+        org-agenda-start-day nil
+        org-agenda-skip-additional-timestamps-same-entry t
+        org-agenda-span 'week
+        ;; org-agenda-span 3
+        ;;       org-deadline-warning-days 1
+        org-agenda-start-on-weekday nil)
+  :config
+  (org-super-agenda-mode)
+  )
+
+
+(setq org-agenda-custom-commands
+      '(
+        ("o" "Super view"
+         (
+
+          (alltodo "" ((org-agenda-overriding-header "")
+                       (org-super-agenda-groups
+                        '(
+                          (:name "Overdue"
+                           :and (:deadline past :todo ("TODO" "NEXT" "WAIT"))
+                           :and (:scheduled past :todo ("TODO" "NEXT" "WAIT")))
+                          (:discard (:anything t)
+                                    )))))
+          (agenda "" ((org-agenda-overriding-header "")
+                      (org-super-agenda-groups
+                       '(
+                         (
+                          :name "Already Done"
+                          :todo "DONE"
+                          :log t
+                          :order 2
+                          )
+                         (:name "Due Later"
+                          :and (:deadline future :todo ("TODO" "NEXT" "WAIT"))
+                          :order 11)
+                         (:name "Today"
+                          :time-grid t
+                          :scheduled today
+                          :deadline today
+                          :order 1)
+                         ))))
+          ;; FIXME Add untaggeds
+          (alltodo "" ((org-agenda-overriding-header "All TODOs")
+                       (org-super-agenda-groups
+                        '(
+                          (:name "Scheduled Soon"
+                           :scheduled future
+                           :order 1)
+                          (:name "Important"
+                           :discard (:tag "Archived")
+                           :and (:priority "A" :deadline t)
+                           :order 2)
+                          (:name "Meetings"
+                           :category "Meetings"
+                           :discard (:not (:todo ("TODO" "WAITING" "NEXT" )))
+                           :order 3)
+                          (:name "MADE"
+                           :category "MADE"
+                           :order 3
+                           )
+                          (:name "Conferences and Workshops"
+                           :category "Conferences"
+                           :order 5)
+                          (:name "Active papers"
+                           :category "Paper-related"
+                           :property ("ORG_GTD"  "Project")
+                           :order 5)
+                          (:name "PED"
+                           :category "PED"
+                           :order 6
+                           )
+                          (:name "Paper reviews"
+                           :category "Review"
+                           :order 8)
+                          (:name "YSI Related"
+                           :category "YSI"
+                           :order 8
+                           )
+                          (:name "Univesp"
+                           :category "Univesp"
+                           :order 9)
+                          (:name "Home/Chores"
+                           :category "Home/Chores"
+                           :order 12)
+                          (:name "Computer related"
+                           :or (:category "Computer-related" :category "Emacs-related")
+                           :order 13)
+                          (:name "Archive"
+                           :tag "Archived"
+                           :order 100
+                           )
+                          (:name "Someday"
+                           :property ("ORG_GTD"  "Someday")
+                           :order 100)
+                          )
+                        )
+                       )
+                   )
+          )
+         )
+        )
+      )
+(map! :desc "Next line"
+      :map org-super-agenda-header-map
+      "j" 'org-agenda-next-line)
+
+(map! :desc "Next line"
+      :map org-super-agenda-header-map
+      "k" 'org-agenda-previous-line)
+
+;; Custom styles for dates in agenda
+(custom-set-faces!
+  '(org-agenda-date :inherit outline-1 :height 1.15)
+  '(org-agenda-date-today :inherit outline-2 :height 1.15)
+  '(org-agenda-date-weekend :inherit outline-1 :height 1.15)
+  '(org-agenda-date-weekend-today :inherit outline-2 :height 1.15)
+  '(org-super-agenda-header :inherit custom-button :weight bold :height 1.05)
+  `(link :foreground unspecified :underline nil :background ,(nth 1 (nth 7 doom-themes--colors)))
+  '(org-link :foreground unspecified))
+
+
+
+(setq org-agenda-prefix-format '(
+                                 (agenda . " %?-2i %t ")
+                                 (todo . "[%e]  %i %-12:c ")
+                                 (alltodo . "[%e]  %i %-12:c [%e] ")
+                                 (tags . "[%e]  %i %-12:c")
+                                 (search . "[%e]  %i %-12:c")))
+(setq org-agenda-category-icon-alist
+      `(("Teaching" ,(list (nerd-icons-faicon "nf-fa-graduation_cap" :height 0.8)) nil nil :ascent center)
+        ("Home" ,(list (nerd-icons-faicon "nf-fa-home" :v-adjust 0.005)) nil nil :ascent center)
+        ("inbox" ,(list (nerd-icons-faicon "nf-fa-edit" :height 0.9)) nil nil :ascent center)
+        ("PhD" ,(list (nerd-icons-faicon "nf-fa-pen" :height 0.9)) nil nil :ascent center)
+        ("paper" ,(list (nerd-icons-faicon "nf-fa-newspaper" :height 0.9)) nil nil :ascent center)
+        ("Univesp" ,(list (nerd-icons-faicon "nf-fa-dollar" :height 0.9)) nil nil :ascent center)
+        ("MADE" ,(list (nerd-icons-faicon "nf-fa-dollar" :height 0.9)) nil nil :ascent center)
+        ("package" ,(list (nerd-icons-faicon "nf-fa-box" :height 0.9)) nil nil :ascent center)
+        ("Events" ,(list (nerd-icons-faicon "nf-fa-plane_departure" :height 0.9)) nil nil :ascent center)
+        ("Computer" ,(list (nerd-icons-faicon "nf-fa-computer_mouse" :height 0.9)) nil nil :ascent center)
+        ("Github" ,(list (nerd-icons-faicon "nf-fa-github" :height 0.9)) nil nil :ascent center)
+        ("Emacs" ,(list (nerd-icons-faicon "nf-fa-computer_mouse" :height 0.9)) nil nil :ascent center)
+        ("Docs" ,(list (nerd-icons-faicon "nf-fa-wpforms" :height 0.9)) nil nil :ascent center)
+        ("Meeting" ,(list (nerd-icons-faicon "nf-fa-message" :height 0.9)) nil nil :ascent center)
+        ("group" ,(list (nerd-icons-faicon "nf-fa-group" :height 0.9)) nil nil :ascent center)
+        ("Review" ,(list (nerd-icons-faicon "nf-fa-book_open_reader" :height 0.9)) nil nil :ascent center)
+        ("Concurso" ,(list (nerd-icons-faicon "nf-fa-university" :height 0.9)) nil nil :ascent center)
+        ("Bureaucracy" ,(list (nerd-icons-faicon "nf-fa-building" :height 0.9)) nil nil :ascent center)
+        ("Email" ,(list (nerd-icons-faicon "nf-fa-mail_reply" :height 0.9)) nil nil :ascent center)
+        ))
+#+end_src
+
+#+RESULTS:
+| Teaching    | () | nil | nil | :ascent | center |
+| Home        | () | nil | nil | :ascent | center |
+| inbox       | () | nil | nil | :ascent | center |
+| PhD         | () | nil | nil | :ascent | center |
+| paper       | () | nil | nil | :ascent | center |
+| Univesp     | () | nil | nil | :ascent | center |
+| MADE        | () | nil | nil | :ascent | center |
+| package     | () | nil | nil | :ascent | center |
+| Events      | () | nil | nil | :ascent | center |
+| Computer    | () | nil | nil | :ascent | center |
+| Github      | () | nil | nil | :ascent | center |
+| Emacs       | () | nil | nil | :ascent | center |
+| Docs        | () | nil | nil | :ascent | center |
+| Meeting     | () | nil | nil | :ascent | center |
+| group       | () | nil | nil | :ascent | center |
+| Review      | () | nil | nil | :ascent | center |
+| Concurso    | () | nil | nil | :ascent | center |
+| Bureaucracy | () | nil | nil | :ascent | center |
+| Email       | () | nil | nil | :ascent | center |
