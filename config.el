@@ -470,24 +470,6 @@ ${abstract}
 
               )))
 
-(use-package! org-glossary
-  :hook (org-mode . org-glossary-mode)
-  :config
-  ;; (setq org-glossary-collection-root "~/.config/doom/misc/glossaries/")
-  ;; (defun +org-glossary--latex-cdef (backend info term-entry form &optional ref-index plural-p capitalized-p extra-parameters)
-  ;;   (org-glossary--export-template
-  ;;    (if (plist-get term-entry :uses)
-  ;;        "*%d*\\emsp{}%v\\ensp{}@@latex:\\labelcpageref{@@%b@@latex:}@@\n"
-  ;;      "*%d*\\emsp{}%v\n")
-  ;;    backend info term-entry ref-index
-  ;;    plural-p capitalized-p extra-parameters))
-  (org-glossary-set-export-spec
-   'latex t
-   :backref "gls-%K-use-%r"
-   :backref-seperator ","
-   ;; :definition-structure #'+org-glossary--latex-cdef
-   ))
-
 (setq enable-remote-dir-locals t)
 
 (use-package! denote
@@ -723,9 +705,6 @@ ${abstract}
                            :category "YSI"
                            :order 8
                            )
-                          (:name "Univesp"
-                           :category "Univesp"
-                           :order 9)
                           (:name "Habits"
                            :property ("ORG_GTD"  "Habit")
                            :order 12)
@@ -784,7 +763,6 @@ ${abstract}
         ("inbox" ,(list (nerd-icons-faicon "nf-fa-edit" :height 0.9)) nil nil :ascent center)
         ("PhD" ,(list (nerd-icons-faicon "nf-fa-pen" :height 0.9)) nil nil :ascent center)
         ("paper" ,(list (nerd-icons-faicon "nf-fa-newspaper" :height 0.9)) nil nil :ascent center)
-        ("Univesp" ,(list (nerd-icons-faicon "nf-fa-dollar" :height 0.9)) nil nil :ascent center)
         ("MADE" ,(list (nerd-icons-faicon "nf-fa-dollar" :height 0.9)) nil nil :ascent center)
         ("YSI" ,(list (nerd-icons-faicon "nf-fa-dollar" :height 0.9)) nil nil :ascent center)
         ("package" ,(list (nerd-icons-faicon "nf-fa-box" :height 0.9)) nil nil :ascent center)
@@ -800,6 +778,7 @@ ${abstract}
         ("Bureaucracy" ,(list (nerd-icons-faicon "nf-fa-building" :height 0.9)) nil nil :ascent center)
         ("Email" ,(list (nerd-icons-faicon "nf-fa-mail_reply" :height 0.9)) nil nil :ascent center)
         ("Literature update" ,(list (nerd-icons-faicon "nf-fa-rss" :height 0.9)) nil nil :ascent center)
+        ("Supervisions" ,(list (nerd-icons-faicon "nf-fa-route" :height 0.9)) nil nil :ascent center)
         ))
 
 (use-package! org-timeblock
@@ -824,8 +803,11 @@ ${abstract}
 ;; (setq shell-file-name (executable-find "bash"))
 ;; (setq-default vterm-shell "/usr/bin/fish")
 ;; (setq-default explicit-shell-file-name "/usr/bin/fish")
-(setq-default explicit-shell-file-name shell-file-name
-              shell-file-name (executable-find "bash"))
+;; (setq-default explicit-shell-file-name shell-file-name
+;;               shell-file-name (executable-find "bash"))
+(setq shell-file-name "/usr/bin/bash")
+(setq-default explicit-shell-file-name "/usr/bin/bash")
+(setq-default vterm-shell "/usr/bin/bash")
 
 (use-package! flymake-vale
   :defer t
@@ -848,63 +830,6 @@ ${abstract}
 ;;   :hook ((text-mode org-mode). (lambda ()
 ;;                                       (require 'eglot-grammarly)
 ;;                                       (eglot-ensure))))
-
-(after! mu4e
-  (setq sendmail-program (executable-find "msmtp")
-        send-mail-function #'smtpmail-send-it
-        message-sendmail-f-is-evil t
-        message-sendmail-extra-arguments '("--read-envelope-from")
-        message-send-mail-function #'message-send-mail-with-sendmail))
-
-(set-email-account! "gpetrini.gmail"
-                    '((mu4e-sent-folder       . "/gpetrinidasilveira@gmail.com/Sent Mail")
-                      (mu4e-drafts-folder     . "/gpetrinidasilveira@gmail.com/Drafts")
-                      (mu4e-trash-folder      . "/gpetrinidasilveira@gmail.com/Trash")
-                      (mu4e-refile-folder     . "/gpetrinidasilveira@gmail.com/All Mail")
-                      (mu4e-compose-signature . "---\nBest\nGabriel Petrini\nSent with mu4e and org-mode")
-                      (smtpmail-default-smtp-server   . "smtp.google.com") ;
-                      (smtpmail-smtp-server   . "smtp.gmail.com") ;
-                      (smtpmail-stream-type . starttls)
-                      (smtpmail-smtp-service . 587)
-                      ;; (smtpmail-auth-credentials '(("smtp.gmail.com" 587 "gpetrinidasilveira@gmail.com" nil)))
-                      (smtpmail-servers-requiring-authorization . "smtp\\.gmail\\.com")
-                      (send-mail-function . async-smtpmail-send-it)
-                      (message-send-mail-function . async-smtpmail-send-it)
-                      )
-                    t)
-
-;; (setq smtpmail-debug-info t)
-;; (setq smtpmail-debug-verb t)
-(require 'smtpmail-async)
-(add-hook 'async-smtpmail-before-send-hook #'auth-source-pass-enable)
-
-;; (setq mu4e-context-policy 'ask-if-none
-;;       mu4e-compose-context-policy 'always-ask)
-;; if "gmail" is missing from the address or maildir, the account must be listed here
-
-;; don't need to run cleanup after indexing for gmail
-;; OBS: Using the opposite as in doom suggestion
-(setq mu4e-index-cleanup t
-      ;; because gmail uses labels as folders we can use lazy check since
-      ;; messages don't really "move"
-      mu4e-index-lazy-check nil)
-
-(setq mu4e-update-interval 300)
-;; TODO Set how to send the e-mail
-
-(setq mu4e-headers-fields
-      '((:flags . 6)
-        (:account-stripe . 2)
-        (:from-or-to . 25)
-        (:folder . 10)
-        (:recipnum . 2)
-        (:subject . 80)
-        (:human-date . 8))
-      +mu4e-min-header-frame-width 142
-      mu4e-headers-date-format "%d/%m/%y"
-      mu4e-headers-time-format "⧖ %H:%M"
-      mu4e-sent-messages-behavior 'sent
-      mu4e-headers-results-limit 1000)
 
 (setq rmh-elfeed-org-files '("~/Dropbox/Elfeed.org"))
 
@@ -1050,7 +975,6 @@ ${abstract}
         "Appointments"
         "PhD"
         "Paper-related"
-        "Univesp"
         "MADE"
         "Package"
         "Conferences"
@@ -1066,6 +990,7 @@ ${abstract}
         "Bureaucracy"
         "E-mail"
         "Uncategorized"
+        "Supervisions"
         ))
 
 (setq org-gtd-organize-hooks '(org-gtd-set-area-of-focus
@@ -1101,6 +1026,11 @@ ${abstract}
 
      ((name . "󰏺 Missed events")
       (type . calendar)
+      (when . past)
+      )
+
+     ((name . "󰃹 Missed check-in")
+      (type . tickler)
       (when . past)
       )
 
@@ -1164,13 +1094,14 @@ ${abstract}
       (type . incubated-project)
       )
 
-     ((name . " Univesp")
-      (area-of-focus . "Univesp")
+     ((name . "󱉓 MADE")
+      (area-of-focus . "MADE")
       (type . next-action)
       )
 
-     ((name . "󱉓 MADE")
-      (area-of-focus . "MADE")
+
+     ((name . " Supervisions")
+      (area-of-focus . "Supervisions")
       (type . next-action)
       )
 
@@ -1360,3 +1291,15 @@ ${abstract}
   (setq tmr-sound-file "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga"
         tmr-notification-urgency 'normal
         tmr-description-list 'tmr-description-history))
+
+(use-package! khalel
+  :after org
+  :config
+  (khalel-add-capture-template))
+
+(after! khalel
+  (setq khalel-import-org-file "~/Dropbox/GTD/vdirsyncer.org")
+  (setq khalel-vdirsyncer-command "vdirsyncer")
+  (setq khalel-khal-command "khal")
+  (setq khalel-import-end-date "+365d")
+  (setq khalel-import-start-date "-1d"))

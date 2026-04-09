@@ -4,7 +4,8 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(safe-local-variable-values
-   '((eval setq-local org-latex-text-markup-alist
+   '((buffer-read-only . 1)
+     (eval setq-local org-latex-text-markup-alist
       '((bold . "\\hl{%s}") (italic . "\\emph{%s}")
         (underline . "\\underline{%s}") (code . "\\texttt{%s}")))
      (eval progn (add-to-list 'auto-mode-alist '("\\.h\\'" . c++-mode))

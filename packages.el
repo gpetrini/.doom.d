@@ -72,8 +72,8 @@
 (package! ox-pandoc :recipe (:host github :repo "emacsorphanage/ox-pandoc"))
 (package! tldr)
 ;; (package! litex-mode :recipe (:host github :repo "Atreyagaurav/litex-mode"))
-(package! org-glossary
-  :recipe (:host github :repo "tecosaur/org-glossary"))
+;; (package! org-glossary
+;;   :recipe (:host github :repo "tecosaur/org-glossary"))
 ;; (package! org-pandoc-import
 ;;   :recipe (:host github
 ;;            :repo "tecosaur/org-pandoc-import"
@@ -141,3 +141,4 @@
 (package! org-repeat-by-cron)
 
 (package! tmr)
+(package! khalel)

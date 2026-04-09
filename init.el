@@ -178,7 +178,7 @@
        ;;json                    ; At least it ain't XML
        ;; (java +lsp)       ; the poster child for carpal tunnel syndrome
        ;;javascript              ; all(hope(abandon(ye(who(enter(here))))))
-       ;; (julia +lsp +snail +tree-sitter)             ; a better, faster MATLAB
+       (julia +lsp +snail +tree-sitter)             ; a better, faster MATLAB
        ;;kotlin                  ; a better, slicker Java(Script)
        (latex                    ; writing papers in Emacs has never been so fun
         +cdlatex                 ; quick maths symbols
@@ -236,7 +236,7 @@
                                         ;yaml                    ; JSON, but readable
 
        :email
-       (mu4e +gmail +org +mbsync)
+       ;; (mu4e +gmail +org +mbsync)
        ;;notmuch
        ;;(wanderlust +gmail)
 
