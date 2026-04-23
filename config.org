@@ -138,17 +138,23 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
 (after! dired-rsync
   (setq dired-rsync-options "-azhuv --info=progress2")
   )
-;; Fix tabs in the daemon
-;; (after! centaur-tabs
-;;   (setq centaur-tabs-set-bar 'right)
-;;   (centaur-tabs-group-by-projectile-project)
-;;   )
+
+
+(after! centaur-tabs
+  (centaur-tabs-mode -1)
+  (setq centaur-tabs-height 36
+        centaur-tabs-set-icons t
+        centaur-tabs-modified-marker "o"
+        centaur-tabs-close-button "×"
+        centaur-tabs-set-bar 'above
+        centaur-tabs-gray-out-icons 'buffer)
+  (centaur-tabs-group-by-projectile-project)
+  )
+
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 
 #+END_SRC
 
-#+RESULTS:
-: ((fullscreen . maximized))
 
 
 
@@ -980,22 +986,23 @@ Git gutter:
   :hook (org-mode . org-glossary-mode)
   :config
   ;; (setq org-glossary-collection-root "~/.config/doom/misc/glossaries/")
-  ;; (defun +org-glossary--latex-cdef (backend info term-entry form &optional ref-index plural-p capitalized-p extra-parameters)
-  ;;   (org-glossary--export-template
-  ;;    (if (plist-get term-entry :uses)
-  ;;        "*%d*\\emsp{}%v\\ensp{}@@latex:\\labelcpageref{@@%b@@latex:}@@\n"
-  ;;      "*%d*\\emsp{}%v\n")
-  ;;    backend info term-entry ref-index
-  ;;    plural-p capitalized-p extra-parameters))
+  (defun +org-glossary--latex-cdef (backend info term-entry form &optional ref-index plural-p capitalized-p extra-parameters)
+    (org-glossary--export-template
+     (if (plist-get term-entry :uses)
+         "*%d*\\emsp{}%v\\ensp{}@@latex:\\labelcpageref{@@%b@@latex:}@@\n"
+       "*%d*\\emsp{}%v\n")
+     backend info term-entry ref-index
+     plural-p capitalized-p extra-parameters))
   (org-glossary-set-export-spec
    'latex t
    :backref "gls-%K-use-%r"
    :backref-seperator ","
-   ;; :definition-structure #'+org-glossary--latex-cdef
+   :definition-structure #'+org-glossary--latex-cdef
    ))
 #+end_src
 
 #+RESULTS:
+| org-glossary-mode | er/add-org-mode-expansions | #[0 \301\211\207 [imenu-create-index-function org-imenu-get-tree] 2] | org-transclusion-font-lock-set | #[(&rest _) ((add-hook 'save-place-after-find-file-hook #'+org-make-last-point-visible-h nil t)) (t)] | +lookup--init-org-mode-handlers-h | #[0 \300\301\302\303\304$\207 [add-hook change-major-mode-hook org-fold-show-all append local] 5] | #[0 \300\301\302\303\304$\207 [add-hook change-major-mode-hook org-babel-show-result-all append local] 5] | org-babel-result-hide-spec | org-babel-hide-all-hashes | doom-disable-show-paren-mode-h | doom-disable-show-trailing-whitespace-h | org-modern-mode | org-appear-mode | evil-org-mode | org-eldoc-load | toc-org-enable | org-cdlatex-mode | writegood-mode | flyspell-mode | embrace-org-mode-hook | +corfu-add-cape-elisp-block-h | +literate-enable-recompile-h |
 
 
 
@@ -2170,39 +2177,59 @@ mu index
   (global-org-repeat-by-cron-mode))
 #+end_src
 
-* TODO TMR
+
+* Treemacs
+:PROPERTIES:
+:ID:       db15be30-9ce3-4b95-be44-d815fb27e04a
+:END:
 
 #+begin_src emacs-lisp
+(after! treemacs
+  (defvar treemacs-file-ignore-extensions '()
+    "File extension which `treemacs-ignore-filter' will ensure are ignored")
+  (defvar treemacs-file-ignore-globs '()
+    "Globs which will are transformed to `treemacs-file-ignore-regexps' which `treemacs-ignore-filter' will ensure are ignored")
+  (defvar treemacs-file-ignore-regexps '()
+    "RegExps to be tested to ignore files, generated from `treeemacs-file-ignore-globs'")
+  (defun treemacs-file-ignore-generate-regexps ()
+    "Generate `treemacs-file-ignore-regexps' from `treemacs-file-ignore-globs'"
+    (setq treemacs-file-ignore-regexps (mapcar 'dired-glob-regexp treemacs-file-ignore-globs)))
+  (if (equal treemacs-file-ignore-globs '()) nil (treemacs-file-ignore-generate-regexps))
+  (defun treemacs-ignore-filter (file full-path)
+    "Ignore files specified by `treemacs-file-ignore-extensions', and `treemacs-file-ignore-regexps'"
+    (or (member (file-name-extension file) treemacs-file-ignore-extensions)
+        (let ((ignore-file nil))
+          (dolist (regexp treemacs-file-ignore-regexps ignore-file)
+            (setq ignore-file (or ignore-file (if (string-match-p regexp full-path) t nil)))))))
+  (add-to-list 'treemacs-ignored-file-predicates #'treemacs-ignore-filter))
 
-(use-package! tmr
-  :defer t
-  :config
-  (map! :leader
-        :desc "TMR"
-        "t T" #'tmr-prefix-map)
-  (setq tmr-sound-file "/usr/share/sounds/freedesktop/stereo/alarm-clock-elapsed.oga"
-        tmr-notification-urgency 'normal
-        tmr-description-list 'tmr-description-history))
-
-
+(setq treemacs-file-ignore-extensions
+      '(;; LaTeX
+        "aux"
+        "ptc"
+        "fdb_latexmk"
+        "fls"
+        "synctex.gz"
+        "toc"
+        ;; LaTeX - glossary
+        "glg"
+        "glo"
+        "gls"
+        "glsdefs"
+        "ist"
+        "acn"
+        "acr"
+        "alg"
+        ;; LaTeX - pgfplots
+        "mw"
+        ;; LaTeX - pdfx
+        "pdfa.xmpi"
+        ))
+(setq treemacs-file-ignore-globs
+      '(;; LaTeX
+        "*/_minted-*"
+        ;; AucTeX
+        "*/.auctex-auto"
+        "*/_region_.log"
+        "*/_region_.tex"))
 #+end_src
-
-#+RESULTS:
-: t
-
-* Khal
-
-#+begin_src emacs-lisp
-(use-package! khalel
-  :after org
-  :config
-  (khalel-add-capture-template))
-
-(after! khalel
-  (setq khalel-import-org-file "~/Dropbox/GTD/vdirsyncer.org")
-  (setq khalel-vdirsyncer-command "vdirsyncer")
-  (setq khalel-khal-command "khal")
-  (setq khalel-import-end-date "+365d")
-  (setq khalel-import-start-date "-1d"))
-#+end_src
-

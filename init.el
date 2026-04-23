@@ -57,10 +57,10 @@
        (popup +default)              ; tame sudden yet inevitable temporary windows
        (smooth-scroll
         +interpolate)
-       ;; tabs                    ; a tab bar for Emacs
+       tabs                    ; a tab bar for Emacs
        (treemacs)          ; a project drawer, like neotree but cooler
        unicode                   ; extended unicode support for various languages
-       ;; vc-gutter         ; vcs diff in the fringe
+       (vc-gutter +pretty)         ; vcs diff in the fringe
        ;; vi-tilde-fringe   ; fringe tildes to mark beyond EOB
        (window-select +numbers)  ; visually switch windows
        workspaces                ; tab emulation, persistence & separate workspaces
@@ -178,7 +178,7 @@
        ;;json                    ; At least it ain't XML
        ;; (java +lsp)       ; the poster child for carpal tunnel syndrome
        ;;javascript              ; all(hope(abandon(ye(who(enter(here))))))
-       (julia +lsp +snail +tree-sitter)             ; a better, faster MATLAB
+       ;; (julia +lsp +snail +tree-sitter)             ; a better, faster MATLAB
        ;;kotlin                  ; a better, slicker Java(Script)
        (latex                    ; writing papers in Emacs has never been so fun
         +cdlatex                 ; quick maths symbols
