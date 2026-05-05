@@ -138,4 +138,4 @@
 (package! org-gtd)
 (package! djvu)
 
-(package! org-repeat-by-cron)
+;; (package! org-repeat-by-cron)

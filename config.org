@@ -141,15 +141,15 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
 
 
 (after! centaur-tabs
-  (centaur-tabs-mode -1)
-  (setq centaur-tabs-height 36
-        centaur-tabs-set-icons t
-        centaur-tabs-modified-marker "o"
-        centaur-tabs-close-button "×"
-        centaur-tabs-set-bar 'above
-        centaur-tabs-gray-out-icons 'buffer)
-  (centaur-tabs-group-by-projectile-project)
-  )
+(centaur-tabs-mode -1)
+ (setq centaur-tabs-height 36
+       centaur-tabs-set-icons t
+       centaur-tabs-modified-marker "o"
+       centaur-tabs-close-button "×"
+       centaur-tabs-set-bar 'above
+       centaur-tabs-gray-out-icons 'buffer)
+ (centaur-tabs-group-by-projectile-project)
+)
 
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 
@@ -335,7 +335,7 @@ ado-cus.el changed to include fake time
 ** Dynare
 
 #+begin_src emacs-lisp
-(load! "~/.config/doom/dynare.el")
+(load! "dynare")
 #+end_src
 
 #+RESULTS:
@@ -393,9 +393,38 @@ ado-cus.el changed to include fake time
 ;; (setq-hook! 'c-mode-hook +format-inhibit t)
 ;; (setq-hook! 'c++-mode-hook +format-inhibit t)
 (after! cc-mode
-  (set-eglot-client! 'cc-mode '("clangd" "-j=3" "--clang-tidy" "--query-driver")))
+  (setq c-basic-offset 4)
+  ;; (set-eglot-client! 'cc-mode '("clangd" "-j=3" "--clang-tidy" "--query-driver"))
+  (set-eglot-client! '(c-mode c++-mode c++-ts-mode)
+                     '("clangd"
+                       "-j=8"
+                       "--clang-tidy"
+                       "--background-index"
+                       "--completion-style=detailed"
+                       "--suggest-missing-includes"
+                       ;; "--compile-commands-dir=."
+                       "--query-driver=/usr/bin/g++"))
+  )
 
-(setq flymake-cc-command '("g++" "-march=native" "-w" "-ffp-contract=off" "-D_NW_" "-O0" "-ggdb3" "-fsyntax-only" "-"))
+(setq flymake-cc-command
+      '("g++"
+        "-fsyntax-only"
+        "-ffp-contract=off"
+        "-fsanitize=address,undefined"
+        "-Wall"
+        "-Wextra"
+        "-Wuninitialized"
+        "-Wshadow"
+        "-Wno-unused-parameter"
+        "-Wno-unused-variable"
+        "-Wno-unused-but-set-variable"
+        "-fno-omit-frame-pointer"
+        "-D_NW_"
+        "-O0"
+        "-ggdb3"
+        "-Isrc"
+        "-I."
+        "-"))
 
 
 (add-to-list 'auto-mode-alist '("\\.h\\'"   . c++-mode))
@@ -1171,146 +1200,146 @@ The following config is necessary to make per-projects files in the server
                       :slant 'italic))
 
 (use-package! org-super-agenda
-  :after org-agenda
-  :init
-  (setq org-agenda-include-deadlines t
-        ;;       org-agenda-show-future-repeats t
-        ;;       ;; org-agenda-repeating-timestamp-show-all t
-        org-agenda-skip-scheduled-if-deadline-is-shown t
-        ;;       org-agenda-compact-blocks t
-        ;;       ;; org-agenda-show-all-dates t
-        org-agenda-start-day nil
-        org-agenda-skip-additional-timestamps-same-entry t
-        org-agenda-span 'week
-        ;; org-agenda-span 3
-        ;;       org-deadline-warning-days 1
-        org-agenda-start-on-weekday nil)
-  :config
-  (org-super-agenda-mode)
-  )
+ :after org-agenda
+ :init
+ (setq org-agenda-include-deadlines t
+       ;;       org-agenda-show-future-repeats t
+       ;;       ;; org-agenda-repeating-timestamp-show-all t
+       org-agenda-skip-scheduled-if-deadline-is-shown t
+       ;;       org-agenda-compact-blocks t
+       ;;       ;; org-agenda-show-all-dates t
+       org-agenda-start-day nil
+       org-agenda-skip-additional-timestamps-same-entry t
+       org-agenda-span 'week
+       ;; org-agenda-span 3
+       ;;       org-deadline-warning-days 1
+       org-agenda-start-on-weekday nil)
+ :config
+ (org-super-agenda-mode)
+ )
 
 
 (setq org-agenda-custom-commands
-      '(
-        ("o" "Super view"
-         (
+     '(
+       ("o" "Super view"
+        (
 
-          (alltodo "" ((org-agenda-overriding-header "")
-                       (org-super-agenda-groups
-                        '(
-                          (:name "Overdue"
-                           :and (:deadline past :todo ("TODO" "NEXT" "WAIT"))
-                           :and (:scheduled past :todo ("TODO" "NEXT" "WAIT")))
-                          (:discard (:anything t)
-                                    )))))
-          (agenda "" ((org-agenda-overriding-header "")
-                      (org-super-agenda-groups
-                       '(
-                         (
-                          :name "Already Done"
-                          :todo "DONE"
-                          :log t
-                          :order 2
-                          )
-                         (:name "Due Later"
-                          :and (:deadline future :todo ("TODO" "NEXT" "WAIT"))
-                          :order 11)
-                         (:name "Today"
-                          :time-grid t
-                          :scheduled today
-                          :deadline today
-                          :order 1)
-                         ))))
-          ;; FIXME Add untaggeds
-          (alltodo "" ((org-agenda-overriding-header "All TODOs")
-                       (org-super-agenda-groups
-                        '(
-                          (:name "Scheduled Soon"
-                           :scheduled future
-                           :order 1)
-                          (:name "Important"
-                           :discard (:tag "Archived")
-                           :and (:priority "A" :deadline t)
-                           :order 2)
-                          (:name "Meetings"
-                           :category "Meetings"
-                           :discard (:not (:todo ("TODO" "WAITING" "NEXT" )))
-                           :order 3)
-                          (:name "Concurso"
-                           :category "Concurso"
-                           :order 3
-                           )
-                          (:name "MADE"
-                           :category "MADE"
-                           :order 3
-                           )
-                          (:name "Reading list"
-                           :category "Reading list"
-                           :order 4
-                           )
-                          (:name "Bureaucracy"
-                           :category "Bureaucracy"
-                           :order 5
-                           )
-                          (:name "PhD"
-                           :category "PhD"
-                           :order 5
-                           )
-                          (:name "Conferences and Workshops"
-                           :category "Conferences"
-                           :order 5)
-                          (:name "Active papers"
-                           :category "Paper-related"
-                           :property ("ORG_GTD"  "Project")
-                           )
-                          (:name "Ticklers"
-                           :property ("ORG_GTD"  "Tickler")
-                           :order 5)
-                          (:name "PED"
-                           :category "PED"
-                           :order 6
-                           )
-                          (:name "Paper reviews"
-                           :category "Paper reviews"
-                           :order 8)
-                          (:name "YSI Related"
-                           :category "YSI"
-                           :order 8
-                           )
-                          (:name "Habits"
-                           :property ("ORG_GTD"  "Habit")
-                           :order 12)
-                          (:name "Home/Chores"
-                           :category "Home/Chores"
-                           :order 12)
-                          (:name "Computer related"
-                           :category "Computer-related"
-                           :order 13)
-                          (:name "Emacs related"
-                           :category "Emacs-related"
-                           :order 13)
-                          (:name "Archive"
-                           :tag "Archived"
-                           :order 100
-                           )
-                          (:name "Someday"
-                           :property ("ORG_GTD"  "Someday")
-                           :order 100)
-                          )
+         (alltodo "" ((org-agenda-overriding-header "")
+                     (org-super-agenda-groups
+                      '(
+                        (:name "Overdue"
+                         :and (:deadline past :todo ("TODO" "NEXT" "WAIT"))
+                         :and (:scheduled past :todo ("TODO" "NEXT" "WAIT")))
+                        (:discard (:anything t)
+                                  )))))
+        (agenda "" ((org-agenda-overriding-header "")
+                    (org-super-agenda-groups
+                     '(
+                       (
+                        :name "Already Done"
+                        :todo "DONE"
+                        :log t
+                        :order 2
                         )
-                       )
-                   )
-          )
-         )
+                       (:name "Due Later"
+                        :and (:deadline future :todo ("TODO" "NEXT" "WAIT"))
+                        :order 11)
+                       (:name "Today"
+                        :time-grid t
+                        :scheduled today
+                        :deadline today
+                        :order 1)
+                       ))))
+        ;; FIXME Add untaggeds
+        (alltodo "" ((org-agenda-overriding-header "All TODOs")
+                     (org-super-agenda-groups
+                      '(
+                        (:name "Scheduled Soon"
+                         :scheduled future
+                         :order 1)
+                        (:name "Important"
+                         :discard (:tag "Archived")
+                         :and (:priority "A" :deadline t)
+                         :order 2)
+                        (:name "Meetings"
+                         :category "Meetings"
+                         :discard (:not (:todo ("TODO" "WAITING" "NEXT" )))
+                         :order 3)
+                        (:name "Concurso"
+                         :category "Concurso"
+                         :order 3
+                         )
+                        (:name "MADE"
+                         :category "MADE"
+                         :order 3
+                         )
+                        (:name "Reading list"
+                         :category "Reading list"
+                         :order 4
+                         )
+                        (:name "Bureaucracy"
+                         :category "Bureaucracy"
+                         :order 5
+                         )
+                        (:name "PhD"
+                         :category "PhD"
+                         :order 5
+                         )
+                        (:name "Conferences and Workshops"
+                         :category "Conferences"
+                         :order 5)
+                        (:name "Active papers"
+                         :category "Paper-related"
+                         :property ("ORG_GTD"  "Project")
+                         )
+                        (:name "Ticklers"
+                         :property ("ORG_GTD"  "Tickler")
+                         :order 5)
+                        (:name "PED"
+                         :category "PED"
+                         :order 6
+                         )
+                        (:name "Paper reviews"
+                         :category "Paper reviews"
+                         :order 8)
+                        (:name "YSI Related"
+                         :category "YSI"
+                         :order 8
+                         )
+                        (:name "Habits"
+                         :property ("ORG_GTD"  "Habit")
+                         :order 12)
+                        (:name "Home/Chores"
+                         :category "Home/Chores"
+                         :order 12)
+                        (:name "Computer related"
+                         :category "Computer-related"
+                         :order 13)
+                        (:name "Emacs related"
+                         :category "Emacs-related"
+                         :order 13)
+                        (:name "Archive"
+                         :tag "Archived"
+                         :order 100
+                         )
+                        (:name "Someday"
+                         :property ("ORG_GTD"  "Someday")
+                         :order 100)
+                        )
+                      )
+                     )
+                 )
         )
+       )
       )
+    )
 (map! :desc "Next line"
-      :map org-super-agenda-header-map
-      "j" 'org-agenda-next-line)
+     :map org-super-agenda-header-map
+     "j" 'org-agenda-next-line)
 
 (map! :desc "Next line"
-      :map org-super-agenda-header-map
-      "k" 'org-agenda-previous-line)
+     :map org-super-agenda-header-map
+     "k" 'org-agenda-previous-line)
 
 ;; Custom styles for dates in agenda
 (custom-set-faces!
@@ -2145,20 +2174,20 @@ mu index
       )
 
 
-(defun my/org-capture-add-ids-to-subtree ()
-  "Add UUID IDs to all headings in the captured subtree."
-  (when (and (eq major-mode 'org-mode)
-             (org-capture-get :key))
-    (save-excursion
-      (org-back-to-heading t)
-      (org-map-entries
-       (lambda ()
-         (org-id-get-create))
-       nil
-       'tree))))
+;; (defun my/org-capture-add-ids-to-subtree ()
+;;   "Add UUID IDs to all headings in the captured subtree."
+;;   (when (and (eq major-mode 'org-mode)
+;;              (org-capture-get :key))
+;;     (save-excursion
+;;       (org-back-to-heading t)
+;;       (org-map-entries
+;;        (lambda ()
+;;          (org-id-get-create))
+;;        nil
+;;        'tree))))
 
-(add-hook 'org-capture-after-finalize-hook
-          #'my/org-capture-add-ids-to-subtree)
+;; (add-hook 'org-capture-after-finalize-hook
+;;           #'my/org-capture-add-ids-to-subtree)
 
 #+end_src
 
@@ -2183,7 +2212,7 @@ mu index
 :ID:       db15be30-9ce3-4b95-be44-d815fb27e04a
 :END:
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (after! treemacs
   (defvar treemacs-file-ignore-extensions '()
     "File extension which `treemacs-ignore-filter' will ensure are ignored")
@@ -2232,4 +2261,50 @@ mu index
         "*/.auctex-auto"
         "*/_region_.log"
         "*/_region_.tex"))
+#+end_src
+
+* Pass
+
+#+begin_src emacs-lisp
+(setq auth-sources '(password-store "~/.authinfo.gpg"))
+#+end_src
+
+
+* HL-Todos
+
+#+begin_src emacs-lisp
+(with-eval-after-load 'hl-todo
+  (dolist (kw
+           '(("REFACTOR"    font-lock-keyword-face bold)
+             ("CLEANUP"     font-lock-doc-face bold)
+             ("OPTIMIZE"    warning bold)
+
+             ("ASSUMPTION"  font-lock-type-face bold)
+             ("CALIBRATION" font-lock-type-face bold)
+             ("VALIDATION"  success bold)
+             ("CONSISTENCY" success bold)
+             ("EDGECASE"    warning bold)
+
+             ("HELP"        success bold)
+             ("QUESTION"    warning bold)
+             ("EXAMPLE"     font-lock-doc-face bold)
+
+             ("REVERT"      error bold)
+             ("BREAKING"    error bold)
+
+             ("DELEGATE"    font-lock-constant-face bold)
+             ("BLOCKED"     error bold)
+             ("PRIORITY"    warning bold)
+
+             ("DEBUG"       font-lock-constant-face bold)
+             ("OUTPUT"      font-lock-type-face bold)
+             ("LOGIC"       font-lock-keyword-face bold)
+
+             ("FUTURE"      warning bold)
+             ("LAST-REVIEW" font-lock-doc-face bold)
+             ("REVIEW-DATE" font-lock-doc-face bold)))
+
+    ;; adiciona apenas se ainda não existir
+    (unless (assoc (car kw) hl-todo-keyword-faces)
+      (add-to-list 'hl-todo-keyword-faces kw t))))
 #+end_src
