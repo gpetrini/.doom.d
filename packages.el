@@ -139,3 +139,9 @@
 (package! djvu)
 
 ;; (package! org-repeat-by-cron)
+
+;; (unpin! org-noter)
+
+(package! org-noter :recipe (:host github :repo "org-noter/org-noter" :files ("*.el" "modules/*.el")))
+
+(package! org-ql)

@@ -227,9 +227,20 @@ This just configures spelling and grammar checking support.
   :config
   ;; Use my custom dictionary
   (setq jinx-languages "en_US")
-  ;; Extra face(s) to ignore
-  (push 'org-inline-src-block
-        (alist-get 'org-mode jinx-exclude-faces))
+
+;; Ignore Org faces
+  (dolist (face '(org-quote
+                  org-block
+                  org-block-begin-line
+                  org-block-end-line
+                  org-code
+                  org-verbatim
+                  org-meta-line
+                  org-document-info-keyword
+                  org-inline-src-block))
+    (push face
+          (alist-get 'org-mode jinx-exclude-faces)))
+
   ;; Take over the relevant bindings.
   (after! ispell
     (global-set-key [remap ispell-word] #'jinx-correct))
@@ -679,13 +690,20 @@ citecolor=blue,filecolor=blue,menucolor=blue,urlcolor=blue"
 :END:
 
 #+begin_src emacs-lisp
-(setq pdf-annot-activate-created-annotations t
+(setq pdf-annot-activate-created-annotations nil
       pdf-view-display-size 'fit-width
       pdf-view-resize-factor 1.1)
+
+
+(map!
+ :after pdf-tools
+ :map pdf-view-mode-map
+ :localleader
+ "b" #'pdf-history-backward
+ "f" #'pdf-history-forward)
 #+end_src
 
 #+RESULTS:
-: 1.1
 
 
 
@@ -1090,6 +1108,11 @@ The following config is necessary to make per-projects files in the server
 (setq! denote-templates
        '((biblio . "
 
+,#+TAGS: context(c) theory(t) hypo(h) contrib(n) method(m) data(d)
+,#+TAGS: results(r) discuss(s) critique(k) limits(l) future(f)
+,#+TAGS: empirics(e) formal(o) sim(g) policy(p) lit(i)
+,#+TAGS: insight(j) misc(x)
+
 - DOI/URL: %^{doi-url}
 - Type: %^{=type=}
 - Journal Title: %^{journaltitle}
@@ -1154,16 +1177,12 @@ The following config is necessary to make per-projects files in the server
         "......" "----------------"))
 
 (setq org-tag-alist
-      '(;; Places
-        ("@home" . ?H)
+      '(( "@home" . ?H)
         ("@work" . ?W)
 
-        ;; Devices
         ("@computer" . ?C)
         ("@server" . ?S)
 
-
-        ;; Institutions
         ("@hwr" . ?h)
         ("@santanna" . ?s)
         ("@unicamp" . ?u)
@@ -1172,7 +1191,6 @@ The following config is necessary to make per-projects files in the server
         ("@PED" . ?P)
         ("@MADE" . ?M)
 
-        ;; Activities
         ("@bureaucracy" . ?b)
         ("@planning" . ?n)
         ("@coding" . ?c)
@@ -1187,8 +1205,7 @@ The following config is necessary to make per-projects files in the server
         ("@email" . ?e)
         ("@meetings" . ?m)
         ("@personal" . ?l)
-        ("@free" . ?f)
-        ))
+        ("@free" . ?f)))
 
 (setq org-agenda-files '("~/Dropbox/GTD/"))
 
@@ -2308,3 +2325,323 @@ mu index
     (unless (assoc (car kw) hl-todo-keyword-faces)
       (add-to-list 'hl-todo-keyword-faces kw t))))
 #+end_src
+
+* Org-noter
+
+#+begin_src emacs-lisp
+
+(after! org-noter
+
+  (setq
+   org-noter-highlight-selected-text nil
+   org-noter-doc-split-fraction '(0.7 . 0.625)
+   org-noter-hide-other nil)
+
+  (add-hook! '(org-noter-notes-mode-hook org-noter-doc-mode-hook)
+             #'evil-normalize-keymaps)
+
+  ;; ---------------------------------------------------------------------------
+  ;; Categorias
+  ;; ---------------------------------------------------------------------------
+
+  (defvar my/org-noter-categories
+    '("Background and motivation"
+      "Supporting Ideas and hypothesis"
+      "Purpose, Relevance, and Contribution"
+      "Methodology"
+      "Results"
+      "Interesting findings and not categorized stuff"
+      "Critics"
+      "Policy implications"
+      "Future research"
+      "Literature dialogue"
+      "Questions and doubts"
+      "Definition"
+      "Example"))
+
+  ;; ---------------------------------------------------------------------------
+  ;; Cores
+  ;; ---------------------------------------------------------------------------
+
+  (defvar my/org-noter-category-colors
+    '(("Background and motivation" . "#c792ea")
+      ("Supporting Ideas and hypothesis" . "#ffff00")
+      ("Purpose, Relevance, and Contribution" . "#ffff00")
+      ("Methodology" . "#ffff00")
+      ("Results" . "#ffff00")
+      ("Interesting findings and not categorized stuff" . "#ffff00")
+      ("Critics" . "#ff0000")
+      ("Policy implications" . "#ffff00")
+      ("Future research" . "#ffff00")
+      ("Literature dialogue" . "#ffff00")
+      ("Questions and doubts" . "#ffff00")
+      ("Definition" . "#ff8800")
+      ("Example" . "#00cc44")))
+
+  ;; ---------------------------------------------------------------------------
+  ;; Inserção categorizada
+  ;; ---------------------------------------------------------------------------
+
+  (defun my/org-noter-insert-categorized-note ()
+    (interactive)
+
+    (let* ((region
+            (and (pdf-view-active-region-p)
+                 (pdf-view-active-region)))
+
+           (text
+            (when region
+              (mapconcat #'identity
+                         (pdf-view-active-region-text)
+                         " ")))
+
+           (page (pdf-view-current-page))
+
+           (pdf-buf (current-buffer))
+
+           ;; janela PDF capturada antes do org-noter mudar o foco —
+           ;; pdf-annot-add-markup-annotation exige a janela selecionada
+           (pdf-win (selected-window)))
+
+      ;; Fase 2: cria nota com região ainda ativa
+      (let ((org-noter-insert-note-no-questions t))
+        (org-noter-insert-precise-note))
+
+      ;; Fase 3: prompts
+      (let* ((category
+              (completing-read "Category: "
+                               my/org-noter-categories
+                               nil t))
+
+             (title
+              (read-string
+               (format "Title (default: %s): " category)))
+
+             (final-title
+              (if (string-empty-p title) category title))
+
+             (color
+              (alist-get category
+                         my/org-noter-category-colors
+                         nil nil #'string=)))
+
+        ;; Fase 4: cria highlight com a cor da categoria.
+        ;; with-selected-window é necessário: pdf-annot-add-markup-annotation
+        ;; verifica a janela selecionada (não o current-buffer).
+        (when (and region color (window-live-p pdf-win))
+          (with-selected-window pdf-win
+            (pdf-annot-add-markup-annotation region 'highlight color)))
+
+        ;; Fase 5: edita heading, abre tags, insere conteúdo
+        ;; with-selected-window garante buffer e ponto da janela corretos
+        (let ((notes-win (org-noter--get-notes-window)))
+          (when notes-win
+            (with-selected-window notes-win
+              (org-back-to-heading t)
+              (org-edit-headline final-title)
+              (condition-case nil (org-set-tags-command) (quit nil))
+              (org-end-of-meta-data t)
+              (when (and text (not (string-empty-p text)))
+                (insert "\n#+begin_quote\n"
+                        (string-trim-right text)
+                        (if page (format " (p. %d)" page) "")
+                        "\n#+end_quote\n"))
+              (insert "\n")))))))
+
+  ;; ---------------------------------------------------------------------------
+  ;; Keybindings
+  ;; ---------------------------------------------------------------------------
+
+  (map!
+   :map org-noter-doc-mode-map
+   :localleader
+   :desc "Categorized note" "a" #'my/org-noter-insert-categorized-note
+   :desc "Kill session"     "Q" #'org-noter-kill-session)
+
+  (map!
+   :map org-noter-notes-mode-map
+   :localleader
+   :desc "Categorized note" "a" #'my/org-noter-insert-categorized-note
+   :desc "Kill session"     "Q" #'org-noter-kill-session))
+
+#+end_src
+
+#+RESULTS:
+
+* Org-ql
+
+#+begin_src emacs-lisp
+(use-package! org-ql
+
+  :after org
+
+  :config
+
+  (require 'org-super-agenda)
+
+  ;; ---------------------------------------------------------------------------
+  ;; Views acadêmicas
+  ;; ---------------------------------------------------------------------------
+
+  (defvar my/org-ql-paper-views
+    '(("Background and motivation"
+       . (tags "context"))
+
+      ("Supporting Ideas and hypothesis"
+       . (or (tags "theory")
+             (tags "hypo")))
+
+      ("Purpose, Relevance, and Contribution"
+       . (tags "contrib"))
+
+      ("Methodology"
+       . (or (tags "method")
+             (tags "data")
+             (tags "empirics")
+             (tags "formal")
+             (tags "sim")))
+
+      ("Results"
+       . (or (tags "results")
+             (tags "discuss")))
+
+      ("Interesting findings and not categorized stuff"
+       . (or (tags "insight")
+             (tags "misc")))
+
+      ("Critics"
+       . (or (tags "critique")
+             (tags "limits")))
+
+      ("Policy implications"
+       . (tags "policy"))
+
+      ("Future research"
+       . (tags "future"))
+
+      ("Literature dialogue"
+       . (tags "lit"))))
+
+  ;; -------------------------------------------------------------------------
+  ;; Fechar buffers org-ql rapidamente
+  ;; -------------------------------------------------------------------------
+
+  (map!
+   :map org-ql-view-map
+   :n "q" #'quit-window)
+
+
+  ;; ---------------------------------------------------------------------------
+  ;; Seleção interativa de views
+  ;; ---------------------------------------------------------------------------
+
+  (defun my/org-ql-view-current-buffer ()
+    (interactive)
+
+    (let* ((choice
+            (completing-read
+             "View: "
+             (mapcar #'car my/org-ql-paper-views)
+             nil t))
+
+           (query
+            (cdr (assoc choice my/org-ql-paper-views))))
+
+      (org-ql-search
+        (current-buffer)
+        query
+        :title
+        (format "%s: %s"
+                choice
+                (buffer-name)))))
+
+  ;; ---------------------------------------------------------------------------
+  ;; Dashboard acadêmica
+  ;; ---------------------------------------------------------------------------
+
+  (defun my/org-ql-paper-dashboard ()
+    (interactive)
+
+    (org-ql-search
+      (current-buffer)
+
+      '(or
+        (tags "context")
+        (tags "theory")
+        (tags "hypo")
+        (tags "contrib")
+        (tags "method")
+        (tags "data")
+        (tags "results")
+        (tags "discuss")
+        (tags "critique")
+        (tags "limits")
+        (tags "future")
+        (tags "empirics")
+        (tags "formal")
+        (tags "sim")
+        (tags "policy")
+        (tags "lit")
+        (tags "insight")
+        (tags "misc"))
+
+      :title
+      (format "Paper dashboard: %s"
+              (buffer-name))
+
+      :super-groups
+      '((:name "Background and motivation"
+         :tag ("context"))
+
+        (:name "Supporting Ideas and hypothesis"
+         :tag ("theory" "hypo"))
+
+        (:name "Purpose, Relevance, and Contribution"
+         :tag ("contrib"))
+
+        (:name "Methodology"
+         :tag ("method"
+               "data"
+               "empirics"
+               "formal"
+               "sim"))
+
+        (:name "Results"
+         :tag ("results"
+               "discuss"))
+
+        (:name "Interesting findings and not categorized stuff"
+         :tag ("insight"
+               "misc"))
+
+        (:name "Critics"
+         :tag ("critique"
+               "limits"))
+
+        (:name "Policy implications"
+         :tag ("policy"))
+
+        (:name "Future research"
+         :tag ("future"))
+
+        (:name "Literature dialogue"
+         :tag ("lit"))
+
+        (:discard (:anything t)))))
+
+  ;; ---------------------------------------------------------------------------
+  ;; Keybindings
+  ;; ---------------------------------------------------------------------------
+
+  (map!
+   :leader
+   (:prefix ("n" . "notes")
+
+    :desc "Paper dashboard"
+    "D" #'my/org-ql-paper-dashboard
+
+    :desc "Paper views"
+    "V" #'my/org-ql-view-current-buffer)))
+#+end_src
+
+#+RESULTS:
