@@ -1108,43 +1108,55 @@ The following config is necessary to make per-projects files in the server
 (setq! denote-templates
        '((biblio . "
 
-,#+TAGS: context(c) theory(t) hypo(h) contrib(n) method(m) data(d)
-,#+TAGS: results(r) discuss(s) critique(k) limits(l) future(f)
-,#+TAGS: empirics(e) formal(o) sim(g) policy(p) lit(i)
-,#+TAGS: insight(j) misc(x)
+,* Metadata
+- Journal: %^{shortjournal}
+- Abstract: %^{abstract}
 
-- DOI/URL: %^{doi-url}
-- Type: %^{=type=}
-- Journal Title: %^{journaltitle}
-- Abbrev: %^{shortjournal}
+,* Takeaway
+
+,* Related Notes
 
 ,* FISH-5SS
 
-,** 5SS
+,** Background
 
-,** Background and motivation
+,** Arguments
 
-,** Supporting Ideas and hypothesis
+,** Contribution
 
-,** Purpose, Relevance, and Contribution
+,** Theoretical
+
+,** Empirical
+
+,** Model
+
+,** Data
 
 ,** Methodology
 
 ,** Results
 
-,** Interesting findings and not categorized stuff
+,** Observations
 
-,** Critics
+,** Limitations
 
-,** Abstract
+,** Critique
 
-,#+BEGIN_ABSTRACT
-%^{abstract}
-,#+END_ABSTRACT
+,** Policy
 
-,* Specific notes
-,* Annotations (zotero)
-,* Additional Backlinks
+,** Future Work
+
+,** Related Work
+
+,** Literature
+
+,** Debate
+
+,** Questions
+
+,** Definition
+
+,** Example
 
 ,* References")
          (plain . ""))
@@ -1177,35 +1189,40 @@ The following config is necessary to make per-projects files in the server
         "......" "----------------"))
 
 (setq org-tag-alist
-      '(( "@home" . ?H)
-        ("@work" . ?W)
+      '(;; --- Location ---
+        ("@home"      . ?H)
+        ("@unicamp"   . ?u)
+        ("@santanna"  . ?s)
+        ("@MADE"      . ?M)
+        ("@server"    . ?S)
 
-        ("@computer" . ?C)
-        ("@server" . ?S)
-
-        ("@hwr" . ?h)
-        ("@santanna" . ?s)
-        ("@unicamp" . ?u)
-        ("@ysi" . ?y)
-        ("@univesp" . ?U)
-        ("@PED" . ?P)
-        ("@MADE" . ?M)
-
-        ("@bureaucracy" . ?b)
-        ("@planning" . ?n)
-        ("@coding" . ?c)
-        ("@tests" . ?t)
-        ("@reading" . ?r)
-        ("@studing" . ?g)
-        ("@concurso" . ?o)
-        ("@writing" . ?w)
-        ("@Review" . ?v)
-        ("@dissertation" . ?d)
-        ("@paper" . ?p)
-        ("@email" . ?e)
-        ("@meetings" . ?m)
-        ("@personal" . ?l)
-        ("@free" . ?f)))
+        ;; --- Activity ---
+        ("@writing"      . ?w)
+        ("@paper"        . ?p)
+        ("@reading"      . ?r)
+        ("@coding"       . ?c)
+        ("@reviewing"    . ?v)
+        ("@grading"      . ?g)
+        ("@supervising"  . ?V)
+        ("@meetings"     . ?m)
+        ("@email"        . ?e)
+        ("@bureaucracy"  . ?b)
+        ("@service"      . ?i)
+        ("@planning"     . ?n)
+        ("@teaching"     . ?t)
+        ("@lecture-prep" . ?l)
+        ("@grant"        . ?G)
+        ("@learning"     . ?L)
+        ("@emacs"        . ?E)
+        ("@workflow"     . ?W)
+        ("@conference"   . ?C)
+        ("@travel"       . ?T)
+        ("@presentation" . ?P)
+        ("@editing"      . ?d)
+        ("@seminar"      . ?a)
+        ("@ysi"          . ?y)
+        ("@personal"     . ?o)
+        ("@free"         . ?f)))
 
 (setq org-agenda-files '("~/Dropbox/GTD/"))
 
@@ -1889,32 +1906,45 @@ mu index
 
 (setq org-gtd-areas-of-focus
       '(
+        ;; --- Academic core ---
         "Teaching"
-        "Home/Chores"
-        "Health"
+        "Lectures"
+        "Supervisions"
+        "Paper-related"
+        "Grants"
+        "Service"
+        "Editorial"
+        "Paper reviews"
+        ;; --- Institutions ---
+        "Unicamp"
+        "SantAnna"
+        "MADE"
+        "YSI"
+        ;; --- Events ---
+        "Conferences"
+        "Events and Trips"
+        ;; --- Personal development ---
         "Learning"
         "Reading list"
         "Literature update"
+        ;; --- Admin ---
+        "Bureaucracy"
+        "Email"
+        "Meetings"
         "Planning"
         "Appointments"
-        "PhD"
-        "Paper-related"
-        "MADE"
-        "Package"
-        "Conferences"
-        "Events"
+        ;; --- Tech ---
         "Computer-related"
-        "Github"
         "Emacs-related"
-        "Meetings"
-        "Groups"
-        "YSI"
-        "Paper reviews"
-        "Concurso"
-        "Bureaucracy"
-        "E-mail"
-        "Uncategorized"
-        "Supervisions"
+        "Github"
+        "Package"
+        ;; --- Research groups ---
+        "Research Groups"
+        ;; --- Personal ---
+        "Home/Chores"
+        "Health"
+        ;; --- Catchall ---
+        "Inbox"
         ))
 
 (setq org-gtd-organize-hooks '(org-gtd-set-area-of-focus
@@ -2018,139 +2048,166 @@ mu index
       (type . incubated-project)
       )
 
-     ((name . "󱉓 MADE")
-      (area-of-focus . "MADE")
+     ;; --- Academic core ---
+     ((name . " Teaching")
+      (area-of-focus . "Teaching")
       (type . next-action)
       )
 
+     ((name . " Lectures")
+      (area-of-focus . "Lectures")
+      (type . next-action)
+      )
 
-     ((name . " Supervisions")
+     ((name . " Supervisions")
       (area-of-focus . "Supervisions")
       (type . next-action)
       )
 
-     ((name . " Home/Chores")
-      (area-of-focus . "Home/Chores")
-      (type . next-action)
-      )
-
-     ((name . "󱐮 Health")
-      (area-of-focus . "Health")
-      (type . next-action)
-      )
-
-     ((name . " Reading list")
-      (area-of-focus . "Reading list")
-      (type . next-action)
-      )
-
-     ((name . " Literature update")
-      (area-of-focus . "Literature update")
-      (type . next-action)
-      )
-
-     ((name . " Planning")
-      (area-of-focus . " Planning")
-      (type . next-action)
-      )
-
-     ((name . " Appointments")
-      (area-of-focus . "Appointments")
-      (type . next-action)
-      )
-
-     ((name . " Paper-related")
+     ((name . " Paper-related")
       (area-of-focus . "Paper-related")
       (type . next-action)
       )
 
-     ((name . " Package")
-      (area-of-focus . "Package")
+     ((name . " Grants")
+      (area-of-focus . "Grants")
       (type . next-action)
       )
 
-     ((name . " Conferences")
+     ((name . " Service")
+      (area-of-focus . "Service")
+      (type . next-action)
+      )
+
+     ((name . " Editorial")
+      (area-of-focus . "Editorial")
+      (type . next-action)
+      )
+
+     ((name . " Paper reviews")
+      (area-of-focus . "Paper reviews")
+      (type . next-action)
+      )
+
+     ;; --- Institutions ---
+     ((name . " Unicamp")
+      (area-of-focus . "Unicamp")
+      (type . next-action)
+      )
+
+     ((name . " SantAnna")
+      (area-of-focus . "SantAnna")
+      (type . next-action)
+      )
+
+     ((name . " MADE")
+      (area-of-focus . "MADE")
+      (type . next-action)
+      )
+
+     ((name . " YSI")
+      (area-of-focus . "YSI")
+      (type . next-action)
+      )
+
+     ;; --- Events ---
+     ((name . " Conferences")
       (area-of-focus . "Conferences")
       (type . next-action)
       )
 
-     ((name . "󱁖 Events")
-      (area-of-focus . "Events")
+     ((name . " Events and Trips")
+      (area-of-focus . "Events and Trips")
       (type . next-action)
       )
 
-     ((name . " Computer-related")
-      (area-of-focus . "Computer-related")
+     ;; --- Personal development ---
+     ((name . " Learning")
+      (area-of-focus . "Learning")
       (type . next-action)
       )
 
-     ((name . " Github")
-      (area-of-focus . "Github")
+     ((name . " Reading list")
+      (area-of-focus . "Reading list")
       (type . next-action)
       )
 
-     ((name . " Emacs-related")
-      (area-of-focus . "Emacs-related")
+     ((name . " Literature update")
+      (area-of-focus . "Literature update")
       (type . next-action)
       )
 
-     ((name . " Meetings")
+     ;; --- Admin ---
+     ((name . " Bureaucracy")
+      (area-of-focus . "Bureaucracy")
+      (type . next-action)
+      )
+
+     ((name . " Email")
+      (area-of-focus . "Email")
+      (type . next-action)
+      )
+
+     ((name . " Meetings")
       (area-of-focus . "Meetings")
       (type . calendar)
       (when . future)
       )
 
-     ((name . " Groups")
-      (area-of-focus . "Groups")
+     ((name . " Planning")
+      (area-of-focus . "Planning")
       (type . next-action)
       )
 
-     ((name . " YSI")
-      (area-of-focus . "YSI")
+     ((name . " Appointments")
+      (area-of-focus . "Appointments")
       (type . next-action)
       )
 
-     ((name . " Paper reviews")
-      (area-of-focus . "Paper reviews")
+     ;; --- Tech ---
+     ((name . " Computer-related")
+      (area-of-focus . "Computer-related")
       (type . next-action)
       )
 
-     ((name . " Concurso")
-      (area-of-focus . "Concurso")
+     ((name . " Emacs-related")
+      (area-of-focus . "Emacs-related")
       (type . next-action)
       )
 
-     ((name . " Bureaucracy")
-      (area-of-focus . "Bureaucracy")
+     ((name . " Github")
+      (area-of-focus . "Github")
       (type . next-action)
       )
 
-     ((name . " E-mail")
-      (area-of-focus . "E-mail")
+     ((name . " Package")
+      (area-of-focus . "Package")
       (type . next-action)
       )
 
-     ((name . " Unestimated")
+     ;; --- Research groups ---
+     ((name . " Research Groups")
+      (area-of-focus . "Research Groups")
+      (type . next-action)
+      )
+
+     ;; --- Personal ---
+     ((name . " Home/Chores")
+      (area-of-focus . "Home/Chores")
+      (type . next-action)
+      )
+
+     ((name . " Health")
+      (area-of-focus . "Health")
+      (type . next-action)
+      )
+
+     ;; --- Catchall ---
+     ((name . " Unestimated")
       (type . next-action)
       (effort . nil)
       )
 
-     ((name . " PhD")
-      (area-of-focus . "PhD")
-      (type . next-action)
-      )
-
-     ((name . " Teaching")
-      (area-of-focus . "Teaching")
-      (type . next-action)
-      )
-
-     ((name . " Learning")
-      (area-of-focus . "Learning")
-      (type . next-action)
-      )
-
-     ((name . " Paper Ideas")
       (type . someday)
       (area-of-focus . "Paper-related")
       )
@@ -2345,17 +2402,25 @@ mu index
   ;; ---------------------------------------------------------------------------
 
   (defvar my/org-noter-categories
-    '("Background and motivation"
-      "Supporting Ideas and hypothesis"
-      "Purpose, Relevance, and Contribution"
+    '("Takeaway"
+      "Background"
+      "Arguments"
+      "Contribution"
+      "Theoretical"
+      "Empirical"
+      "Model"
+      "Data"
       "Methodology"
       "Results"
-      "Interesting findings and not categorized stuff"
-      "Critics"
-      "Policy implications"
-      "Future research"
-      "Literature dialogue"
-      "Questions and doubts"
+      "Observations"
+      "Limitations"
+      "Critique"
+      "Policy"
+      "Future Work"
+      "Related Work"
+      "Literature"
+      "Debate"
+      "Questions"
       "Definition"
       "Example"))
 
@@ -2364,19 +2429,27 @@ mu index
   ;; ---------------------------------------------------------------------------
 
   (defvar my/org-noter-category-colors
-    '(("Background and motivation" . "#c792ea")
-      ("Supporting Ideas and hypothesis" . "#ffff00")
-      ("Purpose, Relevance, and Contribution" . "#ffff00")
-      ("Methodology" . "#ffff00")
-      ("Results" . "#ffff00")
-      ("Interesting findings and not categorized stuff" . "#ffff00")
-      ("Critics" . "#ff0000")
-      ("Policy implications" . "#ffff00")
-      ("Future research" . "#ffff00")
-      ("Literature dialogue" . "#ffff00")
-      ("Questions and doubts" . "#ffff00")
-      ("Definition" . "#ff8800")
-      ("Example" . "#00cc44")))
+    '(("Takeaway"     . "#00cc44")
+      ("Background"   . "#c792ea")
+      ("Arguments"    . "#ffff00")
+      ("Contribution" . "#ffff00")
+      ("Theoretical"  . "#82aaff")
+      ("Empirical"    . "#82aaff")
+      ("Model"        . "#82aaff")
+      ("Data"         . "#82aaff")
+      ("Methodology"  . "#ffff00")
+      ("Results"      . "#ffff00")
+      ("Observations" . "#ffff00")
+      ("Limitations"  . "#ff8800")
+      ("Critique"     . "#ff0000")
+      ("Policy"       . "#ffff00")
+      ("Future Work"  . "#ffff00")
+      ("Related Work" . "#ffff00")
+      ("Literature"   . "#c792ea")
+      ("Debate"       . "#c792ea")
+      ("Questions"    . "#ffff00")
+      ("Definition"   . "#ff8800")
+      ("Example"      . "#00cc44")))
 
   ;; ---------------------------------------------------------------------------
   ;; Inserção categorizada
