@@ -52,9 +52,6 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
  org-export-allow-bind-keywords t
  )
 
-(setq
- org-cite-csl-styles-dir "~/Zotero/styles"
- )
 (map! "C-c C-SPC" #'dabbrev-completion)
 
 
@@ -369,7 +366,6 @@ ado-cus.el changed to include fake time
         git-commit-summary-max-length 120
         magit-diff-refine-hunk 'all
         ))
-(setq auth-sources '("~/.authinfo"))
 #+end_src
 
 #+RESULTS:
@@ -390,7 +386,7 @@ ado-cus.el changed to include fake time
 
 ** Julia
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (setq! julia-snail-executable "~/.juliaup/bin/julia")
 (setq! eglot-jl-julia-command "/home/gpetrini/.juliaup/bin/julia")
 #+end_src
@@ -1551,20 +1547,13 @@ The following config is necessary to make per-projects files in the server
   (add-hook 'org-mode-hook #'flymake-vale-load)
   )
 
-(use-package! flycheck-grammarly
-  :defer-incrementally flycheck)
-(after! flycheck-grammarly
- (setq flycheck-grammarly-check-time 1.0)
- (flycheck-add-mode 'grammarly 'LaTeX-mode)
- (flycheck-grammarly-setup)
-(grammarly-load-from-authinfo "gpetrinidasilveira@gmail.com"))
-
-
-;; (use-package! eglot-grammarly
-;;   :defer t  ; defer package loading
-;;   :hook ((text-mode org-mode). (lambda ()
-;;                                       (require 'eglot-grammarly)
-;;                                       (eglot-ensure))))
+(use-package! flymake-languagetool
+  :defer t
+  :hook ((text-mode  . flymake-languagetool-load)
+         (latex-mode . flymake-languagetool-load)
+         (org-mode   . flymake-languagetool-load))
+  :init
+  (setq flymake-languagetool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar"))
 #+end_src
 
 * Email
@@ -1889,7 +1878,7 @@ mu index
   (map! :localleader
         (:prefix ("D" . "org-gtd")
          :desc "Capture"        "c"  #'org-gtd-capture
-         ;; :desc "Engage"         "e"  #'org-gtd-engage
+         :desc "Daily view"     "e"  #'my/gtd-daily-view
          :desc "Command center"  "a"  #'org-gtd-command-center
          :desc "Process inbox"  "p"  #'org-gtd-process-inbox
          :desc "Show all next"  "n"  #'org-gtd-show-all-next
@@ -1924,7 +1913,6 @@ mu index
         "Conferences"
         "Events and Trips"
         ;; --- Personal development ---
-        "Learning"
         "Reading list"
         "Literature update"
         ;; --- Admin ---
@@ -1967,265 +1955,57 @@ mu index
 
 (setq org-gtd-graph-render-mode 'ascii)
 
-(defun my-gtd-review ()
-  "Show planning views"
+(defun my/gtd-stuck-project-skip-fn (area)
+  "Return a skip function for stuck projects belonging to AREA."
+  (lambda ()
+    (let ((end (org-entry-end-position)))
+      (if (and (equal (org-entry-get (point) "ORG_GTD") org-gtd-projects)
+               (equal (org-entry-get (point) "CATEGORY") area)
+               (not (org-entry-is-done-p))
+               (funcall (org-gtd-pred--project-is-stuck)))
+          nil
+        end))))
+
+(defun my/gtd-area-has-items-p (area)
+  "Return non-nil if AREA has at least one actionable item."
+  (catch 'found
+    (org-ql-select (org-agenda-files)
+      `(and (property "CATEGORY" ,area)
+            (or (property "ORG_GTD" ,org-gtd-action)
+                (property "ORG_GTD" ,org-gtd-someday)
+                (property "ORG_GTD" ,org-gtd-projects)))
+      :action (lambda () (throw 'found t)))))
+
+(defun my/gtd-area-blocks (area)
+  "Return view spec blocks for AREA: next-actions, stuck projects, someday."
+  `(((name . ,(format "%s — Actions" area))
+     (type . next-action)
+     (area-of-focus . ,area))
+    ((native . (todo ""
+                    ((org-agenda-skip-function ,(my/gtd-stuck-project-skip-fn area))
+                     (org-agenda-overriding-header ,(format "  %s — Stuck Projects:" area))))))
+    ((name . ,(format "%s — Someday" area))
+     (type . someday)
+     (area-of-focus . ,area))))
+
+(defun my/gtd-daily-view ()
+  "Panoramic daily GTD view: engage header followed by per-area next-actions."
   (interactive)
   (org-gtd-view-show
-   '(
-
-     ((name . "󰃹 Overdue")
-      (type . next-action)
-      (scheduled . past)
-      )
-
-     ((name . "󰏺 Missed events")
-      (type . calendar)
-      (when . past)
-      )
-
-     ((name . "󰃹 Missed check-in")
-      (type . tickler)
-      (when . past)
-      )
-
-     ((name . "󰃭 Due today")
-      (type . calendar)
-      (when . today))
-
-     ((name . "󰕪 Today's schedule")
-      (block-type . calendar-day))
-
-     ((name . "󰃶 Scheduled for today")
-      (type . next-action)
-      (scheduled . today)
-      )
-
-     ((name . "󰢌 Tickler items ready for today")
-      (type . tickler)
-      (when . today))
-
-     ((name . " Delegation check-ins")
-      (type . delegated)
-      (when . today))
-
-
-     ((name . " High priority focused Work for today")
-      (type . next-action)
-      (priority . A)
-      (scheduled . today)
-      (effort . (> "0:30")))
-
-     ((name . "󰒭 All actions ready to be executed")
-      (type . next-action)
-      )
-
-     ((name . "󱙬 Next time-dependent events")
-      (type . calendar)
-      (when . future))
-
-
-
-     ((name . " Low priority")
-      (type . next-action)
-      (priority . (B C))
-      (effort . (> "0:30")))
-
-     ((name . " Easy picks")
-      (effort . (between "0:05" "0:15"))
-      (type . next-action)
-      )
-
-
-     ((name . " Completed projects")
-      (type . completed-project)
-      )
-
-     ((name . " Stuck projects")
-      (type . stuck-project)
-      )
-
-     ((name . " Tickler projects")
-      (type . incubated-project)
-      )
-
-     ;; --- Academic core ---
-     ((name . " Teaching")
-      (area-of-focus . "Teaching")
-      (type . next-action)
-      )
-
-     ((name . " Lectures")
-      (area-of-focus . "Lectures")
-      (type . next-action)
-      )
-
-     ((name . " Supervisions")
-      (area-of-focus . "Supervisions")
-      (type . next-action)
-      )
-
-     ((name . " Paper-related")
-      (area-of-focus . "Paper-related")
-      (type . next-action)
-      )
-
-     ((name . " Grants")
-      (area-of-focus . "Grants")
-      (type . next-action)
-      )
-
-     ((name . " Service")
-      (area-of-focus . "Service")
-      (type . next-action)
-      )
-
-     ((name . " Editorial")
-      (area-of-focus . "Editorial")
-      (type . next-action)
-      )
-
-     ((name . " Paper reviews")
-      (area-of-focus . "Paper reviews")
-      (type . next-action)
-      )
-
-     ;; --- Institutions ---
-     ((name . " Unicamp")
-      (area-of-focus . "Unicamp")
-      (type . next-action)
-      )
-
-     ((name . " SantAnna")
-      (area-of-focus . "SantAnna")
-      (type . next-action)
-      )
-
-     ((name . " MADE")
-      (area-of-focus . "MADE")
-      (type . next-action)
-      )
-
-     ((name . " YSI")
-      (area-of-focus . "YSI")
-      (type . next-action)
-      )
-
-     ;; --- Events ---
-     ((name . " Conferences")
-      (area-of-focus . "Conferences")
-      (type . next-action)
-      )
-
-     ((name . " Events and Trips")
-      (area-of-focus . "Events and Trips")
-      (type . next-action)
-      )
-
-     ;; --- Personal development ---
-     ((name . " Learning")
-      (area-of-focus . "Learning")
-      (type . next-action)
-      )
-
-     ((name . " Reading list")
-      (area-of-focus . "Reading list")
-      (type . next-action)
-      )
-
-     ((name . " Literature update")
-      (area-of-focus . "Literature update")
-      (type . next-action)
-      )
-
-     ;; --- Admin ---
-     ((name . " Bureaucracy")
-      (area-of-focus . "Bureaucracy")
-      (type . next-action)
-      )
-
-     ((name . " Email")
-      (area-of-focus . "Email")
-      (type . next-action)
-      )
-
-     ((name . " Meetings")
-      (area-of-focus . "Meetings")
-      (type . calendar)
-      (when . future)
-      )
-
-     ((name . " Planning")
-      (area-of-focus . "Planning")
-      (type . next-action)
-      )
-
-     ((name . " Appointments")
-      (area-of-focus . "Appointments")
-      (type . next-action)
-      )
-
-     ;; --- Tech ---
-     ((name . " Computer-related")
-      (area-of-focus . "Computer-related")
-      (type . next-action)
-      )
-
-     ((name . " Emacs-related")
-      (area-of-focus . "Emacs-related")
-      (type . next-action)
-      )
-
-     ((name . " Github")
-      (area-of-focus . "Github")
-      (type . next-action)
-      )
-
-     ((name . " Package")
-      (area-of-focus . "Package")
-      (type . next-action)
-      )
-
-     ;; --- Research groups ---
-     ((name . " Research Groups")
-      (area-of-focus . "Research Groups")
-      (type . next-action)
-      )
-
-     ;; --- Personal ---
-     ((name . " Home/Chores")
-      (area-of-focus . "Home/Chores")
-      (type . next-action)
-      )
-
-     ((name . " Health")
-      (area-of-focus . "Health")
-      (type . next-action)
-      )
-
-     ;; --- Catchall ---
-     ((name . " Unestimated")
-      (type . next-action)
-      (effort . nil)
-      )
-
-      (type . someday)
-      (area-of-focus . "Paper-related")
-      )
-
-     ((name . "󱫢 When idle")
-      (type . next-action)
-      (tags . ("@free"))
-      )
-
-
-     )
-   )
-  )
-
-(map! :localleader
-      (:prefix "D"
-       :desc "My custom Engage view"
-       "e" #'my-gtd-review))
+   `((name . "GTD Daily View")
+     (prefix . (project area-of-focus "—"))
+     (blocks . (((name . "Today's Schedule")
+                 (block-type . calendar-day))
+                ((name . "Ticklers due today")
+                 (type . tickler)
+                 (when . today))
+                ((name . "Delegations due today")
+                 (type . delegated)
+                 (when . today))
+                ,@(apply #'append
+                         (mapcar #'my/gtd-area-blocks
+                                 (seq-filter #'my/gtd-area-has-items-p
+                                             org-gtd-areas-of-focus))))))))
 
 
 (setq org-gtd-capture-templates
@@ -2266,7 +2046,29 @@ mu index
 #+end_src
 
 #+RESULTS:
-| my/org-capture-add-ids-to-subtree | denote-org-capture-delete-empty-file | +org-capture-cleanup-frame-h |
+| i | Inbox | entry | (file org-gtd-inbox-path) | * %? |
+:PROPERTIES:
+:ID: %(org-id-uuid)
+:ORG_GTD_CAPTURED_AT: %U
+:END:
+%i |:kill-buffer |t |
+| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
+:PROPERTIES:
+:ID: %(org-id-uuid)
+:ORG_GTD_CAPTURED_AT: %U
+:END:
+%i |:kill-buffer |t |
+| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
+:PROPERTIES:
+:ID: %(org-id-uuid)
+:ORG_GTD_CAPTURED_AT: %U
+:DOI: %^{DOI}
+:Published: %^{Published?}
+:END:
+
+- Reason: %^{Reason}
+
+- Possible group: %^{Group} |:kill-buffer |t |
 
 
 

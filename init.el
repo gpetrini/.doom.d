@@ -52,7 +52,7 @@
         ;; +light
         )
        nav-flash                 ; blink cursor line after big motions
-       neotree                   ; a project drawer, like NERDTree for vim
+       ;;neotree                   ; a project drawer, like NERDTree for vim
        ophints                   ; highlight the region an operation acts on
        (popup +default)              ; tame sudden yet inevitable temporary windows
        (smooth-scroll
@@ -105,7 +105,6 @@
        :checkers
        (syntax +flymake +icons +childframe)                    ; tasing you for every semicolon you forget
        (spell
-        +flyspell
         +hunspell) ; tasing you for misspelling mispelling
        grammar                   ; tasing grammar mistake every you make
 

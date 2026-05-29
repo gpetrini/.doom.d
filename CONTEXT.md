@@ -19,3 +19,5 @@
 **GTD Area of Focus** — A named domain used by org-gtd to organize actions and projects. Distinct from tags: areas are project-level categories, tags are task-level context descriptors.
 
 **Denote filetag** — A keyword in the `#+filetags:` header of a denote file (e.g., `:bib:`, `:meta:`, `:journal:`). Managed by denote at file creation. Distinct from org heading tags (`:tag:`) and org-tag-alist activity/location tags.
+
+**Daily panoramic view** — The unified GTD engagement command (`my/gtd-daily-view`, bound to `, D e`). Shows today's schedule, ticklers, and delegations at the top, followed by per-area blocks (next-actions, stuck projects, someday) for every GTD Area of Focus that has at least one item. Areas with no items are omitted. Replaces the need to run `org-gtd-engage` and manually browse org files.

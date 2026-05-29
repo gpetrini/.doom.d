@@ -17,9 +17,6 @@
  org-export-allow-bind-keywords t
  )
 
-(setq
- org-cite-csl-styles-dir "~/Zotero/styles"
- )
 (map! "C-c C-SPC" #'dabbrev-completion)
 
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
@@ -212,15 +209,11 @@
         git-commit-summary-max-length 120
         magit-diff-refine-hunk 'all
         ))
-(setq auth-sources '("~/.authinfo"))
 
 (add-to-list 'auto-mode-alist '("\\.m$" . matlab-mode))
 
 (setq matlab-shell-command "matlab")
 (setq matlab-shell-command-switches (list "-nodesktop"))
-
-(setq! julia-snail-executable "~/.juliaup/bin/julia")
-(setq! eglot-jl-julia-command "/home/gpetrini/.juliaup/bin/julia")
 
 ;; (setq-hook! 'c-mode-hook +format-inhibit t)
 ;; (setq-hook! 'c++-mode-hook +format-inhibit t)
@@ -554,43 +547,55 @@ ${abstract}
 (setq! denote-templates
        '((biblio . "
 
-#+TAGS: context(c) theory(t) hypo(h) contrib(n) method(m) data(d)
-#+TAGS: results(r) discuss(s) critique(k) limits(l) future(f)
-#+TAGS: empirics(e) formal(o) sim(g) policy(p) lit(i)
-#+TAGS: insight(j) misc(x)
+* Metadata
+- Journal: %^{shortjournal}
+- Abstract: %^{abstract}
 
-- DOI/URL: %^{doi-url}
-- Type: %^{=type=}
-- Journal Title: %^{journaltitle}
-- Abbrev: %^{shortjournal}
+* Takeaway
+
+* Related Notes
 
 * FISH-5SS
 
-** 5SS
+** Background
 
-** Background and motivation
+** Arguments
 
-** Supporting Ideas and hypothesis
+** Contribution
 
-** Purpose, Relevance, and Contribution
+** Theoretical
+
+** Empirical
+
+** Model
+
+** Data
 
 ** Methodology
 
 ** Results
 
-** Interesting findings and not categorized stuff
+** Observations
 
-** Critics
+** Limitations
 
-** Abstract
+** Critique
 
-#+BEGIN_ABSTRACT
-%^{abstract}
-#+END_ABSTRACT
+** Policy
 
-* Specific notes
-* Annotations (zotero)
-* Additional Backlinks
+** Future Work
+
+** Related Work
+
+** Literature
+
+** Debate
+
+** Questions
+
+** Definition
+
+** Example
 
 * References")
          (plain . ""))
@@ -614,35 +619,40 @@ ${abstract}
         "......" "----------------"))
 
 (setq org-tag-alist
-      '(( "@home" . ?H)
-        ("@work" . ?W)
+      '(;; --- Location ---
+        ("@home"      . ?H)
+        ("@unicamp"   . ?u)
+        ("@santanna"  . ?s)
+        ("@MADE"      . ?M)
+        ("@server"    . ?S)
 
-        ("@computer" . ?C)
-        ("@server" . ?S)
-
-        ("@hwr" . ?h)
-        ("@santanna" . ?s)
-        ("@unicamp" . ?u)
-        ("@ysi" . ?y)
-        ("@univesp" . ?U)
-        ("@PED" . ?P)
-        ("@MADE" . ?M)
-
-        ("@bureaucracy" . ?b)
-        ("@planning" . ?n)
-        ("@coding" . ?c)
-        ("@tests" . ?t)
-        ("@reading" . ?r)
-        ("@studing" . ?g)
-        ("@concurso" . ?o)
-        ("@writing" . ?w)
-        ("@Review" . ?v)
-        ("@dissertation" . ?d)
-        ("@paper" . ?p)
-        ("@email" . ?e)
-        ("@meetings" . ?m)
-        ("@personal" . ?l)
-        ("@free" . ?f)))
+        ;; --- Activity ---
+        ("@writing"      . ?w)
+        ("@paper"        . ?p)
+        ("@reading"      . ?r)
+        ("@coding"       . ?c)
+        ("@reviewing"    . ?v)
+        ("@grading"      . ?g)
+        ("@supervising"  . ?V)
+        ("@meetings"     . ?m)
+        ("@email"        . ?e)
+        ("@bureaucracy"  . ?b)
+        ("@service"      . ?i)
+        ("@planning"     . ?n)
+        ("@teaching"     . ?t)
+        ("@lecture-prep" . ?l)
+        ("@grant"        . ?G)
+        ("@learning"     . ?L)
+        ("@emacs"        . ?E)
+        ("@workflow"     . ?W)
+        ("@conference"   . ?C)
+        ("@travel"       . ?T)
+        ("@presentation" . ?P)
+        ("@editing"      . ?d)
+        ("@seminar"      . ?a)
+        ("@ysi"          . ?y)
+        ("@personal"     . ?o)
+        ("@free"         . ?f)))
 
 (setq org-agenda-files '("~/Dropbox/GTD/"))
 
@@ -871,20 +881,13 @@ ${abstract}
   (add-hook 'org-mode-hook #'flymake-vale-load)
   )
 
-(use-package! flycheck-grammarly
-  :defer-incrementally flycheck)
-(after! flycheck-grammarly
- (setq flycheck-grammarly-check-time 1.0)
- (flycheck-add-mode 'grammarly 'LaTeX-mode)
- (flycheck-grammarly-setup)
-(grammarly-load-from-authinfo "gpetrinidasilveira@gmail.com"))
-
-
-;; (use-package! eglot-grammarly
-;;   :defer t  ; defer package loading
-;;   :hook ((text-mode org-mode). (lambda ()
-;;                                       (require 'eglot-grammarly)
-;;                                       (eglot-ensure))))
+(use-package! flymake-languagetool
+  :defer t
+  :hook ((text-mode  . flymake-languagetool-load)
+         (latex-mode . flymake-languagetool-load)
+         (org-mode   . flymake-languagetool-load))
+  :init
+  (setq flymake-languagetool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar"))
 
 (setq rmh-elfeed-org-files '("~/Dropbox/Elfeed.org"))
 
@@ -1003,7 +1006,7 @@ ${abstract}
   (map! :localleader
         (:prefix ("D" . "org-gtd")
          :desc "Capture"        "c"  #'org-gtd-capture
-         ;; :desc "Engage"         "e"  #'org-gtd-engage
+         :desc "Daily view"     "e"  #'my/gtd-daily-view
          :desc "Command center"  "a"  #'org-gtd-command-center
          :desc "Process inbox"  "p"  #'org-gtd-process-inbox
          :desc "Show all next"  "n"  #'org-gtd-show-all-next
@@ -1020,32 +1023,44 @@ ${abstract}
 
 (setq org-gtd-areas-of-focus
       '(
+        ;; --- Academic core ---
         "Teaching"
-        "Home/Chores"
-        "Health"
-        "Learning"
+        "Lectures"
+        "Supervisions"
+        "Paper-related"
+        "Grants"
+        "Service"
+        "Editorial"
+        "Paper reviews"
+        ;; --- Institutions ---
+        "Unicamp"
+        "SantAnna"
+        "MADE"
+        "YSI"
+        ;; --- Events ---
+        "Conferences"
+        "Events and Trips"
+        ;; --- Personal development ---
         "Reading list"
         "Literature update"
+        ;; --- Admin ---
+        "Bureaucracy"
+        "Email"
+        "Meetings"
         "Planning"
         "Appointments"
-        "PhD"
-        "Paper-related"
-        "MADE"
-        "Package"
-        "Conferences"
-        "Events"
+        ;; --- Tech ---
         "Computer-related"
-        "Github"
         "Emacs-related"
-        "Meetings"
-        "Groups"
-        "YSI"
-        "Paper reviews"
-        "Concurso"
-        "Bureaucracy"
-        "E-mail"
-        "Uncategorized"
-        "Supervisions"
+        "Github"
+        "Package"
+        ;; --- Research groups ---
+        "Research Groups"
+        ;; --- Personal ---
+        "Home/Chores"
+        "Health"
+        ;; --- Catchall ---
+        "Inbox"
         ))
 
 (setq org-gtd-organize-hooks '(org-gtd-set-area-of-focus
@@ -1068,238 +1083,57 @@ ${abstract}
 
 (setq org-gtd-graph-render-mode 'ascii)
 
-(defun my-gtd-review ()
-  "Show planning views"
+(defun my/gtd-stuck-project-skip-fn (area)
+  "Return a skip function for stuck projects belonging to AREA."
+  (lambda ()
+    (let ((end (org-entry-end-position)))
+      (if (and (equal (org-entry-get (point) "ORG_GTD") org-gtd-projects)
+               (equal (org-entry-get (point) "CATEGORY") area)
+               (not (org-entry-is-done-p))
+               (funcall (org-gtd-pred--project-is-stuck)))
+          nil
+        end))))
+
+(defun my/gtd-area-has-items-p (area)
+  "Return non-nil if AREA has at least one actionable item."
+  (catch 'found
+    (org-ql-select (org-agenda-files)
+      `(and (property "CATEGORY" ,area)
+            (or (property "ORG_GTD" ,org-gtd-action)
+                (property "ORG_GTD" ,org-gtd-someday)
+                (property "ORG_GTD" ,org-gtd-projects)))
+      :action (lambda () (throw 'found t)))))
+
+(defun my/gtd-area-blocks (area)
+  "Return view spec blocks for AREA: next-actions, stuck projects, someday."
+  `(((name . ,(format "%s — Actions" area))
+     (type . next-action)
+     (area-of-focus . ,area))
+    ((native . (todo ""
+                    ((org-agenda-skip-function ,(my/gtd-stuck-project-skip-fn area))
+                     (org-agenda-overriding-header ,(format "  %s — Stuck Projects:" area))))))
+    ((name . ,(format "%s — Someday" area))
+     (type . someday)
+     (area-of-focus . ,area))))
+
+(defun my/gtd-daily-view ()
+  "Panoramic daily GTD view: engage header followed by per-area next-actions."
   (interactive)
   (org-gtd-view-show
-   '(
-
-     ((name . "󰃹 Overdue")
-      (type . next-action)
-      (scheduled . past)
-      )
-
-     ((name . "󰏺 Missed events")
-      (type . calendar)
-      (when . past)
-      )
-
-     ((name . "󰃹 Missed check-in")
-      (type . tickler)
-      (when . past)
-      )
-
-     ((name . "󰃭 Due today")
-      (type . calendar)
-      (when . today))
-
-     ((name . "󰕪 Today's schedule")
-      (block-type . calendar-day))
-
-     ((name . "󰃶 Scheduled for today")
-      (type . next-action)
-      (scheduled . today)
-      )
-
-     ((name . "󰢌 Tickler items ready for today")
-      (type . tickler)
-      (when . today))
-
-     ((name . " Delegation check-ins")
-      (type . delegated)
-      (when . today))
-
-
-     ((name . " High priority focused Work for today")
-      (type . next-action)
-      (priority . A)
-      (scheduled . today)
-      (effort . (> "0:30")))
-
-     ((name . "󰒭 All actions ready to be executed")
-      (type . next-action)
-      )
-
-     ((name . "󱙬 Next time-dependent events")
-      (type . calendar)
-      (when . future))
-
-
-
-     ((name . " Low priority")
-      (type . next-action)
-      (priority . (B C))
-      (effort . (> "0:30")))
-
-     ((name . " Easy picks")
-      (effort . (between "0:05" "0:15"))
-      (type . next-action)
-      )
-
-
-     ((name . " Completed projects")
-      (type . completed-project)
-      )
-
-     ((name . " Stuck projects")
-      (type . stuck-project)
-      )
-
-     ((name . " Tickler projects")
-      (type . incubated-project)
-      )
-
-     ((name . "󱉓 MADE")
-      (area-of-focus . "MADE")
-      (type . next-action)
-      )
-
-
-     ((name . " Supervisions")
-      (area-of-focus . "Supervisions")
-      (type . next-action)
-      )
-
-     ((name . " Home/Chores")
-      (area-of-focus . "Home/Chores")
-      (type . next-action)
-      )
-
-     ((name . "󱐮 Health")
-      (area-of-focus . "Health")
-      (type . next-action)
-      )
-
-     ((name . " Reading list")
-      (area-of-focus . "Reading list")
-      (type . next-action)
-      )
-
-     ((name . " Literature update")
-      (area-of-focus . "Literature update")
-      (type . next-action)
-      )
-
-     ((name . " Planning")
-      (area-of-focus . " Planning")
-      (type . next-action)
-      )
-
-     ((name . " Appointments")
-      (area-of-focus . "Appointments")
-      (type . next-action)
-      )
-
-     ((name . " Paper-related")
-      (area-of-focus . "Paper-related")
-      (type . next-action)
-      )
-
-     ((name . " Package")
-      (area-of-focus . "Package")
-      (type . next-action)
-      )
-
-     ((name . " Conferences")
-      (area-of-focus . "Conferences")
-      (type . next-action)
-      )
-
-     ((name . "󱁖 Events")
-      (area-of-focus . "Events")
-      (type . next-action)
-      )
-
-     ((name . " Computer-related")
-      (area-of-focus . "Computer-related")
-      (type . next-action)
-      )
-
-     ((name . " Github")
-      (area-of-focus . "Github")
-      (type . next-action)
-      )
-
-     ((name . " Emacs-related")
-      (area-of-focus . "Emacs-related")
-      (type . next-action)
-      )
-
-     ((name . " Meetings")
-      (area-of-focus . "Meetings")
-      (type . calendar)
-      (when . future)
-      )
-
-     ((name . " Groups")
-      (area-of-focus . "Groups")
-      (type . next-action)
-      )
-
-     ((name . " YSI")
-      (area-of-focus . "YSI")
-      (type . next-action)
-      )
-
-     ((name . " Paper reviews")
-      (area-of-focus . "Paper reviews")
-      (type . next-action)
-      )
-
-     ((name . " Concurso")
-      (area-of-focus . "Concurso")
-      (type . next-action)
-      )
-
-     ((name . " Bureaucracy")
-      (area-of-focus . "Bureaucracy")
-      (type . next-action)
-      )
-
-     ((name . " E-mail")
-      (area-of-focus . "E-mail")
-      (type . next-action)
-      )
-
-     ((name . " Unestimated")
-      (type . next-action)
-      (effort . nil)
-      )
-
-     ((name . " PhD")
-      (area-of-focus . "PhD")
-      (type . next-action)
-      )
-
-     ((name . " Teaching")
-      (area-of-focus . "Teaching")
-      (type . next-action)
-      )
-
-     ((name . " Learning")
-      (area-of-focus . "Learning")
-      (type . next-action)
-      )
-
-     ((name . " Paper Ideas")
-      (type . someday)
-      (area-of-focus . "Paper-related")
-      )
-
-     ((name . "󱫢 When idle")
-      (type . next-action)
-      (tags . ("@free"))
-      )
-
-
-     )
-   )
-  )
-
-(map! :localleader
-      (:prefix "D"
-       :desc "My custom Engage view"
-       "e" #'my-gtd-review))
+   `((name . "GTD Daily View")
+     (prefix . (project area-of-focus "—"))
+     (blocks . (((name . "Today's Schedule")
+                 (block-type . calendar-day))
+                ((name . "Ticklers due today")
+                 (type . tickler)
+                 (when . today))
+                ((name . "Delegations due today")
+                 (type . delegated)
+                 (when . today))
+                ,@(apply #'append
+                         (mapcar #'my/gtd-area-blocks
+                                 (seq-filter #'my/gtd-area-has-items-p
+                                             org-gtd-areas-of-focus))))))))
 
 
 (setq org-gtd-capture-templates
@@ -1389,17 +1223,25 @@ ${abstract}
   ;; ---------------------------------------------------------------------------
 
   (defvar my/org-noter-categories
-    '("Background and motivation"
-      "Supporting Ideas and hypothesis"
-      "Purpose, Relevance, and Contribution"
+    '("Takeaway"
+      "Background"
+      "Arguments"
+      "Contribution"
+      "Theoretical"
+      "Empirical"
+      "Model"
+      "Data"
       "Methodology"
       "Results"
-      "Interesting findings and not categorized stuff"
-      "Critics"
-      "Policy implications"
-      "Future research"
-      "Literature dialogue"
-      "Questions and doubts"
+      "Observations"
+      "Limitations"
+      "Critique"
+      "Policy"
+      "Future Work"
+      "Related Work"
+      "Literature"
+      "Debate"
+      "Questions"
       "Definition"
       "Example"))
 
@@ -1408,19 +1250,27 @@ ${abstract}
   ;; ---------------------------------------------------------------------------
 
   (defvar my/org-noter-category-colors
-    '(("Background and motivation" . "#c792ea")
-      ("Supporting Ideas and hypothesis" . "#ffff00")
-      ("Purpose, Relevance, and Contribution" . "#ffff00")
-      ("Methodology" . "#ffff00")
-      ("Results" . "#ffff00")
-      ("Interesting findings and not categorized stuff" . "#ffff00")
-      ("Critics" . "#ff0000")
-      ("Policy implications" . "#ffff00")
-      ("Future research" . "#ffff00")
-      ("Literature dialogue" . "#ffff00")
-      ("Questions and doubts" . "#ffff00")
-      ("Definition" . "#ff8800")
-      ("Example" . "#00cc44")))
+    '(("Takeaway"     . "#00cc44")
+      ("Background"   . "#c792ea")
+      ("Arguments"    . "#ffff00")
+      ("Contribution" . "#ffff00")
+      ("Theoretical"  . "#82aaff")
+      ("Empirical"    . "#82aaff")
+      ("Model"        . "#82aaff")
+      ("Data"         . "#82aaff")
+      ("Methodology"  . "#ffff00")
+      ("Results"      . "#ffff00")
+      ("Observations" . "#ffff00")
+      ("Limitations"  . "#ff8800")
+      ("Critique"     . "#ff0000")
+      ("Policy"       . "#ffff00")
+      ("Future Work"  . "#ffff00")
+      ("Related Work" . "#ffff00")
+      ("Literature"   . "#c792ea")
+      ("Debate"       . "#c792ea")
+      ("Questions"    . "#ffff00")
+      ("Definition"   . "#ff8800")
+      ("Example"      . "#00cc44")))
 
   ;; ---------------------------------------------------------------------------
   ;; Inserção categorizada
