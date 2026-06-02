@@ -904,20 +904,20 @@ ${abstract}
   (add-hook 'org-mode-hook #'flymake-vale-load)
   )
 
-(use-package! flymake-languagetool
-  :defer t
-  :hook ((text-mode  . flymake-languagetool-load)
-         (latex-mode . flymake-languagetool-load)
-         (org-mode   . flymake-languagetool-load))
-  :init
-  (setq flymake-languagetool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar")
-  :config
-  (defun my-flymake-languagetool--pos-to-point-safe (orig-fun buf offset pos)
-    "Clamp result to point-max to avoid 'Args out of range' when buffer shrinks."
-    (min (funcall orig-fun buf offset pos)
-         (with-current-buffer buf (point-max))))
-  (advice-add 'flymake-languagetool--pos-to-point
-              :around #'my-flymake-languagetool--pos-to-point-safe))
+;; (use-package! flymake-languagetool
+;;   :defer t
+;;   :hook ((text-mode  . flymake-languagetool-load)
+;;          (latex-mode . flymake-languagetool-load)
+;;          (org-mode   . flymake-languagetool-load))
+;;   :init
+;;   (setq flymake-languagetool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar")
+;;   :config
+;;   (defun my-flymake-languagetool--pos-to-point-safe (orig-fun buf offset pos)
+;;     "Clamp result to point-max to avoid 'Args out of range' when buffer shrinks."
+;;     (min (funcall orig-fun buf offset pos)
+;;          (with-current-buffer buf (point-max))))
+;;   (advice-add 'flymake-languagetool--pos-to-point
+;;               :around #'my-flymake-languagetool--pos-to-point-safe))
 
 (setq rmh-elfeed-org-files '("~/Dropbox/Elfeed.org"))
 
