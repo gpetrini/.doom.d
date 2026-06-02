@@ -16,6 +16,7 @@
  org-export-with-sub-superscripts '{}
  org-export-allow-bind-keywords t
  org-use-sub-superscripts nil
+ org-pretty-entities-include-sub-superscripts nil
  )
 
 (map! "C-c C-SPC" #'dabbrev-completion)
@@ -545,11 +546,32 @@ ${abstract}
   :init
   (citar-denote-mode)
   )
+(defun my-denote-find-journal-file (name)
+  "Return denote journal file matching NAME slug, or nil."
+  (let ((slug (downcase (replace-regexp-in-string "[^a-z0-9]+" "-" name))))
+    (car (denote-directory-files-matching-regexp
+          (concat "--" slug ".*__.*journal")))))
+
+(defun my-denote-journal-link-for-template ()
+  "For use in denote templates: prompt, find or create journal note, return link line."
+  (let* ((name (read-string "Journal: "))
+         (file (or (my-denote-find-journal-file name)
+                   (let ((f (denote name '("journal") 'org)))
+                     (with-current-buffer (find-file-noselect f)
+                       (goto-char (point-max))
+                       (insert "\n#+BEGIN: denote-backlinks :excluded-dirs-regexp nil :sort-by-component nil :reverse-sort nil :id-only nil :this-heading-only nil :include-date nil :not-regexp \"_todo\"\n#+END:\n")
+                       (save-buffer)
+                       (kill-buffer))
+                     f))))
+    (format "- Journal: [[denote:%s][%s]]"
+            (denote-retrieve-filename-identifier file)
+            name)))
+
 (setq! denote-templates
        '((biblio . "
 
 * Metadata
-- Journal: %^{shortjournal}
+%(my-denote-journal-link-for-template)
 - Abstract: %^{abstract}
 
 * Takeaway
@@ -888,7 +910,14 @@ ${abstract}
          (latex-mode . flymake-languagetool-load)
          (org-mode   . flymake-languagetool-load))
   :init
-  (setq flymake-languagetool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar"))
+  (setq flymake-languagetool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar")
+  :config
+  (defun my-flymake-languagetool--pos-to-point-safe (orig-fun buf offset pos)
+    "Clamp result to point-max to avoid 'Args out of range' when buffer shrinks."
+    (min (funcall orig-fun buf offset pos)
+         (with-current-buffer buf (point-max))))
+  (advice-add 'flymake-languagetool--pos-to-point
+              :around #'my-flymake-languagetool--pos-to-point-safe))
 
 (setq rmh-elfeed-org-files '("~/Dropbox/Elfeed.org"))
 
@@ -1083,8 +1112,8 @@ ${abstract}
 (add-to-list 'org-gtd-organize-hooks 'my-gtd-add-priority)
 
 (defun my-gtd-add-schedule ()
-  "Prompt for schedule when organizing next actions and single actions."
-  (when (org-gtd-organize-type-member-p '(single-action next-action))
+  "Prompt for schedule when organizing quick actions and single actions."
+  (when (org-gtd-organize-type-member-p '(single-action quick-action))
     (call-interactively #'org-schedule)))
 
 (add-to-list 'org-gtd-organize-hooks 'my-gtd-add-schedule)

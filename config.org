@@ -1105,11 +1105,32 @@ The following config is necessary to make per-projects files in the server
   :init
   (citar-denote-mode)
   )
+(defun my-denote-find-journal-file (name)
+  "Return denote journal file matching NAME slug, or nil."
+  (let ((slug (downcase (replace-regexp-in-string "[^a-z0-9]+" "-" name))))
+    (car (denote-directory-files-matching-regexp
+          (concat "--" slug ".*__.*journal")))))
+
+(defun my-denote-journal-link-for-template ()
+  "For use in denote templates: prompt, find or create journal note, return link line."
+  (let* ((name (read-string "Journal: "))
+         (file (or (my-denote-find-journal-file name)
+                   (let ((f (denote name '("journal") 'org)))
+                     (with-current-buffer (find-file-noselect f)
+                       (goto-char (point-max))
+                       (insert "\n#+BEGIN: denote-backlinks :excluded-dirs-regexp nil :sort-by-component nil :reverse-sort nil :id-only nil :this-heading-only nil :include-date nil :not-regexp \"_todo\"\n#+END:\n")
+                       (save-buffer)
+                       (kill-buffer))
+                     f))))
+    (format "- Journal: [[denote:%s][%s]]"
+            (denote-retrieve-filename-identifier file)
+            name)))
+
 (setq! denote-templates
        '((biblio . "
 
 ,* Metadata
-- Journal: %^{shortjournal}
+%(my-denote-journal-link-for-template)
 - Abstract: %^{abstract}
 
 ,* Takeaway
@@ -1557,7 +1578,14 @@ The following config is necessary to make per-projects files in the server
          (latex-mode . flymake-languagetool-load)
          (org-mode   . flymake-languagetool-load))
   :init
-  (setq flymake-languagetool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar"))
+  (setq flymake-languagetool-server-jar "/opt/LanguageTool-5.5/languagetool-server.jar")
+  :config
+  (defun my-flymake-languagetool--pos-to-point-safe (orig-fun buf offset pos)
+    "Clamp result to point-max to avoid 'Args out of range' when buffer shrinks."
+    (min (funcall orig-fun buf offset pos)
+         (with-current-buffer buf (point-max))))
+  (advice-add 'flymake-languagetool--pos-to-point
+              :around #'my-flymake-languagetool--pos-to-point-safe))
 #+end_src
 
 * Email
@@ -1857,7 +1885,7 @@ mu index
 :ID:       80f9c709-b5d3-4b7f-ac0c-74a1e2c517f2
 :END:
 
-#+begin_src emacs-lisp 
+#+begin_src emacs-lisp  :results none
 
 (use-package! org-gtd
   :after org
@@ -1958,8 +1986,8 @@ mu index
 (add-to-list 'org-gtd-organize-hooks 'my-gtd-add-priority)
 
 (defun my-gtd-add-schedule ()
-  "Prompt for schedule when organizing next actions and single actions."
-  (when (org-gtd-organize-type-member-p '(single-action next-action))
+  "Prompt for schedule when organizing quick actions and single actions."
+  (when (org-gtd-organize-type-member-p '(single-action quick-action))
     (call-interactively #'org-schedule)))
 
 (add-to-list 'org-gtd-organize-hooks 'my-gtd-add-schedule)
@@ -2290,249 +2318,6 @@ mu index
 
 
 #+end_src
-
-#+RESULTS:
-| i | Inbox | entry | (file org-gtd-inbox-path) | * %? |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
-| m | Meeting | entry | (file org-gtd-inbox-path) | * Meeting with %^{With}: %? |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END: |:kill-buffer |t |
-| p | Paper idea | entry | (file org-gtd-inbox-path) | * %? |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-- Context: %^{Context} |:kill-buffer |t |
-| e | Email to write | entry | (file org-gtd-inbox-path) | * Email %^{To}: %?  :@email: |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END: |:kill-buffer |t |
-| d | Appointment/Deadline | entry | (file org-gtd-inbox-path) | * %? %^T |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END: |:kill-buffer |t |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
-| m | Meeting | entry | (file org-gtd-inbox-path) | * Meeting with %^{With}: %? |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END: |:kill-buffer |t |
-| p | Paper idea | entry | (file org-gtd-inbox-path) | * %? |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-- Context: %^{Context} |:kill-buffer |t |
-| e | Email to write | entry | (file org-gtd-inbox-path) | * Email %^{To}: %?  :@email: |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END: |:kill-buffer |t |
-| d | Appointment/Deadline | entry | (file org-gtd-inbox-path) | * %? %^T |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END: |:kill-buffer |t |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| l | Inbox with link | entry | (file org-gtd-inbox-path) | * %? [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:END:
-%i |:kill-buffer |t |
-| a | Add to reading list | entry | (file org-gtd-inbox-path) | * Read [[%^{Link}][%^{Name}]] |
-:PROPERTIES:
-:ID: %(org-id-uuid)
-:ORG_GTD_CAPTURED_AT: %U
-:DOI: %^{DOI}
-:Published: %^{Published?}
-:END:
-
-- Reason: %^{Reason}
-
-- Possible group: %^{Group} |:kill-buffer |t |
 
 
 
