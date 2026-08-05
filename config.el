@@ -22,7 +22,7 @@
 (map! "C-c C-SPC" #'dabbrev-completion)
 
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
-(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 25))
+(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 30))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 25))
 ;; (setq doom-theme 'doom-material-dark)
 ;; (setq doom-theme 'doom-dracula)
@@ -1038,6 +1038,7 @@ ${abstract}
          :desc "Capture"        "c"  #'org-gtd-capture
          :desc "Daily view"     "e"  #'my/gtd-daily-view
          :desc "Command center"  "a"  #'org-gtd-command-center
+         :desc "Archive completed"  "A"  #'org-gtd-archive-completed-items
          :desc "Process inbox"  "p"  #'org-gtd-process-inbox
          :desc "Show all next"  "n"  #'org-gtd-show-all-next
          :desc "Clarify item"   "k"  #'org-gtd-clarify-item

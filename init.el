@@ -103,7 +103,7 @@
        vterm                   ; the best terminal emulation in Emacs
 
        :checkers
-       (syntax +flymake +icons +childframe)                    ; tasing you for every semicolon you forget
+       (syntax +icons +childframe)                    ; tasing you for every semicolon you forget
        (spell
         +hunspell) ; tasing you for misspelling mispelling
        grammar                   ; tasing grammar mistake every you make
