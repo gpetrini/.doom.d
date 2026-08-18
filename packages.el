@@ -119,7 +119,7 @@
 (package! org-timeblock  :recipe (:host github :repo "ichernyshovvv/org-timeblock"))
 
 (package! flymake-vale  :recipe (:host github :repo "tpeacock19/flymake-vale"))
-(package! flycheck-grammarly)
+;; (package! flycheck-grammarly)
 
 
 (package! eglot-ltex  :recipe (:host github :repo "emacs-languagetool/eglot-ltex"))
@@ -143,5 +143,3 @@
 ;; (unpin! org-noter)
 
 (package! org-noter :recipe (:host github :repo "org-noter/org-noter" :files ("*.el" "modules/*.el")))
-
-(package! org-ql)

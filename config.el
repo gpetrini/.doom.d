@@ -10,6 +10,12 @@
 (delete-selection-mode 1)               ; Replace selection when inserting text
 (display-time-mode 1)                   ; Enable time in the mode-line
 (global-subword-mode 1)                 ; Iterate through CamelCase words
+
+;; Use POSIX shell internally for Emacs subprocesses, while keeping Fish for interactive terminals
+(setq shell-file-name (executable-find "bash"))
+(setq-default vterm-shell "/usr/bin/fish"
+              explicit-shell-file-name "/usr/bin/fish")
+
 (setq
  org-directory "~/Org/"
  org-log-done 'time
@@ -1033,16 +1039,28 @@ ${abstract}
   (org-edna-mode)
   ;; Doom-style leader key bindings
   ;; Clarify map binding
-  (map! :localleader
+  (map! :map org-mode-map
+        :localleader
         (:prefix ("D" . "org-gtd")
-         :desc "Capture"        "c"  #'org-gtd-capture
-         :desc "Daily view"     "e"  #'my/gtd-daily-view
-         :desc "Command center"  "a"  #'org-gtd-command-center
-         :desc "Archive completed"  "A"  #'org-gtd-archive-completed-items
-         :desc "Process inbox"  "p"  #'org-gtd-process-inbox
-         :desc "Show all next"  "n"  #'org-gtd-show-all-next
-         :desc "Clarify item"   "k"  #'org-gtd-clarify-item
-         :desc "Stuck projects" "s"  #'org-gtd-reflect-stuck-projects
+         :desc "Capture"           "c"  #'org-gtd-capture
+         :desc "Daily view"        "e"  #'my/gtd-daily-view
+         :desc "Command center"    "a"  #'org-gtd-command-center
+         :desc "Archive completed" "A"  #'org-gtd-archive-completed-items
+         :desc "Process inbox"     "p"  #'org-gtd-process-inbox
+         :desc "Show all next"     "n"  #'org-gtd-show-all-next
+         :desc "Clarify item"      "k"  #'org-gtd-clarify-item
+         :desc "Stuck projects"    "s"  #'org-gtd-reflect-stuck-projects
+         :desc "Set area of focus" "f"  #'org-gtd-area-of-focus-set-on-item-at-point))
+  (map! :leader
+        (:prefix ("D" . "org-gtd")
+         :desc "Capture"           "c"  #'org-gtd-capture
+         :desc "Daily view"        "e"  #'my/gtd-daily-view
+         :desc "Command center"    "a"  #'org-gtd-command-center
+         :desc "Archive completed" "A"  #'org-gtd-archive-completed-items
+         :desc "Process inbox"     "p"  #'org-gtd-process-inbox
+         :desc "Show all next"     "n"  #'org-gtd-show-all-next
+         :desc "Clarify item"      "k"  #'org-gtd-clarify-item
+         :desc "Stuck projects"    "s"  #'org-gtd-reflect-stuck-projects
          :desc "Set area of focus" "f"  #'org-gtd-area-of-focus-set-on-item-at-point))
   (map! :map org-gtd-clarify-mode-map
         :desc "Organize this item" "C-c c" #'org-gtd-organize)
