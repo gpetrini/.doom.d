@@ -1,0 +1,382 @@
+#+title: Org Todoist
+#+OPTIONS: f:t
+
+* What is it?
+An Emacs package for bidirectional incremental sync of [[https://orgmode.org/][Org Mode]] elements with [[https://todoist.com/][Todoist]] using org /exactly how you normally would in Emacs Org Mode/.
+
+[[./readme-images/demo.png]]
+
+** Key features
+- CRUD[fn:1] tasks
+  - Complete by changing TODO state
+  - Cancel by changing TODO state
+  - Scheduling
+  - Deadlines
+  - Duration (as effort or time-range)
+  - Priority
+  - Descriptions
+  - Tags/Labels
+  - Notes/Comments + send notifications to other users
+  - Repeating tasks[fn:2]
+  - Assignee[fn:3]
+  - Retains LOGBOOK information (/e.g.,/ clocking)
+- CRUD[fn:1] new sections
+- CRUD[fn:1] new projects
+- Refile tasks and sections to other sections and projects
+- /Collaboration with other users/ via assigning tasks and notifications.
+- Open tasks, projects, sections, and views in the browser or Todoist app
+
+** Mapping org headlines to Todoist objects
+
+| Org                       | Todoist                     |
+|---------------------------+-----------------------------|
+| Headline                  | Project, Section, or Task   |
+| Plain-text under headline | Description                 |
+| Scheduled                 | Due                         |
+| Deadline                  | Deadline                    |
+| Effort OR Scheduled       | Duration                    |
+| Priority                  | Priority                    |
+| Todo-state + Todo-keyword | Checked, Deleted            |
+| Tags (+inherited)         | Labels                      |
+| org-archive-tag           | Archive projects + sections |
+| Responsible UID property  | Assignee                    |
+
+ [[Creating projects, subprojects, sections, tasks, and subtasks][See the usage section to learn the mapping rules for projects, sections, and tasks.]]
+
+** How it works
+Commands are automatically detected and batched by diffing the current ~org-todoist-file~ with the abstract syntax tree from a snapshot of the previous sync and nodes are updated in place using a single asynchronous request, meaning metadata, such as time tracking information, /is retained/.
+
+Syncing is done using the [[https://developer.todoist.com/api/v1/][Todoist sync API]], which sends a single request for both pulling and pushing. *Local changes will overwrite remote changes!*
+
+* Installation
+** Doom Emacs
+#+begin_src emacs-lisp
+(package! org-todoist
+  :recipe (:host github
+           :repo "lillenne/org-todoist"
+           :branch "main"
+           :files ("org-todoist.el")))
+#+end_src
+* Usage
+org-todoist provides an interactive transient menu interface that can be accessed via:
+
+#+begin_src emacs-lisp
+(org-todoist-dispatch)
+#+end_src
+
+This menu provides easy access to all org-todoist commands and displays the current status of features like background sync and remote deletion.
+
+** Autoloads
+The following commands (and more!) are automatically available after installation (no require needed):
+
+#+begin_src emacs-lisp
+;; Sync commands
+(org-todoist-sync &optional ARG) ;; Sync with Todoist. With ARG, don't open buffer after sync
+(org-todoist-background-sync) ;; Start background sync at configured interval
+(org-todoist-cancel-background-sync) ;; Stop background sync
+(org-todoist-toggle-background-sync) ;; Toggle background sync on/off
+(org-todoist-ediff-snapshot) ;; Compare current file with last synced state
+(org-todoist-toggle-remote-deletion) ;; Toggle deletion of remote items
+
+;; Task management
+(org-todoist-assign-task)
+(org-todoist-unassign-task)
+(org-todoist-ignore-subtree)
+(org-todoist-add-subproject)
+
+;; Capture integration
+(org-todoist-project-notes)
+(org-todoist-find-project-and-section)
+
+;; Diagnostics
+(org-todoist-diagnose)
+(org-todoist-report-bug)
+#+end_src
+
+** Bidirectional sync
+#+begin_src emacs-lisp
+;; Sync commands and options:
+(org-todoist-sync &optional ARG)     ;; Perform incremental sync. With ARG, don't open buffer
+(org-todoist-reset &optional ARG)   ;; Full reset from Todoist. With prefix ARG (C-u):
+                                    ;; - Single prefix: Don't open buffer
+                                    ;; - Double prefix (C-u C-u): Delete and recreate file
+
+;; Background sync:
+(org-todoist-background-sync)        ;; Start background sync at configured interval 
+(org-todoist-cancel-background-sync) ;; Stop background sync
+(org-todoist-toggle-background-sync) ;; Toggle background sync on/off
+#+end_src
+
+*Local changes will overwrite remote changes!*
+
+Tasks can be created via org, org capture, or Todoist natural language processing.
+
+[[./readme-images/quick-task-open.gif]]
+
+** Creating projects, subprojects, sections, tasks, and subtasks
+Simply create org headlines! The corresponding Todoist types (projects, subprojects, sections, tasks, and subtasks) will be inferred from the org structure. Sections will be preferred over subprojects unless the ~TODOIST_TYPE~ property is set to ~PROJECT~. A new subproject can be created quickly using the interactive function ~org-todoist-add-subproject~. If a TODO item does not fall under a project, it will be assigned to the default section of the Inbox project.
+
+| Level | Todoist Type          |
+|-------+-----------------------|
+|     1 | Project               |
+|    2+ | Section or Subproject |
+|  TODO | Task                  |
+
+** Updating projects, sections, and tasks
+Updating items happens automatically when updating any headline, description, todo-state, todo-keyword[fn:4], priority, effort, tag, scheduled time / range, deadline time, or assignee OR when any project, section, or task is moved under another headline. /This works with standard org commands (e.g., ~org-refile~)./
+** Deleting items
+When the ~org-todoist-delete-remote-items~ variable is non-nil, removing items from the ~org-todoist-file~ (via deletion or refiling outside of the ~org-todoist-file~) will cause them to be deleted from Todoist. Additionally, items can be deleted by changing their ~todo-keyword~ to the ~org-todoist-deleted-keyword~.
+** Tags, labels, and archiving
+Org tags are mapped directly to Todoist labels and support inherited tags. Note, inherited tags will also be applied directly to the child tasks on next sync.
+
+Projects and sections can be archived in Todoist by applying the ~org-archive-tag~ to the headline. Note, you cannot archive the default section and if you do locally on your org document it will not be synced.
+** Comments and notifications
+:PROPERTIES:
+:ID:       21eaaeab-ad6f-4fc1-abb6-4c39bf20e0bd
+:END:
+Comments are done via ~org-add-note~ and currently ([2025-01-12 Sun]) do not support editing or deletion from org mode. Within comments, other users can be notified via the ~org-todoist-tag-user~ command, which will prompt for completion of the desired user, send a request to notify them in the comment's note_add command, and input a special markdown syntax into the comment which will property display as @<User> in the Todoist app. If you prefer to use the org link syntax and have it look funny in the Todoist app, set ~org-todoist-comment-tag-user-pretty~ to non-nil.
+
+#+begin_src emacs-lisp
+;; Inserts the special tag from the todoist app that formats to @User
+;; & adds the user id to uids_to_notify in the request
+(org-todoist-tag-user)
+
+;; non-nil to format in org link syntax instead of markdown for better viewing in org but worse in the Todoist app
+(setq org-todoist-comment-tag-user-pretty nil)
+#+end_src
+
+[[./readme-images/comments.png]]
+
+** Assigning and viewing assigned tasks
+#+begin_src emacs-lisp
+(org-todoist-assign-task) ;; Prompts for user selection and changes the responsible uid property to the user's id
+(org-todoist-unassign-task) ;; Removes the responsible uid property
+(org-todoist-show-assignee) ;; Show assignee as an overlay next to the current task
+(org-todoist-show-all-assignees) ;; Show assignees for all tasks in the buffer
+(org-todoist-my-tasks &optional ARG USER) ;; View an agenda of tasks assigned to USER (defaults to current user)
+                                         ;; With prefix ARG, include unassigned tasks
+(org-todoist-view-user-tasks USER) ;; View tasks assigned to a specific user
+#+end_src
+
+[[./readme-images/my-agenda.png]]
+
+[[./readme-images/assign.png]]
+
+** Navigation and project views
+#+begin_src emacs-lisp
+(org-todoist-goto) ;; Jump to the org-todoist file
+(org-todoist-jump-to-project) ;; Select and jump to a project
+(org-todoist-jump-to-current-project) ;; Jump to project matching current projectile project
+#+end_src
+
+** Opening in Todoist App
+
+[[./readme-images/control-todoist.gif]]
+
+#+begin_src emacs-lisp
+(org-todoist-xdg-open) ;; Open current task in Todoist app
+(org-todoist-xdg-open-project) ;; Open selected project in Todoist app
+(org-todoist-xdg-open-search-query QUERY) ;; Open search results in Todoist app
+(org-todoist-xdg-open-quickadd) ;; Open Todoist quick add panel
+(org-todoist-open-last-quick-task-in-app) ;; Open the last quick-added task
+#+end_src
+
+Opening relies on ~browse-url-xdg-open~.
+
+** Ignoring subtrees
+If you'd like to keep other notes or TODOs alongside your projects and not have them synced to Todoist, you can mark a subtree as ignored by setting the ~TODOIST_TYPE~ property to ~IGNORED~ using M-x ~org-todoist-ignore-subtree~. Any org element descendent from an ignored node will not have its changes pushed to Todoist.
+
+** Org capture to a Todoist project section
+/Captures will automatically sync by default/ via the ~org-capture-finalize-hook~. If you would like to change this behavior, run ~(remove-hook 'org-capture-after-finalize-hook #'org-todoist--sync-after-capture)~.
+
+Captures can be run from the transient interface with default capture templates for Todoist via ~(org-todoist-capture-task)~. These capture templates are customized via ~org-todoist-capture-templates~ Alternatively, one can add their own org templates like in the sample below:
+
+Sample capture templates:
+#+begin_src emacs-lisp
+(nconc org-capture-templates
+       `(("s" "Todoist")
+         ;; Capture a TODO directly to the inbox
+         ("sq" "Inbox" entry (file+olp ,(org-todoist-file) "Inbox" ,org-todoist--default-section-name) "* TODO %?")
+         ("si" "Inbox" entry (file+olp ,(org-todoist-file) "Inbox" ,org-todoist--default-section-name) "* TODO %? %^G %^{EFFORT}p \nSCHEDULED: %^t")
+         ;; Capture to a specific project, section, and parent task, creating them if needed.
+         ;; Also prompts for tags, effort, task assignment, scheduled, and deadline times
+         ;; Projects are determined by projectile if possible, otherwise via an interactive prompt
+         ("ss" "Select Project" entry (function org-todoist-find-project-and-section) "* TODO %^{What is the task} %^G %^{EFFORT}p %(org-todoist-assign-task) %(progn (org-schedule nil) nil) %(progn (org-deadline nil) nil)\n%?")
+         ;; Capture a note to an ignored subtree
+         ("sn" "Project Notes" entry (function org-todoist-project-notes) "* %?")))
+#+end_src
+
+** Quirks
+- Once a task has been permanently deleted in Todoist, changing the TODO state in org will be reset back to ~org-todoist-deleted-keyword~ on next sync. Todoist does not support reviving permanently deleted tasks.
+- *Deadlines do not support time of day* and will be truncated to only include the date on the next sync. This is a limitation with Todoist.
+- Adding durations via quick task requests does not work. This is on the Todoist side [2025-07-06 Sun].
+- Comments on subtasks are added to both the root task and the subtask on Todoist, which is reflected here.
+- The org element API does not properly parse property drawers if anything besides is put above them (e.g. adding your description above the property drawer), so don't do that!
+** Remaining unsupported features
+[X] = Implemented
+
+[-] = WIP or implemented with caveats
+
+[ ] = Not currently supported
+
+- [-] Essential task items
+  - [-] Recurring tasks[fn:2]
+- [-] Comments
+  - [-] Item comments
+    - [X] Add and pull (plain-text only)
+    - [ ] Sort by time added
+    - [ ] Update
+    - [ ] Delete
+    - [-] Notify other users
+  - [ ] Project comments
+    - [ ] Add
+    - [ ] Update
+    - [ ] Delete
+    - [ ] Notify other users
+- [-] Notifications/reminders
+  - [X] Notify on comment
+  - [X] Set a reminder using quick add
+  - [X] Todoist default reminder (/e.g./, 10 min before every task)
+  - [ ] Almost everything else
+- [-] Labels
+  - [X] Bidirectional mapping to org tags
+  - [X] Inherited tags
+  - [ ] Most other things
+- [ ] File attachments (might be interested in upload/download)
+- [ ] Filters (use org!)
+- [ ] Locations / location notifications
+- [ ] Workspaces (collaborators are supported. I currently don't see a use for this or just don't know what I'm missing)
+- [ ] Backups
+- [ ] Markdown support
+- [ ] Activity log
+- [ ] Ramble
+- [ ] Calendar (see [[https://github.com/ichernyshovvv/org-timeblock][org-timeblock!]])
+- [ ] AI features (not planned. Feel free to use your own local AI! I like [[https://github.com/MatthewZMD/aidermacs;][aidermacs]])
+* Configuration
+** Required
+Org Todoist requires a [[https://todoist.com/help/articles/find-your-api-token-Jpzx9IIlB][Todoist API token]] to function.
+
+#+begin_src emacs-lisp
+(setq org-todoist-api-token "<your-token>")
+#+end_src
+
+Additionally, Todoist markdown lists use 4 spaces vs the default 2 spaces for org plain lists. This is compenated for by using a file-local variable in the ~org-todoist-file~ header to set ~org-list-indent-offset~ to 2 (2 base + 2 offset = Todoist's 4). However, this means that when accessing the file for the first time, you will be prompted to allow "potentially unsafe" file-local variables. *You must accept this or manually set the value otherwise this may cause sync errors*.
+
+** Updating from Sync v9 endpoint to the new unified API v1
+Migrate your current ~org-todoist-file~ to conform to the new format via ~org-todoist-migrate-to-v1~
+If you are running an unsupported API version, the transient interface will alert you and you can press 'V' to migrate.
+** Optional
+*** Core Configuration
+- ~org-todoist-p1~ - Priority character for Todoist P1 (default: ?A)
+- ~org-todoist-p2~ - Priority character for Todoist P2 (default: ?B) 
+- ~org-todoist-p3~ - Priority character for Todoist P3 (default: ?C)
+- ~org-todoist-p4~ - Priority character for Todoist P4 (default: ?D)
+- ~org-todoist-priority-default~ - Default priority for new tasks (default: ?D)
+- ~org-todoist-user-headline~ - Heading title for collaborators section (default: "Collaborators")
+- ~org-todoist-metadata-headline~ - Heading title for metadata section (default: "Todoist Metadata")
+- ~org-todoist-tz~ - Timezone for date conversions (default: system timezone)
+- ~org-todoist-lang~ - Language for natural date strings (default: "en")
+- ~org-todoist-my-id~ - Your Todoist user ID (auto-detected if name matches)
+
+*** Interface
+- ~org-todoist-show-n-levels~ - Fold level after sync:
+  - nil = Don't change folds
+  - 1 = Show projects
+  - 2 = Show sections
+  - 3 = Show root tasks
+  - 4 = Show root tasks + 1 level of subtasks
+  - 'no-fold = Expand everything
+  - 'todo-tree = Show todo tree (default: nil)
+- ~org-todoist-comment-tag-user-pretty~ - Format user mentions as org links instead of markdown (default: nil)
+- ~org-todoist-mode~ - Minor mode for displaying user mentions and UIDs as human-readable names:
+  - ~org-todoist-assignees-overlay~ - Show assignee names next to tasks automatically (default: t)
+  - ~org-todoist-show-assignee-overlay-in-property-drawers~ - Display responsible_uid properties as user names (default: nil)
+
+*** Behavior
+- ~org-todoist-delete-remote-items~ - Delete items removed from org file (default: nil)
+- ~org-todoist-duration-as-timestamp~ - Use timestamp ranges instead of EFFORT property for duration (default: nil)
+- ~org-todoist-file~ - Todoist org filename (default: "todoist.org")
+- ~org-todoist-use-auto-reminder~ - Use default reminders for new tasks (default: t)
+- ~org-todoist-infer-project-for-capture~ - Use the current projectile project for capture templates if found (default: t)
+- ~org-todoist-extract-deleted~ - Remove deleted items from org file (default: nil)
+- ~org-todoist-storage-dir~ - Storage directory for sync data (default: $XDG_CACHE_HOME/org-todoist)
+- ~org-todoist-command-batch-size~ - Maximum number of commands to send in a single sync request (default: 75)
+
+The Todoist API has a limit of 100 commands per request. When syncing large changes, org-todoist automatically batches commands into smaller chunks to avoid hitting this limit. The batch size can be configured via ~org-todoist-command-batch-size~ (defaults to 75 due to API 503 errors at 100 during development).
+
+*** Status Keywords
+- ~org-todoist-todo-keyword~ - Active tasks (default: "TODO")
+- ~org-todoist-done-keyword~ - Completed tasks (default: "DONE") 
+- ~org-todoist-deleted-keyword~ - Deleted tasks (default: "CANCELED")
+
+** Troubleshooting
+
+[[./readme-images/diagnostics.png]]
+
+For troubleshooting errors, you can use the following variables and methods:
+- ~org-todoist-diagnose~ - Shows a pretty org-mode view of the information below
+- ~org-todoist-report-bug~ - Copy the diagnostics view as GitHub flavored markdown and open the url to create a new issue.
+- ~org-todoist--push-test~ - Returns the detected diff commands.
+- ~org-todoist-ediff-snapshot~ to see changes since the last snapshot in ediff
+
+* Why?
+My wife uses Todoist and will never use Emacs. Even getting a shared /digital/ to-do list took a long time!
+
+Also: Org mode is an excellent planning and note-taking tool, but struggles in a few areas:
+
+- Collaboration with others
+- Mobile app features / availability (shoutout to [[https://github.com/orgzly-revived/orgzly-android-revived][Orgzly for their great android app]])
+- Sync between devices (I personally use [[https://syncthing.net/][Syncthing]] which works well, but will often have conflicts)
+
+Todoist fills these gaps and, more importantly, (again) my wife uses it.
+
+There is currently [[https://github.com/abrochard/emacs-todoist][another great integration]] for org-mode and todoist, but it takes a fundamentally different approach (stateless on-demand regeneration via many [[https://developer.todoist.com/api/v1/#tag/Tasks][REST API]] requests vs stateful syncing with batched request to the [[https://developer.todoist.com/api/v1/#tag/Sync][sync API]] that can be used to add additional org properties (/e.g./, track time) or queried by [[https://github.com/orgzly-revived/orgzly-android-revived][Orgzly]] on mobile.
+
+* Contributing, Issues, and Feature Request
+Feel free to submit an [[https://github.com/Lillenne/org-todoist/issues/new][issue or feature request]]! For issues, please use the inbuilt ~org-todoist-report-bug~ function. When submitting issues *please see the [[Troubleshooting][troubleshooting]] section and attach the response error information*. The ~org-todoist-report-bug~ function will put this information (and more) into your clipboard for you and bring you to the issues page. *Please redact anything sensitive in your tasks!* I'll do my best to address issues timely and evaluate feature additions. I work full time and have two /very/ young boys, so if there is a feature you want to add please feel free to submit a PR yourself!
+
+** Todoist API Data
+
+My personal test API call data is included in the repo to show the API return format and help my own development but is protected with [[https://github.com/getsops/sops][sops]]. If you need data for any reason, please use your own.
+
+To test interacting with the Todoist API using curl with your own data, you can use the following commands. Note, Todoist has many great examples using curl in their [[https://developer.todoist.com/api/v1/][API documentation]].
+
+#+begin_src shell
+curl https://api.todoist.com/api/v1/sync \
+    -H "Authorization: Bearer <token> " \
+    -d sync_token='<sync-token or "*" for all data>' \
+    -d resource_types='["all"]'
+#+end_src
+
+#+begin_src shell
+curl https://api.todoist.com/api/v1/sync \
+    -H "Authorization: Bearer <token>" \
+    -d commands='[
+    {
+        "type": "item_complete",
+        "uuid": "a74bfb5c-5f1d-4d14-baea-b7415446a871",
+        "args": {
+            "id": "<task-id>"
+        }
+    }]'
+#+end_src
+
+* Disclaimer
+This package is not associated with, created by, or endorsed by [[https://doist.com/][Doist]] or [[https://orgmode.org/][Org]]
+
+* Author's notes and recommendations
+This is my first major elisp project, so I am almost certainly missing some best practices and useful tools. If you have any knowledge to share or want to contribute, please reach out, create an issue, or open a PR!
+
+This package adds a lot of properties to property drawers. If you'd prefer not to see them, I recomment (and personally use) [[https://github.com/jxq0/org-tidy][org-tidy]].
+
+If you set ~org-todoist--duration-as-timestamp~, you can easily perform daily timeblocking on Todoist tasks with [[https://github.com/ichernyshovvv/org-timeblock][org-timeblock]] from within Emacs. Alternatively, if you have /all/ of your org tasks on Todoist, Todoist does have a nice calendar interface now!
+
+* Footnotes
+
+[fn:1] CRUD: create, read, update, delete.
+
+[fn:2] Recurring tasks only support a subset of Todoist scheduling features. e.g. Todoists "every mon, fri" is not easily recreatable using org mode. These tasks should still be pulled down correctly from Todoist on next sync.
+
+[fn:3] Assignee is a Todoist-only idea, but is supported via the [[Collaboration]] commands.
+
+[fn:4] Changing todo-keywords only triggers an update if the todo-state changes or the keyword is the ~org-todoist-deleted-keyword~.
