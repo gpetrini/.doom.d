@@ -518,6 +518,22 @@ ado-cus.el changed to include fake time
 
 (setq org-latex-listings 'engraved
       org-latex-engraved-theme 'doom-one-light)
+
+;; engrave-faces does not parse code: it loads the text in a buffer, activates the
+;; major mode, runs font-lock and reads the faces. ESS is a third-party package that
+;; Doom loads on demand, so without this require a batch export comes out monochrome.
+(after! ox-latex
+  (require 'ess-r-mode nil t))
+
+;; ess-R-font-lock-keywords ships with six groups off. Without re-enabling these five,
+;; only `<-' and comments get colour in the exported deck. F&T is left off on purpose.
+(after! ess-r-mode
+  (dolist (kw '(ess-fl-keyword:fun-calls
+                ess-fl-keyword:numbers
+                ess-fl-keyword:operators
+                ess-fl-keyword:delimiters
+                ess-fl-keyword:=))
+    (setf (alist-get kw ess-R-font-lock-keywords) t)))
 #+END_SRC
 
 #+RESULTS:
