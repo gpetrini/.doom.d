@@ -1,0 +1,8 @@
+# -*- mode: snippet -*-
+# name: Claude Code marker
+# uuid:
+# key: <CC
+# condition: t
+# --
+
+# @CLAUDE:
