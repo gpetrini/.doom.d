@@ -38,7 +38,7 @@ Nothing has ever run against the live API. Every conclusion in the commits and i
 
 The user said they would supply the login and token. When they do:
 
-1. `chmod 600 ~/.authinfo` (currently `644`, plaintext).
+1. Make sure `~/.authinfo` is mode 600 before putting a token in it.
 2. Add `machine api.todoist.com login <login> password <token>`.
 3. Restart Emacs; accept the `org-list-indent-offset` file-local prompt when opening the GTD file — a refusal causes sync errors.
 4. `, T s` (localleader prefix `T` in `org-mode-map`).
