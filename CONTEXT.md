@@ -21,3 +21,5 @@
 **Denote filetag** — A keyword in the `#+filetags:` header of a denote file (e.g., `:bib:`, `:meta:`, `:journal:`). Managed by denote at file creation. Distinct from org heading tags (`:tag:`) and org-tag-alist activity/location tags.
 
 **Daily panoramic view** — The unified GTD engagement command (`my/gtd-daily-view`, bound to `, D e`). Shows today's schedule, ticklers, and delegations at the top, followed by per-area blocks (next-actions, stuck projects, someday) for every GTD Area of Focus that has at least one item. Areas with no items are omitted. Replaces the need to run `org-gtd-engage` and manually browse org files.
+
+**Session handoff** — A dated Markdown document in `docs/handoffs/`, written at the end of an agent session so the next one — or the other machine — can pick the work up. Kept in the repository rather than in machine-local storage, because the config is used from two machines. Handoffs reference the GitHub issues and commit messages rather than restating them; the issues hold design decisions, the handoff holds session state and open threads.

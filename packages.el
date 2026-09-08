@@ -143,3 +143,13 @@
 ;; (unpin! org-noter)
 
 (package! org-noter :recipe (:host github :repo "org-noter/org-noter" :files ("*.el" "modules/*.el")))
+
+;; Opt-in per machine. The GTD file is shared over Syncthing, so only the machine
+;; holding the Todoist token may sync it; a second one would submit duplicate
+;; commands. Touch .todoist-enabled (gitignored) to opt this machine in.
+(when (file-exists-p (expand-file-name ".todoist-enabled" doom-user-dir))
+  (package! org-todoist
+    :recipe (:host github
+             :repo "lillenne/org-todoist"
+             :branch "main"
+             :files ("org-todoist.el"))))

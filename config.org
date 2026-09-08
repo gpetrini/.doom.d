@@ -2384,6 +2384,128 @@ mu index
 
 
 
+* Org-todoist
+:PROPERTIES:
+:ID:       0f3a6c21-9b4e-4a7d-8c1f-5d2e6b07a913
+:END:
+
+Bidirectional sync of org headlines with Todoist via the sync API. Upstream
+documentation is vendored in [[file:.scratch/research/README.org]].
+
+The synced file *is* =org-gtd-tasks.org=. org-todoist re-serializes the whole
+buffer on every sync and local changes overwrite remote changes.
+
+Level 1 of that file is a contested namespace: org-gtd needs its six buckets at
+level 1 (they carry =ORG_GTD_REFILE=), and org-todoist infers every unlabeled
+level-1 headline as a Todoist project. The account is on the free tier, capped
+at 5 projects, so exactly one bucket has to stay out. =Projects= is the one:
+
+| Bucket        | Todoist  | Tasks |
+|---------------+----------+-------|
+| Actions       | project  |    14 |
+| Someday/Maybe | project  |    39 |
+| Habits        | project  |    22 |
+| Projects      | =IGNORE= |     - |
+| Tickler       | =IGNORE= |     - |
+| Calendar      | =IGNORE= |     - |
+
+Three of the five available slots are used. =Tickler= and =Calendar= are held
+back: org-gtd declares =ORG_GTD_TIMESTAMP= required for both types
+(=org-gtd-types.el=), org-todoist writes dates to =SCHEDULED=/=DEADLINE=, and
+nothing reconciles the two. See issue #3.
+
+=Projects= is excluded in place rather than moved to another file.
+`org-gtd-default-file-name' is a defconst and `org-gtd-refile--get-gtd-targets'
+only ever searches =org-gtd-tasks.org=, so a moved bucket makes
+`org-gtd-refile--do' recreate an empty one here on the next project organize.
+
+org-gtd stores ticklers, habits, appointments and someday items with no todo
+keyword on the headline. org-todoist infers a keyword-less headline under a
+project as a *section*, so without intervention those 87 items would sync as
+empty Todoist sections. They carry an explicit =TODOIST_TYPE: TASK= instead,
+which wins over the inference. The cost is accepted and deliberate: on the
+first pull `org-todoist--set-todo' writes `org-todoist-todo-keyword' into every
+task that lacks one, so 96 headlines gain =TODO=.
+
+Habits are the weak point of this mapping. Their repeaters (=.+1d/2d=, =++1d=,
+=REPEAT_CRON=) land in the recurring-task support the upstream author documents
+as partial.
+
+Further constraints found by reading the source, recorded here so they are not
+rediscovered:
+
+- The ignore property value is =IGNORE=, not =IGNORED= as the upstream README
+  says; it must match `org-todoist--ignored-node-type'. A subtree has to be
+  marked before its first sync -- `org-todoist-ignore-subtree' refuses subtrees
+  already tracked by Todoist.
+- A headline with no todo keyword sitting under a section is inferred as a task
+  (`org-todoist--get-todoist-type'), and `org-todoist--set-todo' then writes
+  `org-todoist-todo-keyword' into it on pull. Structural headings therefore
+  acquire =TODO= unless their subtree is ignored.
+- org-todoist only writes the =org-list-indent-offset= file header into files it
+  creates, so an existing file needs it added by hand.
+
+** API token
+
+This repository is public, so the token is never written here. It is read from
+=~/.authinfo= (which must be mode 600) through auth-source:
+
+: machine api.todoist.com login <todoist-login> password <api-token>
+
+#+begin_src emacs-lisp  :results none
+
+(defvar my/todoist-enabled-p
+  (file-exists-p (expand-file-name ".todoist-enabled" doom-user-dir))
+  "Non-nil on machines opted in to the Todoist sync.
+The org-gtd file is shared over Syncthing; a second machine syncing it would
+submit duplicate commands to Todoist, so the integration is opt-in per machine.
+Doom must boot identically with this nil, so everything below is gated on it.")
+
+(when my/todoist-enabled-p
+  (after! auth-source
+    (add-to-list 'auth-sources "~/.authinfo" t)))
+
+#+end_src
+
+** Configuration
+
+#+begin_src emacs-lisp  :results none
+
+(use-package! org-todoist
+  :when my/todoist-enabled-p
+  :after org
+  :init
+  (setq org-todoist-file (expand-file-name "org-gtd-tasks.org" org-gtd-directory))
+  :custom
+  ;; Match the org-gtd keyword mapping. org-gtd cancels with KILL, org-todoist
+  ;; defaults to CANCELED; without this the same state means two things.
+  (org-todoist-todo-keyword "TODO")
+  (org-todoist-done-keyword "DONE")
+  (org-todoist-deleted-keyword "KILL")
+  ;; Archiving to a sibling file is detected as a deletion by org-todoist, so
+  ;; remote deletion stays off.
+  (org-todoist-delete-remote-items nil)
+  (org-todoist-show-n-levels 'todo-tree)
+  (org-todoist-comment-tag-user-pretty nil)
+  :config
+  (setq org-todoist-api-token
+        (auth-source-pick-first-password :host "api.todoist.com"))
+  (map! :map org-mode-map
+        :localleader
+        (:prefix ("T" . "todoist")
+         :desc "Dispatch"          "T"  #'org-todoist-dispatch
+         :desc "Sync"              "s"  #'org-todoist-sync
+         :desc "Goto file"         "g"  #'org-todoist-goto
+         :desc "Jump to project"   "j"  #'org-todoist-jump-to-project
+         :desc "Ignore subtree"    "i"  #'org-todoist-ignore-subtree
+         :desc "Add subproject"    "p"  #'org-todoist-add-subproject
+         :desc "Assign task"       "a"  #'org-todoist-assign-task
+         :desc "Ediff snapshot"    "e"  #'org-todoist-ediff-snapshot
+         :desc "Diagnose"          "d"  #'org-todoist-diagnose)))
+
+#+end_src
+
+
 * Org-cron
 
 #+begin_src emacs-lisp :tangle no

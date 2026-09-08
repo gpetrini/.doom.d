@@ -5,3 +5,6 @@ tmp/
 
 
 .serena/*
+
+# Opt-in marker for the org-todoist integration; per-machine, never shared.
+.todoist-enabled

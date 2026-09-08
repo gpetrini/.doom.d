@@ -1500,6 +1500,49 @@ ${abstract}
            )
          )
 
+(defvar my/todoist-enabled-p
+  (file-exists-p (expand-file-name ".todoist-enabled" doom-user-dir))
+  "Non-nil on machines opted in to the Todoist sync.
+The org-gtd file is shared over Syncthing; a second machine syncing it would
+submit duplicate commands to Todoist, so the integration is opt-in per machine.
+Doom must boot identically with this nil, so everything below is gated on it.")
+
+(when my/todoist-enabled-p
+  (after! auth-source
+    (add-to-list 'auth-sources "~/.authinfo" t)))
+
+(use-package! org-todoist
+  :when my/todoist-enabled-p
+  :after org
+  :init
+  (setq org-todoist-file (expand-file-name "org-gtd-tasks.org" org-gtd-directory))
+  :custom
+  ;; Match the org-gtd keyword mapping. org-gtd cancels with KILL, org-todoist
+  ;; defaults to CANCELED; without this the same state means two things.
+  (org-todoist-todo-keyword "TODO")
+  (org-todoist-done-keyword "DONE")
+  (org-todoist-deleted-keyword "KILL")
+  ;; Archiving to a sibling file is detected as a deletion by org-todoist, so
+  ;; remote deletion stays off.
+  (org-todoist-delete-remote-items nil)
+  (org-todoist-show-n-levels 'todo-tree)
+  (org-todoist-comment-tag-user-pretty nil)
+  :config
+  (setq org-todoist-api-token
+        (auth-source-pick-first-password :host "api.todoist.com"))
+  (map! :map org-mode-map
+        :localleader
+        (:prefix ("T" . "todoist")
+         :desc "Dispatch"          "T"  #'org-todoist-dispatch
+         :desc "Sync"              "s"  #'org-todoist-sync
+         :desc "Goto file"         "g"  #'org-todoist-goto
+         :desc "Jump to project"   "j"  #'org-todoist-jump-to-project
+         :desc "Ignore subtree"    "i"  #'org-todoist-ignore-subtree
+         :desc "Add subproject"    "p"  #'org-todoist-add-subproject
+         :desc "Assign task"       "a"  #'org-todoist-assign-task
+         :desc "Ediff snapshot"    "e"  #'org-todoist-ediff-snapshot
+         :desc "Diagnose"          "d"  #'org-todoist-diagnose)))
+
 (setq auth-sources '(password-store "~/.authinfo.gpg"))
 
 (with-eval-after-load 'hl-todo
