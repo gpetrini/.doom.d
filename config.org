@@ -78,8 +78,8 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
 :END:
 
 #+BEGIN_SRC emacs-lisp
-;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 30))
-(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 30))
+;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 16))
+(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 20))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 25))
 ;; (setq doom-theme 'doom-material-dark)
 ;; (setq doom-theme 'doom-dracula)
@@ -161,6 +161,9 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
 (add-to-list 'initial-frame-alist '(fullscreen . maximized))
 
 #+END_SRC
+
+#+RESULTS:
+: ((fullscreen . maximized) (left-fringe . 8) (right-fringe . 8))
 
 
 
@@ -516,8 +519,43 @@ ado-cus.el changed to include fake time
 (map! :map cdlatex-mode-map
       :i "TAB" #'cdlatex-tab)
 
+;; Backend de codigo-fonte: engraved (engrave-faces). Voltou a ser o backend em
+;; 2026-08-31, depois de uma passagem por 'minted -- ver Lectures/docs/adr/0004.
+;;
+;; O engrave-faces nao analisa codigo: ele carrega o texto num buffer, ativa o
+;; modo maior da linguagem, roda o font-lock e le as faces. Duas consequencias,
+;; ambas tratadas pelos dois blocos abaixo:
+;;
+;;   1. Colorir R exige ess-r-mode CARREGADO no Emacs que exporta. O Doom o
+;;      carrega sob demanda, entao sem o require explicito o bloco sai
+;;      monocromatico -- em lote sempre, e interativamente sempre que nenhum
+;;      buffer de R tenha sido aberto na sessao.
+;;   2. O ESS desliga por padrao seis grupos de font-lock, entre eles chamadas de
+;;      funcao, operadores e delimitadores. Sem religa-los, so o "<-" e o
+;;      comentario recebem cor.
+;;
+;; Vantagem sobre o minted: nada roda fora do Emacs, logo nao ha dependencia de
+;; pygmentize, de -shell-escape para o codigo, nem cache _minted-*/ em disco.
 (setq org-latex-listings 'engraved
       org-latex-engraved-theme 'doom-one-light)
+
+;; (1) Garante o modo do R na exportacao. Preso ao ox-latex, que so carrega na
+;; primeira exportacao -- nao custa nada no arranque do Emacs.
+(after! ox-latex
+  (require 'ess-r-mode nil t))
+
+;; (2) Religa os grupos de font-lock que o ESS desliga por padrao. Sem isto o
+;; engrave-faces colore o R muito menos que o Pygments; com isto, a cobertura
+;; fica equivalente (nome de funcao, numeros, operadores, delimitadores, "=").
+;; F&T fica de fora de proposito: colorir T e F como constantes ensina o atalho
+;; que a boa pratica manda evitar.
+(after! ess-r-mode
+  (dolist (grupo '(ess-fl-keyword:fun-calls
+                   ess-fl-keyword:numbers
+                   ess-fl-keyword:operators
+                   ess-fl-keyword:delimiters
+                   ess-fl-keyword:=))
+    (setf (alist-get grupo ess-R-font-lock-keywords) t)))
 #+END_SRC
 
 #+RESULTS:
@@ -562,7 +600,12 @@ ado-cus.el changed to include fake time
 
         ("" "url" nil)
         ;; this is used for syntax highlighting of code
-        ;; ("cache=false" "minted" nil)
+        ;; Desligado: com org-latex-listings em 'engraved o proprio Org injeta o
+        ;; preambulo do engrave-faces, e carregar o minted junto so acrescentaria
+        ;; a exigencia de -shell-escape e do pygmentize. Descomentar apenas se o
+        ;; backend voltar a 'minted, caso em que o pacote passa a ser obrigatorio
+        ;; -- o Org nao o injeta sozinho.
+        ;; ("" "minted" nil)
         ;; this allows you to use underscores in places like filenames. I still
         ;; wouldn't do it.
         ;; ("strings" "underscore" nil)
