@@ -79,7 +79,7 @@ Note: I have an SSD (~/~) and a HDD (~/HDD/~). Some files I prefer to save in my
 
 #+BEGIN_SRC emacs-lisp
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 16))
-(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 20))
+(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 24))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 25))
 ;; (setq doom-theme 'doom-material-dark)
 ;; (setq doom-theme 'doom-dracula)

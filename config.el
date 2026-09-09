@@ -28,7 +28,7 @@
 (map! "C-c C-SPC" #'dabbrev-completion)
 
 ;; (setq doom-font (font-spec :family "Yanone Kaffeesatz" :size 16))
-(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 20))
+(setq  doom-font (font-spec :family "FiraCode Nerd Font" :size 24))
 ;; (setq  doom-font (font-spec :family "Roboto Mono" :size 25))
 ;; (setq doom-theme 'doom-material-dark)
 ;; (setq doom-theme 'doom-dracula)
