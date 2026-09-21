@@ -974,6 +974,11 @@ ORG_GTD_TIMESTAMP org-gtd lists it as a stuck calendar item."
     (when iso
       (org-entry-put (point) "ORG_GTD_TIMESTAMP" (org-gcal--format-iso2org iso)))))
 
+(defun my/gcal-capture-target ()
+  "Prompt for a calendar slug and return its file, for the capture template."
+  (expand-file-name (concat (completing-read "Calendar: " my/gcal-calendars nil t) ".org")
+                    my/gcal-directory))
+
 (defun my/gcal-capture-action ()
   "Capture an org-gtd inbox item whose body links to the event at point."
   (interactive)
@@ -1602,6 +1607,11 @@ ORG_GTD_TIMESTAMP org-gtd lists it as a stuck calendar item."
            ("d" "Appointment/Deadline"
             entry  (file ,#'org-gtd-inbox-path)
             "* %? %^T\n:PROPERTIES:\n:ID: %(org-id-uuid)\n:ORG_GTD_CAPTURED_AT: %U\n:END:"
+            :kill-buffer t)
+           ;; Lands in gcal/<calendar>.org; `, G p' then creates the Google event.
+           ("g" "Google event"
+            entry  (file ,#'my/gcal-capture-target)
+            "* %^{Title}\n:org-gcal:\n%^T\n%?\n:END:"
             :kill-buffer t)
            )
          )

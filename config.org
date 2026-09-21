@@ -1564,6 +1564,10 @@ Division of responsibility with org-gtd:
   =org-gtd-tasks.org_archive=. When an event implies work, capture an org-gtd
   item with an =id:= link to the event: =, G c= on the event creates its =ID=
   and opens the inbox capture with the link as body.
+- The reverse direction is the =g= capture template: it files a heading with
+  an =:org-gcal:= drawer into the chosen =gcal/= file, and =, G p= on it
+  creates the Google event (the file decides the calendar, the drawer
+  timestamp the time). Posting stays a manual step; see below.
 - Events cancelled in Google are marked =KILL=, the org-gtd cancellation
   keyword, and never removed; the auto-archive takes them once they leave the
   `org-gcal-up-days' window.
@@ -1683,6 +1687,11 @@ ORG_GTD_TIMESTAMP org-gtd lists it as a stuck calendar item."
     (org-entry-put (point) "ORG_GTD" "Calendar")
     (when iso
       (org-entry-put (point) "ORG_GTD_TIMESTAMP" (org-gcal--format-iso2org iso)))))
+
+(defun my/gcal-capture-target ()
+  "Prompt for a calendar slug and return its file, for the capture template."
+  (expand-file-name (concat (completing-read "Calendar: " my/gcal-calendars nil t) ".org")
+                    my/gcal-directory))
 
 (defun my/gcal-capture-action ()
   "Capture an org-gtd inbox item whose body links to the event at point."
@@ -2567,6 +2576,11 @@ mu index
            ("d" "Appointment/Deadline"
             entry  (file ,#'org-gtd-inbox-path)
             "* %? %^T\n:PROPERTIES:\n:ID: %(org-id-uuid)\n:ORG_GTD_CAPTURED_AT: %U\n:END:"
+            :kill-buffer t)
+           ;; Lands in gcal/<calendar>.org; `, G p' then creates the Google event.
+           ("g" "Google event"
+            entry  (file ,#'my/gcal-capture-target)
+            "* %^{Title}\n:org-gcal:\n%^T\n%?\n:END:"
             :kill-buffer t)
            )
          )
