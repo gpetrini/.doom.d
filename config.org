@@ -1607,8 +1607,12 @@ unchanged on a machine that has not been set up.
 *** Setting up a machine
 
 1. Generate a key and fix the keyring permissions:
-   : gpg --quick-gen-key "<name> <email>" ed25519 default never
+   : gpg --quick-gen-key "<name> <email>" future-default default never
    : chmod 700 ~/.gnupg
+   =future-default= yields an ed25519 signing key plus a cv25519 encryption
+   subkey. A bare =ed25519= key has no encryption capability and plstore fails
+   with "Unusable public key"; repair one with
+   =gpg --quick-add-key <key-id> cv25519 encr never=.
    On a second machine, import the existing key instead:
    : gpg --export-secret-keys --armor <key-id> > key.asc   # on the first machine
    : gpg --import key.asc && shred -u key.asc               # on the second
