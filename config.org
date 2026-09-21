@@ -1267,7 +1267,7 @@ The following config is necessary to make per-projects files in the server
         ("@personal"     . ?o)
         ("@free"         . ?f)))
 
-(setq org-agenda-files '("~/Dropbox/GTD/"))
+(setq org-agenda-files '("~/Dropbox/GTD/" "~/Dropbox/GTD/gcal/"))
 
 ;; This affects tasks blocked by subtasks
 (after! org-agenda
@@ -1511,16 +1511,177 @@ The following config is necessary to make per-projects files in the server
 
 ** Gcal sync
 
-#+begin_src emacs-lisp :tangle no
-;; Call this lisp file from your config.el
-(let ((private-config (expand-file-name "private/org-gcal-credentials.el" doom-private-dir)))
-  (when (file-exists-p private-config)
-    (load! private-config)))
-(setq plstore-cache-passphrase-for-symmetric-encryption t)
+Google Calendar is mirrored by org-gcal into =~/Dropbox/GTD/gcal/=, one file per
+calendar, each carrying its own =#+CATEGORY= and =#+FILETAGS=.
+The subdirectory is added to `org-agenda-files' separately (the directory form
+of that variable is not recursive).
+
+Division of responsibility with org-gtd:
+
+- Appointments (a fixed time agreed with other people) live in Google and in
+  =gcal/=; =org-gcal-sync= is bidirectional inside =gcal/= only.
+- Dated tasks live in the org-gtd =Calendar= bucket and are never pushed to
+  Google. Their repeaters and state log have no counterpart in the Google event
+  model.
+- A fetched event is never refiled into =org-gtd-tasks.org=. org-gcal appends
+  new events as level-1 headings at the end of the target file, and its
+  auto-archive uses `org-archive-location' from whatever file the event sits
+  in, so an event refiled into the org-gtd file would end up in
+  =org-gtd-tasks.org_archive=. When an event implies work, capture an org-gtd
+  item with an =id:= link to the event.
+- Events cancelled in Google are marked =KILL=, the org-gtd cancellation
+  keyword, and never removed; the auto-archive takes them once they leave the
+  `org-gcal-up-days' window.
+- Classroom calendars (=CE*=, =HO*=) and the contacts birthday calendar are not
+  synced.
+
+Constraints found by reading the source, recorded here so they are not
+rediscovered:
+
+- `org-gcal-sync' is asynchronous and does not save the buffers it writes to;
+  the only `save-buffer' is on the auto-archive path, which runs before the
+  fetch. Left alone, the =gcal/= buffers stay modified until something saves
+  them, which is the main source of Syncthing conflicts. The advice below saves
+  them when the deferred settles, and refuses to start a sync from a modified
+  buffer or while a =sync-conflict= file exists.
+- org-gcal registers its OAuth provider at load time and warns if
+  `org-gcal-client-id' or `org-gcal-client-secret' is nil at that point. The
+  credentials are therefore set in `after!' =oauth2-auto=, which org-gcal
+  requires before that check, so the =authinfo.gpg= file is only decrypted when
+  org-gcal itself loads, not at startup.
+- oauth2-auto keys its tokens by =(calendar-id . provider)=, so the first sync
+  opens one browser authorisation per calendar. This happens once per machine.
+- There is no interactive re-authorisation command. To start over, delete
+  =~/.emacs.d/oauth2-auto.plist=.
+
+*** Secrets
+
+This repository is public, so nothing from the Google account is written here.
+Everything is read from =~/.authinfo.gpg= through auth-source:
+
+: machine org-gcal login <client-id> password <client-secret>
+: machine gcal:personal        login gcal password <calendar-id>
+: machine gcal:conferences     login gcal password <calendar-id>
+: machine gcal:teaching        login gcal password <calendar-id>
+: machine gcal:bureaucracy     login gcal password <calendar-id>
+: machine gcal:research-groups login gcal password <calendar-id>
+: machine gcal:supervisions    login gcal password <calendar-id>
+: machine gcal:reviews         login gcal password <calendar-id>
+: machine gcal:research        login gcal password <calendar-id>
+: machine gcal:meetings        login gcal password <calendar-id>
+: machine gcal:ysi             login gcal password <calendar-id>
+
+The refresh token is stored by oauth2-auto in a plstore encrypted to the first
+secret key in the GPG keyring, so `gpg-agent' caches the passphrase and Emacs
+does not ask for a separate plstore password.
+The whole block is gated on the existence of =~/.authinfo.gpg=, so Doom boots
+unchanged on a machine that has not been set up.
+
+*** Setting up a machine
+
+1. Generate a key and fix the keyring permissions:
+   : gpg --quick-gen-key "<name> <email>" ed25519 default never
+   : chmod 700 ~/.gnupg
+   On a second machine, import the existing key instead:
+   : gpg --export-secret-keys --armor <key-id> > key.asc   # on the first machine
+   : gpg --import key.asc && shred -u key.asc               # on the second
+2. Google Cloud console: create a project, enable the Calendar API, create an
+   OAuth client of type "Desktop app", copy the client ID and secret.
+   On a second machine, reuse the same client.
+3. Google Calendar, for each calendar: Settings -> Integrate calendar ->
+   Calendar ID. The primary calendar's ID is the account e-mail.
+4. Write the lines above into =~/.authinfo.gpg= (Emacs encrypts on save when
+   the buffer is visited with =.gpg=). Copy the file as is to a second machine.
+5. Run =org-gcal-fetch= and approve the browser prompt for each calendar.
+
+#+begin_src emacs-lisp  :results none
+
+(defvar my/gcal-enabled-p (file-exists-p "~/.authinfo.gpg")
+  "Non-nil on machines where the Google credentials are available.")
+
+(defvar my/gcal-directory "~/Dropbox/GTD/gcal/"
+  "Directory holding one org file per synced Google calendar.")
+
+(defvar my/gcal-calendars
+  '("personal" "conferences" "teaching" "bureaucracy" "research-groups"
+    "supervisions" "reviews" "research" "meetings" "ysi")
+  "Slugs of the synced calendars.
+Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
+~/.authinfo.gpg holding the calendar ID.")
+
+(defun my/gcal-buffers ()
+  "Buffers visiting a file under `my/gcal-directory'."
+  (seq-filter (lambda (buf)
+                (when-let ((file (buffer-file-name buf)))
+                  (file-in-directory-p file my/gcal-directory)))
+              (buffer-list)))
+
+(defun my/gcal-before-sync (&rest _)
+  "Refuse to sync over Syncthing conflicts or unsaved edits; else reload from disk."
+  (when (directory-files my/gcal-directory nil "sync-conflict")
+    (user-error "org-gcal: resolve the sync-conflict files in %s first"
+                my/gcal-directory))
+  (dolist (buf (my/gcal-buffers))
+    (when (buffer-modified-p buf)
+      (user-error "org-gcal: save %s before syncing" (buffer-name buf)))
+    (with-current-buffer buf
+      (revert-buffer :ignore-auto :noconfirm :preserve-modes))))
+
+(defun my/gcal-save-after-sync (result)
+  "Save the gcal buffers once the deferred RESULT of a sync settles."
+  (deferred:try result
+    :finally (lambda ()
+               (dolist (buf (my/gcal-buffers))
+                 (with-current-buffer buf
+                   (when (buffer-modified-p) (save-buffer)))))))
+
+(when my/gcal-enabled-p
+  (setq epg-pinentry-mode 'loopback)
+  (after! plstore
+    (setq plstore-encrypt-to
+          (list (epg-sub-key-id
+                 (car (epg-key-sub-key-list
+                       (car (epg-list-keys (epg-make-context 'OpenPGP) nil t))))))))
+  ;; Must be set before org-gcal's load-time provider registration; oauth2-auto
+  ;; is required by org-gcal before that point.
+  (after! oauth2-auto
+    (let ((entry (car (auth-source-search :host "org-gcal" :max 1
+                                          :require '(:user :secret)))))
+      (setq org-gcal-client-id (plist-get entry :user)
+            org-gcal-client-secret (auth-info-password entry)))))
+
+(use-package! org-gcal
+  :when my/gcal-enabled-p
+  :commands (org-gcal-sync org-gcal-fetch org-gcal-sync-buffer
+             org-gcal-post-at-point org-gcal-delete-at-point
+             org-gcal--sync-unlock)
+  :init
+  (map! :map org-mode-map
+        :localleader
+        (:prefix ("G" . "gcal")
+         :desc "Sync"            "G" #'org-gcal-sync
+         :desc "Fetch"           "f" #'org-gcal-fetch
+         :desc "Sync buffer"     "b" #'org-gcal-sync-buffer
+         :desc "Post at point"   "p" #'org-gcal-post-at-point
+         :desc "Delete at point" "d" #'org-gcal-delete-at-point
+         :desc "Unlock"          "u" #'org-gcal--sync-unlock))
+  :custom
+  (org-gcal-up-days 30)
+  (org-gcal-down-days 120)
+  (org-gcal-strip-html-descriptions t)
+  ;; Match the org-gtd cancellation keyword; never remove, auto-archive does it.
+  (org-gcal-cancelled-todo-keyword "KILL")
+  (org-gcal-remove-api-cancelled-events nil)
+  :config
+  (setq org-gcal-fetch-file-alist
+        (mapcar (lambda (slug)
+                  (cons (auth-source-pick-first-password :host (concat "gcal:" slug))
+                        (expand-file-name (concat slug ".org") my/gcal-directory)))
+                my/gcal-calendars))
+  (advice-add 'org-gcal-sync :before #'my/gcal-before-sync)
+  (advice-add 'org-gcal-sync :filter-return #'my/gcal-save-after-sync))
 
 #+end_src
-
-
 
 
 ** Calfw
@@ -2355,128 +2516,6 @@ mu index
 #+end_src
 
 
-
-
-* Org-todoist
-:PROPERTIES:
-:ID:       0f3a6c21-9b4e-4a7d-8c1f-5d2e6b07a913
-:END:
-
-Bidirectional sync of org headlines with Todoist via the sync API. Upstream
-documentation is vendored in [[file:.scratch/research/README.org]].
-
-The synced file *is* =org-gtd-tasks.org=. org-todoist re-serializes the whole
-buffer on every sync and local changes overwrite remote changes.
-
-Level 1 of that file is a contested namespace: org-gtd needs its six buckets at
-level 1 (they carry =ORG_GTD_REFILE=), and org-todoist infers every unlabeled
-level-1 headline as a Todoist project. The account is on the free tier, capped
-at 5 projects, so exactly one bucket has to stay out. =Projects= is the one:
-
-| Bucket        | Todoist  | Tasks |
-|---------------+----------+-------|
-| Actions       | project  |    14 |
-| Someday/Maybe | project  |    39 |
-| Habits        | project  |    22 |
-| Projects      | =IGNORE= |     - |
-| Tickler       | =IGNORE= |     - |
-| Calendar      | =IGNORE= |     - |
-
-Three of the five available slots are used. =Tickler= and =Calendar= are held
-back: org-gtd declares =ORG_GTD_TIMESTAMP= required for both types
-(=org-gtd-types.el=), org-todoist writes dates to =SCHEDULED=/=DEADLINE=, and
-nothing reconciles the two. See issue #3.
-
-=Projects= is excluded in place rather than moved to another file.
-`org-gtd-default-file-name' is a defconst and `org-gtd-refile--get-gtd-targets'
-only ever searches =org-gtd-tasks.org=, so a moved bucket makes
-`org-gtd-refile--do' recreate an empty one here on the next project organize.
-
-org-gtd stores ticklers, habits, appointments and someday items with no todo
-keyword on the headline. org-todoist infers a keyword-less headline under a
-project as a *section*, so without intervention those 87 items would sync as
-empty Todoist sections. They carry an explicit =TODOIST_TYPE: TASK= instead,
-which wins over the inference. The cost is accepted and deliberate: on the
-first pull `org-todoist--set-todo' writes `org-todoist-todo-keyword' into every
-task that lacks one, so 96 headlines gain =TODO=.
-
-Habits are the weak point of this mapping. Their repeaters (=.+1d/2d=, =++1d=,
-=REPEAT_CRON=) land in the recurring-task support the upstream author documents
-as partial.
-
-Further constraints found by reading the source, recorded here so they are not
-rediscovered:
-
-- The ignore property value is =IGNORE=, not =IGNORED= as the upstream README
-  says; it must match `org-todoist--ignored-node-type'. A subtree has to be
-  marked before its first sync -- `org-todoist-ignore-subtree' refuses subtrees
-  already tracked by Todoist.
-- A headline with no todo keyword sitting under a section is inferred as a task
-  (`org-todoist--get-todoist-type'), and `org-todoist--set-todo' then writes
-  `org-todoist-todo-keyword' into it on pull. Structural headings therefore
-  acquire =TODO= unless their subtree is ignored.
-- org-todoist only writes the =org-list-indent-offset= file header into files it
-  creates, so an existing file needs it added by hand.
-
-** API token
-
-This repository is public, so the token is never written here. It is read from
-=~/.authinfo= (which must be mode 600) through auth-source:
-
-: machine api.todoist.com login <todoist-login> password <api-token>
-
-#+begin_src emacs-lisp  :results none
-
-(defvar my/todoist-enabled-p
-  (file-exists-p (expand-file-name ".todoist-enabled" doom-user-dir))
-  "Non-nil on machines opted in to the Todoist sync.
-The org-gtd file is shared over Syncthing; a second machine syncing it would
-submit duplicate commands to Todoist, so the integration is opt-in per machine.
-Doom must boot identically with this nil, so everything below is gated on it.")
-
-(when my/todoist-enabled-p
-  (after! auth-source
-    (add-to-list 'auth-sources "~/.authinfo" t)))
-
-#+end_src
-
-** Configuration
-
-#+begin_src emacs-lisp  :results none
-
-(use-package! org-todoist
-  :when my/todoist-enabled-p
-  :after org
-  :init
-  (setq org-todoist-file (expand-file-name "org-gtd-tasks.org" org-gtd-directory))
-  :custom
-  ;; Match the org-gtd keyword mapping. org-gtd cancels with KILL, org-todoist
-  ;; defaults to CANCELED; without this the same state means two things.
-  (org-todoist-todo-keyword "TODO")
-  (org-todoist-done-keyword "DONE")
-  (org-todoist-deleted-keyword "KILL")
-  ;; Archiving to a sibling file is detected as a deletion by org-todoist, so
-  ;; remote deletion stays off.
-  (org-todoist-delete-remote-items nil)
-  (org-todoist-show-n-levels 'todo-tree)
-  (org-todoist-comment-tag-user-pretty nil)
-  :config
-  (setq org-todoist-api-token
-        (auth-source-pick-first-password :host "api.todoist.com"))
-  (map! :map org-mode-map
-        :localleader
-        (:prefix ("T" . "todoist")
-         :desc "Dispatch"          "T"  #'org-todoist-dispatch
-         :desc "Sync"              "s"  #'org-todoist-sync
-         :desc "Goto file"         "g"  #'org-todoist-goto
-         :desc "Jump to project"   "j"  #'org-todoist-jump-to-project
-         :desc "Ignore subtree"    "i"  #'org-todoist-ignore-subtree
-         :desc "Add subproject"    "p"  #'org-todoist-add-subproject
-         :desc "Assign task"       "a"  #'org-todoist-assign-task
-         :desc "Ediff snapshot"    "e"  #'org-todoist-ediff-snapshot
-         :desc "Diagnose"          "d"  #'org-todoist-diagnose)))
-
-#+end_src
 
 
 * Org-cron

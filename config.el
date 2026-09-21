@@ -699,7 +699,7 @@ ${abstract}
         ("@personal"     . ?o)
         ("@free"         . ?f)))
 
-(setq org-agenda-files '("~/Dropbox/GTD/"))
+(setq org-agenda-files '("~/Dropbox/GTD/" "~/Dropbox/GTD/gcal/"))
 
 ;; This affects tasks blocked by subtasks
 (after! org-agenda
@@ -900,6 +900,91 @@ ${abstract}
                                 "Effort_ALL" .
                                 "0:05 0:10 0:20 0:30 0:45 1:00 1:30 2:00 2:30 3:00 4:00 5:00 6:00 7:00 8:00")))
  )
+
+(defvar my/gcal-enabled-p (file-exists-p "~/.authinfo.gpg")
+  "Non-nil on machines where the Google credentials are available.")
+
+(defvar my/gcal-directory "~/Dropbox/GTD/gcal/"
+  "Directory holding one org file per synced Google calendar.")
+
+(defvar my/gcal-calendars
+  '("personal" "conferences" "teaching" "bureaucracy" "research-groups"
+    "supervisions" "reviews" "research" "meetings" "ysi")
+  "Slugs of the synced calendars.
+Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
+~/.authinfo.gpg holding the calendar ID.")
+
+(defun my/gcal-buffers ()
+  "Buffers visiting a file under `my/gcal-directory'."
+  (seq-filter (lambda (buf)
+                (when-let ((file (buffer-file-name buf)))
+                  (file-in-directory-p file my/gcal-directory)))
+              (buffer-list)))
+
+(defun my/gcal-before-sync (&rest _)
+  "Refuse to sync over Syncthing conflicts or unsaved edits; else reload from disk."
+  (when (directory-files my/gcal-directory nil "sync-conflict")
+    (user-error "org-gcal: resolve the sync-conflict files in %s first"
+                my/gcal-directory))
+  (dolist (buf (my/gcal-buffers))
+    (when (buffer-modified-p buf)
+      (user-error "org-gcal: save %s before syncing" (buffer-name buf)))
+    (with-current-buffer buf
+      (revert-buffer :ignore-auto :noconfirm :preserve-modes))))
+
+(defun my/gcal-save-after-sync (result)
+  "Save the gcal buffers once the deferred RESULT of a sync settles."
+  (deferred:try result
+    :finally (lambda ()
+               (dolist (buf (my/gcal-buffers))
+                 (with-current-buffer buf
+                   (when (buffer-modified-p) (save-buffer)))))))
+
+(when my/gcal-enabled-p
+  (setq epg-pinentry-mode 'loopback)
+  (after! plstore
+    (setq plstore-encrypt-to
+          (list (epg-sub-key-id
+                 (car (epg-key-sub-key-list
+                       (car (epg-list-keys (epg-make-context 'OpenPGP) nil t))))))))
+  ;; Must be set before org-gcal's load-time provider registration; oauth2-auto
+  ;; is required by org-gcal before that point.
+  (after! oauth2-auto
+    (let ((entry (car (auth-source-search :host "org-gcal" :max 1
+                                          :require '(:user :secret)))))
+      (setq org-gcal-client-id (plist-get entry :user)
+            org-gcal-client-secret (auth-info-password entry)))))
+
+(use-package! org-gcal
+  :when my/gcal-enabled-p
+  :commands (org-gcal-sync org-gcal-fetch org-gcal-sync-buffer
+             org-gcal-post-at-point org-gcal-delete-at-point
+             org-gcal--sync-unlock)
+  :init
+  (map! :map org-mode-map
+        :localleader
+        (:prefix ("G" . "gcal")
+         :desc "Sync"            "G" #'org-gcal-sync
+         :desc "Fetch"           "f" #'org-gcal-fetch
+         :desc "Sync buffer"     "b" #'org-gcal-sync-buffer
+         :desc "Post at point"   "p" #'org-gcal-post-at-point
+         :desc "Delete at point" "d" #'org-gcal-delete-at-point
+         :desc "Unlock"          "u" #'org-gcal--sync-unlock))
+  :custom
+  (org-gcal-up-days 30)
+  (org-gcal-down-days 120)
+  (org-gcal-strip-html-descriptions t)
+  ;; Match the org-gtd cancellation keyword; never remove, auto-archive does it.
+  (org-gcal-cancelled-todo-keyword "KILL")
+  (org-gcal-remove-api-cancelled-events nil)
+  :config
+  (setq org-gcal-fetch-file-alist
+        (mapcar (lambda (slug)
+                  (cons (auth-source-pick-first-password :host (concat "gcal:" slug))
+                        (expand-file-name (concat slug ".org") my/gcal-directory)))
+                my/gcal-calendars))
+  (advice-add 'org-gcal-sync :before #'my/gcal-before-sync)
+  (advice-add 'org-gcal-sync :filter-return #'my/gcal-save-after-sync))
 
 (use-package! org-transclusion
   :after org
@@ -1475,49 +1560,6 @@ ${abstract}
             :kill-buffer t)
            )
          )
-
-(defvar my/todoist-enabled-p
-  (file-exists-p (expand-file-name ".todoist-enabled" doom-user-dir))
-  "Non-nil on machines opted in to the Todoist sync.
-The org-gtd file is shared over Syncthing; a second machine syncing it would
-submit duplicate commands to Todoist, so the integration is opt-in per machine.
-Doom must boot identically with this nil, so everything below is gated on it.")
-
-(when my/todoist-enabled-p
-  (after! auth-source
-    (add-to-list 'auth-sources "~/.authinfo" t)))
-
-(use-package! org-todoist
-  :when my/todoist-enabled-p
-  :after org
-  :init
-  (setq org-todoist-file (expand-file-name "org-gtd-tasks.org" org-gtd-directory))
-  :custom
-  ;; Match the org-gtd keyword mapping. org-gtd cancels with KILL, org-todoist
-  ;; defaults to CANCELED; without this the same state means two things.
-  (org-todoist-todo-keyword "TODO")
-  (org-todoist-done-keyword "DONE")
-  (org-todoist-deleted-keyword "KILL")
-  ;; Archiving to a sibling file is detected as a deletion by org-todoist, so
-  ;; remote deletion stays off.
-  (org-todoist-delete-remote-items nil)
-  (org-todoist-show-n-levels 'todo-tree)
-  (org-todoist-comment-tag-user-pretty nil)
-  :config
-  (setq org-todoist-api-token
-        (auth-source-pick-first-password :host "api.todoist.com"))
-  (map! :map org-mode-map
-        :localleader
-        (:prefix ("T" . "todoist")
-         :desc "Dispatch"          "T"  #'org-todoist-dispatch
-         :desc "Sync"              "s"  #'org-todoist-sync
-         :desc "Goto file"         "g"  #'org-todoist-goto
-         :desc "Jump to project"   "j"  #'org-todoist-jump-to-project
-         :desc "Ignore subtree"    "i"  #'org-todoist-ignore-subtree
-         :desc "Add subproject"    "p"  #'org-todoist-add-subproject
-         :desc "Assign task"       "a"  #'org-todoist-assign-task
-         :desc "Ediff snapshot"    "e"  #'org-todoist-ediff-snapshot
-         :desc "Diagnose"          "d"  #'org-todoist-diagnose)))
 
 (setq auth-sources '(password-store "~/.authinfo.gpg"))
 
