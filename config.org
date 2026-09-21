@@ -1644,6 +1644,14 @@ unchanged on a machine that has not been set up.
 4. Write the lines above into =~/.authinfo.gpg= (Emacs encrypts on save when
    the buffer is visited with =.gpg=). Copy the file as is to a second machine.
 5. Run =org-gcal-fetch= and approve the browser prompt for each calendar.
+6. Make the key passphrase a once-per-login event; every sync opens the
+   plstore and otherwise asks again after gpg-agent's 10-minute default:
+   : printf 'default-cache-ttl 34560000\nmax-cache-ttl 34560000\n' > ~/.gnupg/gpg-agent.conf
+   : gpgconf --reload gpg-agent
+   If =~/.authinfo.gpg= was encrypted symmetrically (Emacs falls back to that
+   when no encryption-capable key exists), re-encrypt it to the key so only
+   one passphrase remains: =(setq epa-file-encrypt-to '("<fingerprint>"))=,
+   then save the file once.
 
 #+begin_src emacs-lisp  :results none
 
