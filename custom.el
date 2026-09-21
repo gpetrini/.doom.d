@@ -7,7 +7,7 @@
  '(safe-local-variable-directories
    '("/home/gpetrini/Org/" "/home/gpetrini/.config/doom/" "~/.config/emacs/"))
  '(safe-local-variable-values
-   '((org-list-indent-offset . 2) (flycheck-checker . eglot-check)
+   '((flycheck-checker . eglot-check)
      (flycheck-checker . eglot) (apheleia-formatter . clang-format)
      (eval setq-local org-tag-alist
       (append org-tag-persistent-alist
