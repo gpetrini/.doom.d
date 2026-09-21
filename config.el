@@ -938,6 +938,17 @@ ${abstract}
 Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
 ~/.authinfo.gpg holding the calendar ID.")
 
+(defvar my/gtd-conflict-regexp "sync-conflict\\|conflicted copy\\|conflito"
+  "File-name fragments of Syncthing and Dropbox conflict copies.")
+
+(defun my/gtd-conflicts ()
+  "List Dropbox/Syncthing conflict copies under the GTD directory in dired."
+  (interactive)
+  (let ((files (directory-files-recursively "~/Dropbox/GTD/" my/gtd-conflict-regexp)))
+    (if files
+        (dired (cons "~/Dropbox/GTD/" files))
+      (message "No conflict copies under ~/Dropbox/GTD/"))))
+
 (defun my/gcal-buffers ()
   "Buffers visiting a file under `my/gcal-directory'."
   (seq-filter (lambda (buf)
@@ -947,8 +958,8 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
 
 (defun my/gcal-before-sync (&rest _)
   "Refuse to sync over Syncthing conflicts or unsaved edits; else reload from disk."
-  (when (directory-files my/gcal-directory nil "sync-conflict")
-    (user-error "org-gcal: resolve the sync-conflict files in %s first"
+  (when (directory-files my/gcal-directory nil my/gtd-conflict-regexp)
+    (user-error "org-gcal: resolve the conflict copies in %s first"
                 my/gcal-directory))
   (dolist (buf (my/gcal-buffers))
     (when (buffer-modified-p buf)
@@ -972,7 +983,7 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
 Gives up silently when a sync is already running, a gcal buffer has unsaved
 edits, or a Syncthing conflict file exists."
   (unless (or (bound-and-true-p org-gcal--sync-lock)
-              (directory-files my/gcal-directory nil "sync-conflict")
+              (directory-files my/gcal-directory nil my/gtd-conflict-regexp)
               (seq-some #'buffer-modified-p (my/gcal-buffers)))
     (org-gcal-sync 'skip-export 'silent)))
 
@@ -1033,6 +1044,7 @@ is posted as soon as the capture ends."
          :desc "Post at point"   "p" #'org-gcal-post-at-point
          :desc "Delete at point" "d" #'org-gcal-delete-at-point
          :desc "Capture action"  "c" #'my/gcal-capture-action
+         :desc "Conflict copies" "x" #'my/gtd-conflicts
          :desc "Unlock"          "u" #'org-gcal--sync-unlock))
   :custom
   (org-gcal-up-days 30)
