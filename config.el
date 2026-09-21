@@ -964,6 +964,18 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
                  (with-current-buffer buf
                    (when (buffer-modified-p) (save-buffer)))))))
 
+(defvar my/gcal-fetch-timer nil
+  "Repeating timer behind `my/gcal-fetch-quietly'.")
+
+(defun my/gcal-fetch-quietly ()
+  "Fetch from Google without pushing, unless it is unsafe to touch the files.
+Gives up silently when a sync is already running, a gcal buffer has unsaved
+edits, or a Syncthing conflict file exists."
+  (unless (or (bound-and-true-p org-gcal--sync-lock)
+              (directory-files my/gcal-directory nil "sync-conflict")
+              (seq-some #'buffer-modified-p (my/gcal-buffers)))
+    (org-gcal-sync 'skip-export 'silent)))
+
 (defun my/gcal-mark-as-gtd-calendar (_calendar-id event _update-mode)
   "Give the event at point the org-gtd Calendar type.
 Without ORG_GTD the Engage day block skips the entry; without
@@ -1036,6 +1048,9 @@ is posted as soon as the capture ends."
                         (expand-file-name (concat slug ".org") my/gcal-directory)))
                 my/gcal-calendars))
   (add-hook 'org-gcal-after-update-entry-functions #'my/gcal-mark-as-gtd-calendar)
+  ;; Started here, so the first passphrase prompt is always user-initiated.
+  (when my/gcal-fetch-timer (cancel-timer my/gcal-fetch-timer))
+  (setq my/gcal-fetch-timer (run-with-timer 600 600 #'my/gcal-fetch-quietly))
   (advice-add 'org-gcal-sync :before #'my/gcal-before-sync)
   (advice-add 'org-gcal-sync :filter-return #'my/gcal-save-after-sync))
 
