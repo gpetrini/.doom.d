@@ -1550,12 +1550,20 @@ Division of responsibility with org-gtd:
 - Dated tasks live in the org-gtd =Calendar= bucket and are never pushed to
   Google. Their repeaters and state log have no counterpart in the Google event
   model.
+- Every fetched event receives =ORG_GTD: Calendar= and =ORG_GTD_TIMESTAMP=
+  through `org-gcal-after-update-entry-functions'. The Engage day block keeps
+  only entries whose own =ORG_GTD= is =Calendar= or =Habit=, and the
+  stuck-calendar review lists =Calendar= items lacking the timestamp. The
+  properties survive later syncs because org-gcal only touches its own.
+  Side effect: `org-gtd-archive-completed-items' moves cancelled (=KILL=)
+  events to the yearly GTD archive instead of =gcal/<file>_archive=.
 - A fetched event is never refiled into =org-gtd-tasks.org=. org-gcal appends
   new events as level-1 headings at the end of the target file, and its
   auto-archive uses `org-archive-location' from whatever file the event sits
   in, so an event refiled into the org-gtd file would end up in
   =org-gtd-tasks.org_archive=. When an event implies work, capture an org-gtd
-  item with an =id:= link to the event.
+  item with an =id:= link to the event: =, G c= on the event creates its =ID=
+  and opens the inbox capture with the link as body.
 - Events cancelled in Google are marked =KILL=, the org-gtd cancellation
   keyword, and never removed; the auto-archive takes them once they leave the
   `org-gcal-up-days' window.
@@ -1666,6 +1674,25 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
                  (with-current-buffer buf
                    (when (buffer-modified-p) (save-buffer)))))))
 
+(defun my/gcal-mark-as-gtd-calendar (_calendar-id event _update-mode)
+  "Give the event at point the org-gtd Calendar type.
+Without ORG_GTD the Engage day block skips the entry; without
+ORG_GTD_TIMESTAMP org-gtd lists it as a stuck calendar item."
+  (let* ((start (plist-get event :start))
+         (iso (or (plist-get start :dateTime) (plist-get start :date))))
+    (org-entry-put (point) "ORG_GTD" "Calendar")
+    (when iso
+      (org-entry-put (point) "ORG_GTD_TIMESTAMP" (org-gcal--format-iso2org iso)))))
+
+(defun my/gcal-capture-action ()
+  "Capture an org-gtd inbox item whose body links to the event at point."
+  (interactive)
+  (org-back-to-heading t)
+  (let ((org-capture-initial
+         (org-link-make-string (concat "id:" (org-id-get-create))
+                               (org-get-heading t t t t))))
+    (org-gtd-capture nil "i")))
+
 (when my/gcal-enabled-p
   (setq epg-pinentry-mode 'loopback)
   (after! plstore
@@ -1695,6 +1722,7 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
          :desc "Sync buffer"     "b" #'org-gcal-sync-buffer
          :desc "Post at point"   "p" #'org-gcal-post-at-point
          :desc "Delete at point" "d" #'org-gcal-delete-at-point
+         :desc "Capture action"  "c" #'my/gcal-capture-action
          :desc "Unlock"          "u" #'org-gcal--sync-unlock))
   :custom
   (org-gcal-up-days 30)
@@ -1709,6 +1737,7 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
                   (cons (auth-source-pick-first-password :host (concat "gcal:" slug))
                         (expand-file-name (concat slug ".org") my/gcal-directory)))
                 my/gcal-calendars))
+  (add-hook 'org-gcal-after-update-entry-functions #'my/gcal-mark-as-gtd-calendar)
   (advice-add 'org-gcal-sync :before #'my/gcal-before-sync)
   (advice-add 'org-gcal-sync :filter-return #'my/gcal-save-after-sync))
 

@@ -964,6 +964,25 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
                  (with-current-buffer buf
                    (when (buffer-modified-p) (save-buffer)))))))
 
+(defun my/gcal-mark-as-gtd-calendar (_calendar-id event _update-mode)
+  "Give the event at point the org-gtd Calendar type.
+Without ORG_GTD the Engage day block skips the entry; without
+ORG_GTD_TIMESTAMP org-gtd lists it as a stuck calendar item."
+  (let* ((start (plist-get event :start))
+         (iso (or (plist-get start :dateTime) (plist-get start :date))))
+    (org-entry-put (point) "ORG_GTD" "Calendar")
+    (when iso
+      (org-entry-put (point) "ORG_GTD_TIMESTAMP" (org-gcal--format-iso2org iso)))))
+
+(defun my/gcal-capture-action ()
+  "Capture an org-gtd inbox item whose body links to the event at point."
+  (interactive)
+  (org-back-to-heading t)
+  (let ((org-capture-initial
+         (org-link-make-string (concat "id:" (org-id-get-create))
+                               (org-get-heading t t t t))))
+    (org-gtd-capture nil "i")))
+
 (when my/gcal-enabled-p
   (setq epg-pinentry-mode 'loopback)
   (after! plstore
@@ -993,6 +1012,7 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
          :desc "Sync buffer"     "b" #'org-gcal-sync-buffer
          :desc "Post at point"   "p" #'org-gcal-post-at-point
          :desc "Delete at point" "d" #'org-gcal-delete-at-point
+         :desc "Capture action"  "c" #'my/gcal-capture-action
          :desc "Unlock"          "u" #'org-gcal--sync-unlock))
   :custom
   (org-gcal-up-days 30)
@@ -1007,6 +1027,7 @@ Each maps to gcal/<slug>.org and to a `machine gcal:<slug>' line in
                   (cons (auth-source-pick-first-password :host (concat "gcal:" slug))
                         (expand-file-name (concat slug ".org") my/gcal-directory)))
                 my/gcal-calendars))
+  (add-hook 'org-gcal-after-update-entry-functions #'my/gcal-mark-as-gtd-calendar)
   (advice-add 'org-gcal-sync :before #'my/gcal-before-sync)
   (advice-add 'org-gcal-sync :filter-return #'my/gcal-save-after-sync))
 
