@@ -987,16 +987,6 @@ edits, or a Syncthing conflict file exists."
               (seq-some #'buffer-modified-p (my/gcal-buffers)))
     (org-gcal-sync 'skip-export 'silent)))
 
-(defun my/gcal-mark-as-gtd-calendar (_calendar-id event _update-mode)
-  "Give the event at point the org-gtd Calendar type.
-Without ORG_GTD the Engage day block skips the entry; without
-ORG_GTD_TIMESTAMP org-gtd lists it as a stuck calendar item."
-  (let* ((start (plist-get event :start))
-         (iso (or (plist-get start :dateTime) (plist-get start :date))))
-    (org-entry-put (point) "ORG_GTD" "Calendar")
-    (when iso
-      (org-entry-put (point) "ORG_GTD_TIMESTAMP" (org-gcal--format-iso2org iso)))))
-
 (defun my/gcal-capture-target ()
   "Prompt for a calendar slug and return its file, for the capture template.
 Loads org-gcal so that its capture-finalize hook is in place and the entry
@@ -1059,7 +1049,6 @@ is posted as soon as the capture ends."
                   (cons (auth-source-pick-first-password :host (concat "gcal:" slug))
                         (expand-file-name (concat slug ".org") my/gcal-directory)))
                 my/gcal-calendars))
-  (add-hook 'org-gcal-after-update-entry-functions #'my/gcal-mark-as-gtd-calendar)
   ;; Started here, so the first passphrase prompt is always user-initiated.
   (when my/gcal-fetch-timer (cancel-timer my/gcal-fetch-timer))
   (setq my/gcal-fetch-timer (run-with-timer 600 600 #'my/gcal-fetch-quietly))
@@ -1347,6 +1336,19 @@ is posted as soon as the capture ends."
 (advice-add 'org-gtd-archive-completed-items :after #'my-gtd-archive-killed-items)
 
 
+(defun my/gtd-skip-unless-day-item ()
+  "Keep org-gtd Calendar and Habit entries and Google Calendar events.
+Replaces `org-gtd-view-lang--skip-unless-calendar-or-habit', which requires
+ORG_GTD: the events mirrored into gcal/ are deliberately untyped, so that
+past ones stay out of the type-filtered blocks."
+  (if (and (or (member (org-entry-get (point) "ORG_GTD")
+                       (list (org-gtd-type-org-gtd-value 'calendar)
+                             (org-gtd-type-org-gtd-value 'habit)))
+               (org-entry-get (point) "org-gcal-managed"))
+           (not (org-entry-is-done-p)))
+      nil
+    (org-entry-end-position)))
+
 (defun my/gtd-daily-view ()
   "Show planning views"
   (interactive)
@@ -1373,7 +1375,12 @@ is posted as soon as the capture ends."
       (when . today))
 
      ((name . "󰕪 Today's schedule")
-      (block-type . calendar-day))
+      (native . (agenda ""
+                        ((org-agenda-overriding-header "󰕪 Today's schedule")
+                         (org-agenda-span 1)
+                         (org-agenda-start-day nil)
+                         (org-agenda-skip-additional-timestamps-same-entry t)
+                         (org-agenda-skip-function 'my/gtd-skip-unless-day-item)))))
 
      ((name . "󰃶 Scheduled for today")
       (type . next-action)
