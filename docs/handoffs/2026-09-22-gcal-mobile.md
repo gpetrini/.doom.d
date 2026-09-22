@@ -91,20 +91,26 @@ Teste de isolamento: `~/Dropbox/orgzly-teste/teste.org`, com repositório aponta
 `/orgzly-teste`, **sincroniza normalmente**; o mesmo app apontando para `/GTD` **falha**.
 Logo o defeito está na forma da pasta `/GTD`, não na autorização nem na rede.
 
-Suspeito principal, ainda não confirmado: a subárvore `.git`, com 276 entradas e nomes com
-apóstrofo e parênteses vindos das cópias de conflito.
-As cópias foram removidas localmente hoje, e o Dropbox propaga a remoção, de modo que um novo
-teste com `/GTD` pode mudar de resultado; o teste ainda não foi refeito.
+Confirmação posterior, ainda na mesma sessão: desligando "incluir subpastas" no app, o
+repositório `/GTD` passou a sincronizar.
+Isso sustenta a hipótese da subárvore `.git`, com 276 entradas e nomes com apóstrofo e
+parênteses vindos das cópias de conflito, já que a opção desligada impede o app de descer em
+`.git/` e em `gcal/`.
 
-Independentemente disso, apontar o Orgzly para `/GTD` é errado por desenho, porque o app
-reescreve arquivos inteiros e ali enxergaria `org-gtd-tasks.org`.
+Mas essa configuração tem um efeito que o #6 proíbe: com o repositório em `/GTD` e as
+subpastas desligadas, o app passa a enxergar os dois `.org` do primeiro nível, `inbox.org` e
+**`org-gtd-tasks.org`**, e o Orgzly reescreve o arquivo inteiro que toca.
+Os arquivos de `gcal/` ficam de fora, o que é o desejado: no celular os eventos são lidos no
+próprio Google Agenda.
+A correção é apontar o repositório para uma subpasta dedicada, e não para `/GTD`.
+
 A decisão de #6 continua a mesma: o celular vê um único arquivo, numa subpasta dedicada.
 A escolha entre `mobile.org` exclusivo e `inbox.org` direto continua aberta.
 
 ## Retomar por aqui
 
-1. Refazer o teste do Orgzly com `/GTD` agora que as cópias de conflito sumiram, só para
-   saber se a hipótese do `.git` se confirma; o resultado não muda o desenho.
+1. Apontar o repositório do Orgzly para uma subpasta dedicada, em vez de `/GTD` com as
+   subpastas desligadas, que hoje expõe `org-gtd-tasks.org` ao app.
 2. Fechar #6 escolhendo entre `mobile.org` e `inbox.org`, criar a subpasta dedicada e apontar
    o Orgzly para ela.
 3. Apagar `~/Dropbox/orgzly-teste/` quando o diagnóstico terminar.
