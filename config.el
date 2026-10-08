@@ -2076,3 +2076,6 @@ heading.  All prompts come before any change, so C-g leaves nothing behind."
 
     :desc "Paper views"
     "V" #'my/org-ql-view-current-buffer)))
+
+(use-package! org-auto-tangle
+  :hook (org-mode . org-auto-tangle-mode))

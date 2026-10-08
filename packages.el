@@ -144,3 +144,5 @@
 
 (package! org-noter :recipe (:host github :repo "org-noter/org-noter" :files ("*.el" "modules/*.el")))
 
+
+(package! org-auto-tangle)

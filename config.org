@@ -3191,3 +3191,13 @@ heading.  All prompts come before any change, so C-g leaves nothing behind."
 #+end_src
 
 #+RESULTS:
+
+* Org-auto-tangle
+
+Tangula ao salvar os arquivos que declaram ~#+auto_tangle: t~ no cabeçalho, em processo separado, sem travar a edição.
+Os demais arquivos Org não são afetados.
+
+#+begin_src emacs-lisp
+(use-package! org-auto-tangle
+  :hook (org-mode . org-auto-tangle-mode))
+#+end_src
