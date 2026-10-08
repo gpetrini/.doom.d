@@ -2790,149 +2790,229 @@ past ones stay out of the type-filtered blocks."
   (add-hook! '(org-noter-notes-mode-hook org-noter-doc-mode-hook)
              #'evil-normalize-keymaps)
 
-  ;; ---------------------------------------------------------------------------
-  ;; Categorias
-  ;; ---------------------------------------------------------------------------
-
-  (defvar my/org-noter-categories
-    '("Takeaway"
-      "Background"
-      "Arguments"
-      "Contribution"
-      "Theoretical"
-      "Empirical"
-      "Model"
-      "Data"
-      "Methodology"
-      "Results"
-      "Observations"
-      "Limitations"
-      "Critique"
-      "Policy"
-      "Future Work"
-      "Related Work"
-      "Literature"
-      "Debate"
-      "Questions"
-      "Definition"
-      "Example"))
-
-  ;; ---------------------------------------------------------------------------
-  ;; Cores
-  ;; ---------------------------------------------------------------------------
-
-  (defvar my/org-noter-category-colors
-    '(("Takeaway"     . "#00cc44")
-      ("Background"   . "#c792ea")
-      ("Arguments"    . "#ffff00")
-      ("Contribution" . "#ffff00")
-      ("Theoretical"  . "#82aaff")
-      ("Empirical"    . "#82aaff")
-      ("Model"        . "#82aaff")
-      ("Data"         . "#82aaff")
-      ("Methodology"  . "#ffff00")
-      ("Results"      . "#ffff00")
-      ("Observations" . "#ffff00")
-      ("Limitations"  . "#ff8800")
-      ("Critique"     . "#ff0000")
-      ("Policy"       . "#ffff00")
-      ("Future Work"  . "#ffff00")
-      ("Related Work" . "#ffff00")
-      ("Literature"   . "#c792ea")
-      ("Debate"       . "#c792ea")
-      ("Questions"    . "#ffff00")
-      ("Definition"   . "#ff8800")
-      ("Example"      . "#00cc44")))
-
-  ;; ---------------------------------------------------------------------------
-  ;; Inserção categorizada
-  ;; ---------------------------------------------------------------------------
-
-  (defun my/org-noter-insert-categorized-note ()
-    (interactive)
-
-    (let* ((region
-            (and (pdf-view-active-region-p)
-                 (pdf-view-active-region)))
-
-           (text
-            (when region
-              (mapconcat #'identity
-                         (pdf-view-active-region-text)
-                         " ")))
-
-           (page (pdf-view-current-page))
-
-           (pdf-buf (current-buffer))
-
-           ;; janela PDF capturada antes do org-noter mudar o foco —
-           ;; pdf-annot-add-markup-annotation exige a janela selecionada
-           (pdf-win (selected-window)))
-
-      ;; Fase 2: cria nota com região ainda ativa
-      (let ((org-noter-insert-note-no-questions t))
-        (org-noter-insert-precise-note))
-
-      ;; Fase 3: prompts
-      (let* ((category
-              (completing-read "Category: "
-                               my/org-noter-categories
-                               nil t))
-
-             (title
-              (read-string
-               (format "Title (default: %s): " category)))
-
-             (final-title
-              (if (string-empty-p title) category title))
-
-             (color
-              (alist-get category
-                         my/org-noter-category-colors
-                         nil nil #'string=)))
-
-        ;; Fase 4: cria highlight com a cor da categoria.
-        ;; with-selected-window é necessário: pdf-annot-add-markup-annotation
-        ;; verifica a janela selecionada (não o current-buffer).
-        (when (and region color (window-live-p pdf-win))
-          (with-selected-window pdf-win
-            (pdf-annot-add-markup-annotation region 'highlight color)))
-
-        ;; Fase 5: edita heading, abre tags, insere conteúdo
-        ;; with-selected-window garante buffer e ponto da janela corretos
-        (let ((notes-win (org-noter--get-notes-window)))
-          (when notes-win
-            (with-selected-window notes-win
-              (org-back-to-heading t)
-              (org-edit-headline final-title)
-              (condition-case nil (org-set-tags-command) (quit nil))
-              (org-end-of-meta-data t)
-              (when (and text (not (string-empty-p text)))
-                (insert "\n#+begin_quote\n"
-                        (string-trim-right text)
-                        (if page (format " (p. %d)" page) "")
-                        "\n#+end_quote\n"))
-              (insert "\n")))))))
-
-  ;; ---------------------------------------------------------------------------
-  ;; Keybindings
-  ;; ---------------------------------------------------------------------------
-
-  (map!
-   :map org-noter-doc-mode-map
-   :localleader
-   :desc "Categorized note" "a" #'my/org-noter-insert-categorized-note
-   :desc "Kill session"     "Q" #'org-noter-kill-session)
-
-  (map!
-   :map org-noter-notes-mode-map
-   :localleader
-   :desc "Categorized note" "a" #'my/org-noter-insert-categorized-note
-   :desc "Kill session"     "Q" #'org-noter-kill-session))
+  ;; Ask for the marker set of `my/highlight-region' once per session.
+  (add-hook 'org-noter-notes-mode-hook #'my/highlight--choose-sets-on-session))
 
 #+end_src
 
 #+RESULTS:
+
+* PDF highlights with markers (pdf-tools)
+
+Highlights the active region in a PDF and stores markers in the annotation contents (single source; extractable with =pdfannots=).
+Each marker is one line of the contents, formatted as =#codesign note= (e.g. =#met- ordering not stated=).
+A highlight may carry several markers and takes the first marker's color; =my/highlight-change-color= recolors a highlight afterwards.
+With an active org-noter session, a note is also inserted under the heading where the session was started: the first marker spelled out as title, marker codes as tags (plus =code_neg=, =code_pos= or =code_doubt= for signed markers, e.g. =(tags "met_neg")= in org-ql), markers and quoted text with page in the body.
+Key bindings live under =SPC N= (noter/PDF): =n= start org-noter, =g= highlight, =c= color, =s= marker set, =l= list annotations, =v= org-ql view, =q= kill session.
+Marker sets: =selecao= (graduate admission project review) and =research= (reading categories of the former org-noter flow); add sets to =my/highlight-marker-sets=.
+The set is asked for when an org-noter session starts (=all= offers every set) and can be changed with =my/highlight-choose-sets=.
+
+The snap build of Emacs exports =GCONV_PATH= pointing to snap modules; =epdfinfo= (linked to the system libc) then fails to convert text, and every annotation contents is saved empty.
+The advice removes that variable from the =epdfinfo= environment only.
+
+#+begin_src emacs-lisp
+(defun my/pdf-info-without-snap-gconv (orig &rest args)
+  "Start epdfinfo without the snap GCONV_PATH (annotation contents saved empty)."
+  (let ((process-environment (cons "GCONV_PATH" process-environment)))
+    (apply orig args)))
+(advice-add 'pdf-info-process-assert-running :around #'my/pdf-info-without-snap-gconv)
+
+(progn
+
+  ;; Let-bound below; declared special so the binding reaches org-noter.
+  (defvar org-noter-insert-note-no-questions)
+  (defvar org-noter-highlight-selected-text)
+  (defvar org-noter-max-short-selected-text-length)
+
+  ;; Each entry: (CODE DESCRIPTION SIGN-P COLOR).
+  ;; Non-nil SIGN-P asks for a sign (+ - ?), which sets the color; otherwise COLOR.
+  (defvar my/highlight-marker-sets
+    '((selecao
+       ("prob"  "PROBLEMA"                 t)
+       ("hip"   "HIPOTESE"                 t)
+       ("obj"   "OBJETIVOS"                t)
+       ("met"   "METODO"                   t)
+       ("fac"   "FACTIBILIDADE"            t)
+       ("lit"   "LITERATURA"               t)
+       ("con"   "CONTRIBUICAO"             t)
+       ("coe"   "COERENCIA"                t)
+       ("ade"   "ADERENCIA"                t)
+       ("esc"   "ESCRITA"                  t)
+       ("mot"   "carta de motivação"       t)
+       ("rec"   "carta de recomendação"    t)
+       ("cv"    "CV e histórico"           t)
+       ("arg"   "pergunta para a arguição" nil "#ff8800")
+       ("risco" "risco principal"          nil "#ff8800"))
+      ;; Codes are the tags queried by `my/org-ql-paper-views' (section Org-ql);
+      ;; colors follow the former org-noter categories (in comments).
+      (research
+       ("context"  "Background and motivation"        nil "#c792ea") ; Background
+       ("theory"   "Supporting ideas and theory"      nil "#82aaff") ; Theoretical
+       ("hypo"     "Hypothesis"                       nil "#ffff00") ; Arguments
+       ("contrib"  "Purpose, relevance, contribution" nil "#ffff00") ; Contribution
+       ("method"   "Methodology"                      nil "#ffff00") ; Methodology
+       ("data"     "Data"                             nil "#82aaff") ; Data
+       ("empirics" "Empirical strategy"               nil "#82aaff") ; Empirical
+       ("formal"   "Formal model"                     nil "#82aaff") ; Model
+       ("sim"      "Simulation"                       nil "#82aaff") ; Model
+       ("results"  "Results"                          nil "#ffff00") ; Results
+       ("discuss"  "Discussion"                       nil "#ffff00") ; Observations
+       ("insight"  "Interesting finding"              nil "#00cc44") ; Takeaway
+       ("misc"     "Not categorized"                  nil "#ffff00") ; Observations
+       ("critique" "Critique"                         nil "#ff0000") ; Critique
+       ("limits"   "Limitations"                      nil "#ff8800") ; Limitations
+       ("policy"   "Policy implications"              nil "#ffff00") ; Policy
+       ("future"   "Future research"                  nil "#ffff00") ; Future Work
+       ("lit"      "Literature dialogue"              nil "#c792ea"))) ; Literature
+    "Marker sets offered by `my/highlight-region'.")
+
+  (defvar my/highlight-active-sets '(selecao research)
+    "Marker sets offered by `my/highlight-region'; change with `my/highlight-choose-sets'.")
+
+  (defvar my/highlight-sign-colors
+    '((?+ . "#00cc44") (?- . "#ff0000") (?? . "#ffff00"))
+    "Highlight color for each sign.")
+
+  (defvar my/highlight-sign-tags
+    '((?+ . "pos") (?- . "neg") (?? . "doubt"))
+    "Tag suffix for each sign; a signed marker adds the tag CODE_SUFFIX.")
+
+  (defun my/highlight--tags (markers)
+    "Org tags for MARKERS: each code, plus CODE_SIGN for signed markers."
+    (delete-dups
+     (mapcan (lambda (m)
+               (let ((code (string-replace "-" "_" (nth 1 m)))
+                     (sign (alist-get (nth 4 m) my/highlight-sign-tags)))
+                 (if sign (list code (concat code "_" sign)) (list code))))
+             markers)))
+
+  (defvar my/highlight-palette
+    '(("green"  . "#00cc44")
+      ("red"    . "#ff0000")
+      ("yellow" . "#ffff00")
+      ("orange" . "#ff8800")
+      ("purple" . "#c792ea")
+      ("blue"   . "#82aaff"))
+    "Colors offered when highlighting; any color name or hex code is also accepted.")
+
+  (defun my/highlight--read-marker ()
+    "Read code, sign and note; return (TEXT CODE COLOR TITLE SIGN).
+TEXT is the marker as stored in the PDF (#codesign note); TITLE spells
+out the code description for the org-noter heading; SIGN is a char or nil."
+    (let* ((table
+            (mapcan (lambda (set)
+                      (mapcar (lambda (e)
+                                (cons (format "#%-12s %s  [%s]" (nth 0 e) (nth 1 e) set) e))
+                              (alist-get set my/highlight-marker-sets)))
+                    my/highlight-active-sets))
+           (e (cdr (assoc (completing-read "Marker: " table nil t) table)))
+           (sign (when (nth 2 e)
+                   (read-char-choice "Sign [+ - ?]: " '(?+ ?- ??))))
+           (note (string-trim (read-string "Note: "))))
+      (list (concat "#" (nth 0 e)
+                    (when sign (string sign))
+                    (unless (string-empty-p note) (concat " " note)))
+            (nth 0 e)
+            (or (alist-get sign my/highlight-sign-colors) (nth 3 e))
+            (concat (nth 1 e)
+                    (when sign (format " (%c)" sign))
+                    (unless (string-empty-p note) (concat ": " note)))
+            sign)))
+
+  (defun my/highlight--read-color (suggested)
+    "Ask for a highlight color, offering SUGGESTED first."
+    (let* ((name (or (car (rassoc suggested my/highlight-palette)) suggested))
+           (choices (cons name (remove name (mapcar #'car my/highlight-palette))))
+           (answer (completing-read (format "Color (default %s): " name)
+                                    choices nil nil nil nil name)))
+      (or (cdr (assoc answer my/highlight-palette)) answer)))
+
+  (defun my/highlight--org-noter-note (text page markers)
+    "Insert a note for the active region under the org-noter session heading.
+The note title spells out the first marker, tags are the marker codes
+(plus CODE_SIGN for signed markers), and the body lists the markers and
+quotes TEXT with PAGE."
+    ;; Every selection becomes the provisional title, so org-noter does not
+    ;; insert its own QUOTE block (the body below is the only one).
+    (let ((org-noter-insert-note-no-questions t)
+          (org-noter-highlight-selected-text nil)
+          (org-noter-max-short-selected-text-length most-positive-fixnum))
+      (org-noter-insert-precise-note))
+    (when-let* ((notes-win (org-noter--get-notes-window)))
+      (with-selected-window notes-win
+        (org-back-to-heading t)
+        (org-edit-headline (nth 3 (car markers)))
+        (org-set-tags (my/highlight--tags markers))
+        (org-end-of-meta-data t)
+        (unless (bolp) (insert "\n"))
+        (insert (mapconcat (lambda (m) (concat "- " (car m))) markers "\n") "\n")
+        (unless (string-empty-p text)
+          (insert "#+begin_quote\n" (string-trim-right text)
+                  (format " (p. %d)" page) "\n#+end_quote\n")))))
+
+  (defun my/highlight-region ()
+    "Highlight the active region and store markers in the annotation contents.
+With an active org-noter session, also insert a note under the session
+heading.  All prompts come before any change, so C-g leaves nothing behind."
+    (interactive)
+    (pdf-util-assert-pdf-window)
+    (let* ((pdf-win (selected-window))
+           (region (pdf-view-active-region))
+           (page (car region))
+           (text (mapconcat #'identity (pdf-view-active-region-text) " "))
+           (markers (list (my/highlight--read-marker))))
+      (while (y-or-n-p "Another marker? ")
+        (push (my/highlight--read-marker) markers))
+      (setq markers (nreverse markers))
+      (when (bound-and-true-p org-noter--session)
+        (my/highlight--org-noter-note text page markers))
+      ;; Color of the first marker; change later with `my/highlight-change-color'.
+      (with-selected-window pdf-win
+        (pdf-annot-add-markup-annotation
+         region 'highlight (nth 2 (car markers))
+         `((contents . ,(mapconcat #'car markers "\n"))))
+        (pdf-view-deactivate-region))
+      (select-window pdf-win)))
+
+  (defun my/highlight-change-color ()
+    "Click a highlight and choose a new color for it."
+    (interactive)
+    (pdf-util-assert-pdf-window)
+    (let ((event nil))
+      (while (not (eq 'mouse-1 (car-safe event)))
+        (setq event (read-event "Click the highlight to recolor")))
+      (let* ((a (pdf-annot-at-position (event-start event)))
+             (color (my/highlight--read-color (pdf-annot-get a 'color))))
+        (pdf-annot-put a 'color color))))
+
+  (defun my/highlight-choose-sets ()
+    "Choose the marker set offered by `my/highlight-region'; \"all\" offers every set."
+    (interactive)
+    (let* ((names (mapcar (lambda (s) (symbol-name (car s))) my/highlight-marker-sets))
+           (choice (completing-read "Marker set (default all): "
+                                    (cons "all" names) nil t nil nil "all")))
+      (setq my/highlight-active-sets
+            (if (string= choice "all")
+                (mapcar #'car my/highlight-marker-sets)
+              (list (intern choice))))
+      (message "Active marker sets: %s" my/highlight-active-sets)))
+
+  (defun my/highlight--choose-sets-on-session ()
+    "Ask for the marker set when an org-noter session starts."
+    (when (bound-and-true-p org-noter-notes-mode)
+      ;; Deferred so the prompt comes after the session windows are set up.
+      (run-at-time 0 nil #'my/highlight-choose-sets)))
+
+  (map! :leader
+        (:prefix ("N" . "noter/PDF")
+         :desc "Start org-noter"        "n" #'org-noter
+         :desc "Highlight with markers" "g" #'my/highlight-region
+         :desc "Highlight color"        "c" #'my/highlight-change-color
+         :desc "Marker set"             "s" #'my/highlight-choose-sets
+         :desc "List annotations"       "l" #'pdf-annot-list-annotations
+         :desc "org-ql view"            "v" #'my/org-ql-view-current-buffer
+         :desc "Kill org-noter session" "q" #'org-noter-kill-session)))
+#+end_src
 
 * Org-ql
 
