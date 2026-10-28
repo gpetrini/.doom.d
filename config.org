@@ -2804,7 +2804,7 @@ Each marker is one line of the contents, formatted as =#codesign note= (e.g. =#m
 A highlight may carry several markers and takes the first marker's color; =my/highlight-change-color= recolors a highlight afterwards.
 With an active org-noter session, a note is also inserted under the heading where the session was started: the first marker spelled out as title, marker codes as tags (plus =code_neg=, =code_pos= or =code_doubt= for signed markers, e.g. =(tags "met_neg")= in org-ql), markers and quoted text with page in the body.
 Key bindings live under =SPC N= (noter/PDF): =n= start org-noter, =g= highlight, =c= color, =s= marker set, =l= list annotations, =v= org-ql view, =q= kill session.
-Marker sets: =selecao= (graduate admission project review) and =research= (reading categories of the former org-noter flow); add sets to =my/highlight-marker-sets=.
+Marker sets: =selecao= (graduate admission project review), =trabalho= (reading of written work such as course papers and theses) and =research= (reading categories of the former org-noter flow); add sets to =my/highlight-marker-sets=.
 The set is asked for when an org-noter session starts (=all= offers every set) and can be changed with =my/highlight-choose-sets=.
 
 #+begin_src emacs-lisp
@@ -2834,6 +2834,20 @@ The set is asked for when an org-noter session starts (=all= offers every set) a
        ("cv"    "CV e histórico"           t)
        ("arg"   "pergunta para a arguição" nil "#ff8800")
        ("risco" "risco principal"          nil "#ff8800"))
+      ;; Reading of written work (course papers, theses, reports); signed
+      ;; markers map onto rubric lines by section: data source, treatment,
+      ;; context, technique, reading of results and interpretation.
+      (trabalho
+       ("fonte"  "FONTE E COLETA"             t)
+       ("trat"   "TRATAMENTO DOS DADOS"       t)
+       ("ctx"    "CONTEXTO E PROBLEMA"        t)
+       ("tec"    "TECNICA"                    t)
+       ("leit"   "LEITURA DOS RESULTADOS"     t)
+       ("interp" "INTERPRETACAO"              t)
+       ("escr"   "ESCRITA E FORMA"            t)
+       ("rep"    "CODIGO E REPRODUTIBILIDADE" t)
+       ("dev"    "ponto para a devolutiva"    nil "#82aaff")
+       ("arg"    "pergunta para a arguicao"   nil "#ff8800"))
       ;; Codes are the tags queried by `my/org-ql-paper-views' (section Org-ql);
       ;; colors follow the former org-noter categories (in comments).
       (research
@@ -2857,7 +2871,7 @@ The set is asked for when an org-noter session starts (=all= offers every set) a
        ("lit"      "Literature dialogue"              nil "#c792ea"))) ; Literature
     "Marker sets offered by `my/highlight-region'.")
 
-  (defvar my/highlight-active-sets '(selecao research)
+  (defvar my/highlight-active-sets '(selecao trabalho research)
     "Marker sets offered by `my/highlight-region'; change with `my/highlight-choose-sets'.")
 
   (defvar my/highlight-sign-colors

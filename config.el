@@ -1729,6 +1729,20 @@ past ones stay out of the type-filtered blocks."
        ("cv"    "CV e histórico"           t)
        ("arg"   "pergunta para a arguição" nil "#ff8800")
        ("risco" "risco principal"          nil "#ff8800"))
+      ;; Reading of written work (course papers, theses, reports); signed
+      ;; markers map onto rubric lines by section: data source, treatment,
+      ;; context, technique, reading of results and interpretation.
+      (trabalho
+       ("fonte"  "FONTE E COLETA"             t)
+       ("trat"   "TRATAMENTO DOS DADOS"       t)
+       ("ctx"    "CONTEXTO E PROBLEMA"        t)
+       ("tec"    "TECNICA"                    t)
+       ("leit"   "LEITURA DOS RESULTADOS"     t)
+       ("interp" "INTERPRETACAO"              t)
+       ("escr"   "ESCRITA E FORMA"            t)
+       ("rep"    "CODIGO E REPRODUTIBILIDADE" t)
+       ("dev"    "ponto para a devolutiva"    nil "#82aaff")
+       ("arg"    "pergunta para a arguicao"   nil "#ff8800"))
       ;; Codes are the tags queried by `my/org-ql-paper-views' (section Org-ql);
       ;; colors follow the former org-noter categories (in comments).
       (research
@@ -1752,7 +1766,7 @@ past ones stay out of the type-filtered blocks."
        ("lit"      "Literature dialogue"              nil "#c792ea"))) ; Literature
     "Marker sets offered by `my/highlight-region'.")
 
-  (defvar my/highlight-active-sets '(selecao research)
+  (defvar my/highlight-active-sets '(selecao trabalho research)
     "Marker sets offered by `my/highlight-region'; change with `my/highlight-choose-sets'.")
 
   (defvar my/highlight-sign-colors
