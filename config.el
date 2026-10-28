@@ -1703,12 +1703,6 @@ past ones stay out of the type-filtered blocks."
   ;; Ask for the marker set of `my/highlight-region' once per session.
   (add-hook 'org-noter-notes-mode-hook #'my/highlight--choose-sets-on-session))
 
-(defun my/pdf-info-without-snap-gconv (orig &rest args)
-  "Start epdfinfo without the snap GCONV_PATH (annotation contents saved empty)."
-  (let ((process-environment (cons "GCONV_PATH" process-environment)))
-    (apply orig args)))
-(advice-add 'pdf-info-process-assert-running :around #'my/pdf-info-without-snap-gconv)
-
 (progn
 
   ;; Let-bound below; declared special so the binding reaches org-noter.
@@ -2076,6 +2070,64 @@ heading.  All prompts come before any change, so C-g leaves nothing behind."
 
     :desc "Paper views"
     "V" #'my/org-ql-view-current-buffer)))
+
+(after! org-ql-view
+  ;; Checklist de comprovantes do DossIE: registros PENDENTE dos arquivos de grupo,
+  ;; recortáveis pela data INICIO (ADR Skills de saída).
+  (defvar my/dossie-directory "~/Documents/DossIE")
+
+  (org-ql-defpred dossie-inicio (from to)
+    "INICIO do registro entre FROM e TO (AAAA-MM-DD; nil = sem limite)."
+    :body (let ((v (org-entry-get nil "INICIO")))
+            (and v (string-match "[0-9]\\{4\\}-[0-9]\\{2\\}-[0-9]\\{2\\}" v)
+                 (let ((d (match-string 0 v)))
+                   (and (or (null from) (not (string< d from)))
+                        (or (null to) (not (string< to d))))))))
+
+  (defun my/dossie-pendentes (&optional from to)
+    "Lista os registros PENDENTE do DossIE por grupo; FROM e TO recortam INICIO."
+    (interactive
+     (mapcar (lambda (p) (let ((s (read-string p))) (unless (string-empty-p s) s)))
+             '("INICIO a partir de (AAAA-MM-DD, vazio = sem limite): "
+               "INICIO até (AAAA-MM-DD, vazio = sem limite): ")))
+    (org-ql-search
+      (directory-files my/dossie-directory t "__registros\\.org\\'")
+      (if (or from to)
+          `(and (todo "PENDENTE") (dossie-inicio ,from ,to))
+        '(todo "PENDENTE"))
+      :title "DossIE: comprovantes pendentes"
+      :super-groups '((:name "Ensino" :file-path "--ensino__")
+                      (:name "Pesquisa e produção" :file-path "--pesquisa__")
+                      (:name "Orientação e bancas" :file-path "--orientacao-bancas__")
+                      (:name "Serviço e gestão" :file-path "--servico-gestao__")
+                      (:name "Vida funcional" :file-path "--vida-funcional__"))))
+
+  (add-to-list 'org-ql-views (cons "DossIE: comprovantes pendentes" #'my/dossie-pendentes))
+
+  ;; Changelog institucional: atos do acervo normativo com ALTERA ou REVOGA,
+  ;; ordenados por PUBLICACAO (ADR Estrutura do acervo normativo e changelog, emenda).
+  (defun my/dossie-changelog ()
+    "Lista os atos do acervo normativo do DossIE que alteram ou revogam outros."
+    (interactive)
+    (org-ql-search
+      (directory-files (expand-file-name "acervo" my/dossie-directory) t "--acervo-normativo__.*\\.org\\'")
+      '(or (property "ALTERA") (property "REVOGA"))
+      :title "DossIE: changelog institucional"
+      :sort (lambda (a b)
+              (string< (or (org-element-property :PUBLICACAO a) "")
+                       (or (org-element-property :PUBLICACAO b) "")))))
+
+  (add-to-list 'org-ql-views (cons "DossIE: changelog institucional" #'my/dossie-changelog)))
+
+(after! org
+  (add-to-list 'org-capture-templates
+               '("D" "DossIE: registro" entry
+                 (file (lambda ()
+                         (car (directory-files "~/Documents/DossIE" t
+                                               "--inbox-de-registros__inbox\\.org\\'"))))
+                 "* PENDENTE %^{Título} %^g\n:PROPERTIES:\n:ID: %(org-id-uuid)\n:CREATED: %U\n:VINCULO: unicamp\n:INICIO: %^u\n:FIM:\n:END:\n%?"
+                 :empty-lines 1)
+               t))
 
 (use-package! org-auto-tangle
   :hook (org-mode . org-auto-tangle-mode))
