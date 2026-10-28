@@ -2801,7 +2801,7 @@ past ones stay out of the type-filtered blocks."
 
 Highlights the active region in a PDF and stores markers in the annotation contents (single source; extractable with =pdfannots=).
 Each marker is one line of the contents, formatted as =#codesign note= (e.g. =#met- ordering not stated=).
-A highlight may carry several markers and takes the first marker's color; =my/highlight-change-color= recolors a highlight afterwards.
+A highlight may carry several markers and takes the first marker's color (the marker's own color when the set defines one, otherwise the sign's); =my/highlight-change-color= recolors a highlight afterwards.
 With an active org-noter session, a note is also inserted under the heading where the session was started: the first marker spelled out as title, marker codes as tags (plus =code_neg=, =code_pos= or =code_doubt= for signed markers, e.g. =(tags "met_neg")= in org-ql), markers and quoted text with page in the body.
 Key bindings live under =SPC N= (noter/PDF): =n= start org-noter, =g= highlight, =c= color, =s= marker set, =l= list annotations, =v= org-ql view, =q= kill session.
 Marker sets: =selecao= (graduate admission project review), =trabalho= (reading of written work such as course papers and theses) and =research= (reading categories of the former org-noter flow); add sets to =my/highlight-marker-sets=.
@@ -2816,7 +2816,8 @@ The set is asked for when an org-noter session starts (=all= offers every set) a
   (defvar org-noter-max-short-selected-text-length)
 
   ;; Each entry: (CODE DESCRIPTION SIGN-P COLOR).
-  ;; Non-nil SIGN-P asks for a sign (+ - ?), which sets the color; otherwise COLOR.
+  ;; Non-nil SIGN-P asks for a sign (+ - ?); COLOR, when given, sets the color,
+  ;; otherwise the sign does (sets without COLOR are colored by sign).
   (defvar my/highlight-marker-sets
     '((selecao
        ("prob"  "PROBLEMA"                 t)
@@ -2838,15 +2839,15 @@ The set is asked for when an org-noter session starts (=all= offers every set) a
       ;; markers map onto rubric lines by section: data source, treatment,
       ;; context, technique, reading of results and interpretation.
       (trabalho
-       ("fonte"  "FONTE E COLETA"             t)
-       ("trat"   "TRATAMENTO DOS DADOS"       t)
-       ("ctx"    "CONTEXTO E PROBLEMA"        t)
-       ("tec"    "TECNICA"                    t)
-       ("leit"   "LEITURA DOS RESULTADOS"     t)
-       ("interp" "INTERPRETACAO"              t)
-       ("escr"   "ESCRITA E FORMA"            t)
-       ("rep"    "CODIGO E REPRODUTIBILIDADE" t)
-       ("dev"    "ponto para a devolutiva"    nil "#82aaff")
+       ("fonte"  "FONTE E COLETA"             t   "#82aaff")
+       ("trat"   "TRATAMENTO DOS DADOS"       t   "#5ec4e6")
+       ("ctx"    "CONTEXTO E PROBLEMA"        t   "#c792ea")
+       ("tec"    "TECNICA"                    t   "#ffcb6b")
+       ("leit"   "LEITURA DOS RESULTADOS"     t   "#ffff00")
+       ("interp" "INTERPRETACAO"              t   "#00cc44")
+       ("escr"   "ESCRITA E FORMA"            t   "#b0b0b0")
+       ("rep"    "CODIGO E REPRODUTIBILIDADE" t   "#f78c6c")
+       ("dev"    "ponto para a devolutiva"    nil "#ff9cdb")
        ("arg"    "pergunta para a arguicao"   nil "#ff8800"))
       ;; Codes are the tags queried by `my/org-ql-paper-views' (section Org-ql);
       ;; colors follow the former org-noter categories (in comments).
@@ -2918,7 +2919,7 @@ out the code description for the org-noter heading; SIGN is a char or nil."
                     (when sign (string sign))
                     (unless (string-empty-p note) (concat " " note)))
             (nth 0 e)
-            (or (alist-get sign my/highlight-sign-colors) (nth 3 e))
+            (or (nth 3 e) (alist-get sign my/highlight-sign-colors))
             (concat (nth 1 e)
                     (when sign (format " (%c)" sign))
                     (unless (string-empty-p note) (concat ": " note)))

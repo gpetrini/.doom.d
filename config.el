@@ -1711,7 +1711,8 @@ past ones stay out of the type-filtered blocks."
   (defvar org-noter-max-short-selected-text-length)
 
   ;; Each entry: (CODE DESCRIPTION SIGN-P COLOR).
-  ;; Non-nil SIGN-P asks for a sign (+ - ?), which sets the color; otherwise COLOR.
+  ;; Non-nil SIGN-P asks for a sign (+ - ?); COLOR, when given, sets the color,
+  ;; otherwise the sign does (sets without COLOR are colored by sign).
   (defvar my/highlight-marker-sets
     '((selecao
        ("prob"  "PROBLEMA"                 t)
@@ -1733,15 +1734,15 @@ past ones stay out of the type-filtered blocks."
       ;; markers map onto rubric lines by section: data source, treatment,
       ;; context, technique, reading of results and interpretation.
       (trabalho
-       ("fonte"  "FONTE E COLETA"             t)
-       ("trat"   "TRATAMENTO DOS DADOS"       t)
-       ("ctx"    "CONTEXTO E PROBLEMA"        t)
-       ("tec"    "TECNICA"                    t)
-       ("leit"   "LEITURA DOS RESULTADOS"     t)
-       ("interp" "INTERPRETACAO"              t)
-       ("escr"   "ESCRITA E FORMA"            t)
-       ("rep"    "CODIGO E REPRODUTIBILIDADE" t)
-       ("dev"    "ponto para a devolutiva"    nil "#82aaff")
+       ("fonte"  "FONTE E COLETA"             t   "#82aaff")
+       ("trat"   "TRATAMENTO DOS DADOS"       t   "#5ec4e6")
+       ("ctx"    "CONTEXTO E PROBLEMA"        t   "#c792ea")
+       ("tec"    "TECNICA"                    t   "#ffcb6b")
+       ("leit"   "LEITURA DOS RESULTADOS"     t   "#ffff00")
+       ("interp" "INTERPRETACAO"              t   "#00cc44")
+       ("escr"   "ESCRITA E FORMA"            t   "#b0b0b0")
+       ("rep"    "CODIGO E REPRODUTIBILIDADE" t   "#f78c6c")
+       ("dev"    "ponto para a devolutiva"    nil "#ff9cdb")
        ("arg"    "pergunta para a arguicao"   nil "#ff8800"))
       ;; Codes are the tags queried by `my/org-ql-paper-views' (section Org-ql);
       ;; colors follow the former org-noter categories (in comments).
@@ -1813,7 +1814,7 @@ out the code description for the org-noter heading; SIGN is a char or nil."
                     (when sign (string sign))
                     (unless (string-empty-p note) (concat " " note)))
             (nth 0 e)
-            (or (alist-get sign my/highlight-sign-colors) (nth 3 e))
+            (or (nth 3 e) (alist-get sign my/highlight-sign-colors))
             (concat (nth 1 e)
                     (when sign (format " (%c)" sign))
                     (unless (string-empty-p note) (concat ": " note)))
