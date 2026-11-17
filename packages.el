@@ -123,7 +123,8 @@
 
 
 (package! eglot-ltex  :recipe (:host github :repo "emacs-languagetool/eglot-ltex"))
-(package! realgud)
+(package! loc-changes :recipe (:branch "main"))
+(package! realgud :recipe (:branch "main"))
 (package! org-gcal)
 (package! org-alert)
 ;; (package! exec-path-from-shell)
