@@ -1764,10 +1764,25 @@ past ones stay out of the type-filtered blocks."
        ("limits"   "Limitations"                      nil "#ff8800") ; Limitations
        ("policy"   "Policy implications"              nil "#ffff00") ; Policy
        ("future"   "Future research"                  nil "#ffff00") ; Future Work
-       ("lit"      "Literature dialogue"              nil "#c792ea"))) ; Literature
+       ("lit"      "Literature dialogue"              nil "#c792ea")) ; Literature
+      ;; Refereeing journal manuscripts; codes match the Category column of
+      ;; the findings ledger in Reviews/. Signed markers are colored by sign
+      ;; (+ strength, - problem, ? doubt of the reader).
+      (referee
+       ("theo"    "THEORY AND DERIVATION"          t)
+       ("spec"    "ECONOMETRIC SPECIFICATION"      t)
+       ("ident"   "IDENTIFICATION AND ENDOGENEITY" t)
+       ("data"    "DATA, SOURCES AND MEASUREMENT"  t)
+       ("infer"   "INFERENCE AND DIAGNOSTICS"      t)
+       ("interp"  "INTERPRETATION OF RESULTS"      t)
+       ("refs"    "LITERATURE"                     t)
+       ("prose"   "WRITING, TABLES AND FORM"       t)
+       ("major"   "major concern candidate"        nil "#ff8800")
+       ("clarify" "clarification request"          nil "#ffcb6b")
+       ("lookup"  "needs external search"          nil "#ff9cdb")))
     "Marker sets offered by `my/highlight-region'.")
 
-  (defvar my/highlight-active-sets '(selecao trabalho research)
+  (defvar my/highlight-active-sets '(selecao trabalho research referee)
     "Marker sets offered by `my/highlight-region'; change with `my/highlight-choose-sets'.")
 
   (defvar my/highlight-sign-colors
