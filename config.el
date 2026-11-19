@@ -1695,7 +1695,18 @@ past ones stay out of the type-filtered blocks."
   (setq
    org-noter-highlight-selected-text nil
    org-noter-doc-split-fraction '(0.7 . 0.625)
-   org-noter-hide-other nil)
+   org-noter-hide-other nil
+   ;; Sessions show only the document; `my/org-noter-toggle-notes-window'
+   ;; shows the notes on demand.
+   org-noter-notes-window-behavior nil)
+
+  (defun my/org-noter-toggle-notes-window ()
+    "Show or hide the notes window of the current org-noter session."
+    (interactive)
+    (org-noter--with-valid-session
+     (if-let* ((win (get-buffer-window (org-noter--session-notes-buffer session) t)))
+         (delete-window win)
+       (org-noter--get-notes-window 'force))))
 
   (add-hook! '(org-noter-notes-mode-hook org-noter-doc-mode-hook)
              #'evil-normalize-keymaps)
@@ -1711,25 +1722,25 @@ past ones stay out of the type-filtered blocks."
   (defvar org-noter-max-short-selected-text-length)
 
   ;; Each entry: (CODE DESCRIPTION SIGN-P COLOR).
-  ;; Non-nil SIGN-P asks for a sign (+ - ?); COLOR, when given, sets the color,
-  ;; otherwise the sign does (sets without COLOR are colored by sign).
+  ;; Non-nil SIGN-P asks for a sign (+ - ?), recorded in the marker text and
+  ;; tags only; COLOR is the category color (the sign never sets the color).
   (defvar my/highlight-marker-sets
     '((selecao
-       ("prob"  "PROBLEMA"                 t)
-       ("hip"   "HIPOTESE"                 t)
-       ("obj"   "OBJETIVOS"                t)
-       ("met"   "METODO"                   t)
-       ("fac"   "FACTIBILIDADE"            t)
-       ("lit"   "LITERATURA"               t)
-       ("con"   "CONTRIBUICAO"             t)
-       ("coe"   "COERENCIA"                t)
-       ("ade"   "ADERENCIA"                t)
-       ("esc"   "ESCRITA"                  t)
-       ("mot"   "carta de motivação"       t)
-       ("rec"   "carta de recomendação"    t)
-       ("cv"    "CV e histórico"           t)
+       ("prob"  "PROBLEMA"                 t   "#c792ea")
+       ("hip"   "HIPOTESE"                 t   "#82aaff")
+       ("obj"   "OBJETIVOS"                t   "#5ec4e6")
+       ("met"   "METODO"                   t   "#ffcb6b")
+       ("fac"   "FACTIBILIDADE"            t   "#f78c6c")
+       ("lit"   "LITERATURA"               t   "#c3e88d")
+       ("con"   "CONTRIBUICAO"             t   "#00cc44")
+       ("coe"   "COERENCIA"                t   "#ffff00")
+       ("ade"   "ADERENCIA"                t   "#ff5370")
+       ("esc"   "ESCRITA"                  t   "#b0b0b0")
+       ("mot"   "carta de motivação"       t   "#89ddff")
+       ("rec"   "carta de recomendação"    t   "#89ddff")
+       ("cv"    "CV e histórico"           t   "#89ddff")
        ("arg"   "pergunta para a arguição" nil "#ff8800")
-       ("risco" "risco principal"          nil "#ff8800"))
+       ("risco" "risco principal"          nil "#ff0000"))
       ;; Reading of written work (course papers, theses, reports); signed
       ;; markers map onto rubric lines by section: data source, treatment,
       ;; context, technique, reading of results and interpretation.
@@ -1744,6 +1755,19 @@ past ones stay out of the type-filtered blocks."
        ("rep"    "CODIGO E REPRODUTIBILIDADE" t   "#f78c6c")
        ("dev"    "ponto para a devolutiva"    nil "#ff9cdb")
        ("arg"    "pergunta para a arguicao"   nil "#ff8800"))
+      ;; Completeness reading (readiness for defense, not merit), e.g. the
+      ;; religamento parecer; signed codes are the form items 1 to 4
+      ;; (+ present, - missing or incomplete, ? to check); unsigned markers
+      ;; pair announcements with deliveries and separate grade B from C.
+      (completude
+       ("red"    "REDACAO INTEGRAL"                   t   "#c792ea")
+       ("mat"    "MATERIAL ANUNCIADO E ENTREGUE"      t   "#82aaff")
+       ("resp"   "RESPOSTA LOCALIZAVEL A QUESTAO"     t   "#00cc44")
+       ("rev"    "TEXTO REVISADO"                     t   "#b0b0b0")
+       ("anun"   "anuncio de tabela, figura ou secao" nil "#5ec4e6")
+       ("forma"  "pendencia de forma (grau B)"        nil "#ffcb6b")
+       ("cont"   "pendencia de conteudo (grau C)"     nil "#ff8800")
+       ("atest"  "diverge do atestado do orientador"  nil "#ff9cdb"))
       ;; Codes are the tags queried by `my/org-ql-paper-views' (section Org-ql);
       ;; colors follow the former org-noter categories (in comments).
       (research
@@ -1766,28 +1790,24 @@ past ones stay out of the type-filtered blocks."
        ("future"   "Future research"                  nil "#ffff00") ; Future Work
        ("lit"      "Literature dialogue"              nil "#c792ea")) ; Literature
       ;; Refereeing journal manuscripts; codes match the Category column of
-      ;; the findings ledger in Reviews/. Signed markers are colored by sign
-      ;; (+ strength, - problem, ? doubt of the reader).
+      ;; the findings ledger in Reviews/. The sign (+ strength, - problem,
+      ;; ? doubt of the reader) goes to the marker text and tags.
       (referee
-       ("theo"    "THEORY AND DERIVATION"          t)
-       ("spec"    "ECONOMETRIC SPECIFICATION"      t)
-       ("ident"   "IDENTIFICATION AND ENDOGENEITY" t)
-       ("data"    "DATA, SOURCES AND MEASUREMENT"  t)
-       ("infer"   "INFERENCE AND DIAGNOSTICS"      t)
-       ("interp"  "INTERPRETATION OF RESULTS"      t)
-       ("refs"    "LITERATURE"                     t)
-       ("prose"   "WRITING, TABLES AND FORM"       t)
+       ("theo"    "THEORY AND DERIVATION"          t   "#c792ea")
+       ("spec"    "ECONOMETRIC SPECIFICATION"      t   "#ffcb6b")
+       ("ident"   "IDENTIFICATION AND ENDOGENEITY" t   "#f78c6c")
+       ("data"    "DATA, SOURCES AND MEASUREMENT"  t   "#82aaff")
+       ("infer"   "INFERENCE AND DIAGNOSTICS"      t   "#5ec4e6")
+       ("interp"  "INTERPRETATION OF RESULTS"      t   "#00cc44")
+       ("refs"    "LITERATURE"                     t   "#c3e88d")
+       ("prose"   "WRITING, TABLES AND FORM"       t   "#b0b0b0")
        ("major"   "major concern candidate"        nil "#ff8800")
-       ("clarify" "clarification request"          nil "#ffcb6b")
+       ("clarify" "clarification request"          nil "#ffff00")
        ("lookup"  "needs external search"          nil "#ff9cdb")))
     "Marker sets offered by `my/highlight-region'.")
 
-  (defvar my/highlight-active-sets '(selecao trabalho research referee)
+  (defvar my/highlight-active-sets '(selecao trabalho completude research referee)
     "Marker sets offered by `my/highlight-region'; change with `my/highlight-choose-sets'.")
-
-  (defvar my/highlight-sign-colors
-    '((?+ . "#00cc44") (?- . "#ff0000") (?? . "#ffff00"))
-    "Highlight color for each sign.")
 
   (defvar my/highlight-sign-tags
     '((?+ . "pos") (?- . "neg") (?? . "doubt"))
@@ -1829,7 +1849,7 @@ out the code description for the org-noter heading; SIGN is a char or nil."
                     (when sign (string sign))
                     (unless (string-empty-p note) (concat " " note)))
             (nth 0 e)
-            (or (nth 3 e) (alist-get sign my/highlight-sign-colors))
+            (nth 3 e)
             (concat (nth 1 e)
                     (when sign (format " (%c)" sign))
                     (unless (string-empty-p note) (concat ": " note)))
@@ -1850,21 +1870,25 @@ The note title spells out the first marker, tags are the marker codes
 quotes TEXT with PAGE."
     ;; Every selection becomes the provisional title, so org-noter does not
     ;; insert its own QUOTE block (the body below is the only one).
-    (let ((org-noter-insert-note-no-questions t)
-          (org-noter-highlight-selected-text nil)
-          (org-noter-max-short-selected-text-length most-positive-fixnum))
-      (org-noter-insert-precise-note))
-    (when-let* ((notes-win (org-noter--get-notes-window)))
-      (with-selected-window notes-win
-        (org-back-to-heading t)
-        (org-edit-headline (nth 3 (car markers)))
-        (org-set-tags (my/highlight--tags markers))
-        (org-end-of-meta-data t)
-        (unless (bolp) (insert "\n"))
-        (insert (mapconcat (lambda (m) (concat "- " (car m))) markers "\n") "\n")
-        (unless (string-empty-p text)
-          (insert "#+begin_quote\n" (string-trim-right text)
-                  (format " (p. %d)" page) "\n#+end_quote\n")))))
+    (let ((was-shown (get-buffer-window
+                      (org-noter--session-notes-buffer org-noter--session) t)))
+      (let ((org-noter-insert-note-no-questions t)
+            (org-noter-highlight-selected-text nil)
+            (org-noter-max-short-selected-text-length most-positive-fixnum))
+        (org-noter-insert-precise-note))
+      (when-let* ((notes-win (org-noter--get-notes-window)))
+        (with-selected-window notes-win
+          (org-back-to-heading t)
+          (org-edit-headline (nth 3 (car markers)))
+          (org-set-tags (my/highlight--tags markers))
+          (org-end-of-meta-data t)
+          (unless (bolp) (insert "\n"))
+          (insert (mapconcat (lambda (m) (concat "- " (car m))) markers "\n") "\n")
+          (unless (string-empty-p text)
+            (insert "#+begin_quote\n" (string-trim-right text)
+                    (format " (p. %d)" page) "\n#+end_quote\n")))
+        ;; Insertion forces the notes window open; hide it again if it was hidden.
+        (unless was-shown (delete-window notes-win)))))
 
   (defun my/highlight-region ()
     "Highlight the active region and store markers in the annotation contents.
@@ -1922,6 +1946,7 @@ heading.  All prompts come before any change, so C-g leaves nothing behind."
   (map! :leader
         (:prefix ("N" . "noter/PDF")
          :desc "Start org-noter"        "n" #'org-noter
+         :desc "Toggle notes window"    "t" #'my/org-noter-toggle-notes-window
          :desc "Highlight with markers" "g" #'my/highlight-region
          :desc "Highlight color"        "c" #'my/highlight-change-color
          :desc "Marker set"             "s" #'my/highlight-choose-sets
@@ -1978,7 +2003,29 @@ heading.  All prompts come before any change, so C-g leaves nothing behind."
        . (tags "future"))
 
       ("Literature dialogue"
-       . (tags "lit"))))
+       . (tags "lit"))
+
+      ;; Marker set `completude' (section PDF highlights): form items 1 to 4.
+      ("Completude 1: redacao integral"
+       . (tags "red"))
+
+      ("Completude 2: material anunciado e entregue"
+       . (tags "mat" "anun"))
+
+      ("Completude 3: resposta localizavel"
+       . (tags "resp"))
+
+      ("Completude 4: texto revisado"
+       . (tags "rev"))
+
+      ("Completude: ausencias (-)"
+       . (tags "red_neg" "mat_neg" "resp_neg" "rev_neg"))
+
+      ("Completude: grau B ou C"
+       . (tags "forma" "cont"))
+
+      ("Completude: atestado do orientador"
+       . (tags "atest"))))
 
   ;; -------------------------------------------------------------------------
   ;; Fechar buffers org-ql rapidamente
