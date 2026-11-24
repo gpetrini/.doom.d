@@ -678,6 +678,104 @@ ${abstract}
   :after org
   )
 
+;; -------------------------------------------------------------------------
+;; Refile e Organização de Notas Cornell no Denote
+;; -------------------------------------------------------------------------
+(defun my/denote-cornell-extract-pdf-metadata (pdf-path)
+  "Extrai metadados do formulário AcroForm de PDF-PATH se disponível.
+Retorna uma plist com (:title ... :date ... :dest ... :keywords ...)."
+  (let ((py-script
+         (concat
+          "import pikepdf, sys, json\n"
+          "try:\n"
+          "    pdf = pikepdf.open(sys.argv[1])\n"
+          "    res = {'dest': 'notes', 'title': '', 'date': '', 'keywords': []}\n"
+          "    if hasattr(pdf.Root, 'AcroForm') and hasattr(pdf.Root.AcroForm, 'Fields'):\n"
+          "        for f in pdf.Root.AcroForm.Fields:\n"
+          "            name = str(f.get('/T', ''))\n"
+          "            val = f.get('/V', '')\n"
+          "            if val is not None:\n"
+          "                v_str = str(val).lstrip('/')\n"
+          "                if v_str.lower() not in ['off', 'none', 'false', '']:\n"
+          "                    if name == 'meeting_topic': res['title'] = str(val)\n"
+          "                    elif name == 'meeting_date': res['date'] = str(val)\n"
+          "                    elif name.startswith('dest_'): res['dest'] = name[5:]\n"
+          "                    elif name.startswith('type_'): res['keywords'].append(name[5:])\n"
+          "                    elif name.startswith('tag_'): res['keywords'].append(name[4:])\n"
+          "    print(json.dumps(res))\n"
+          "except Exception:\n"
+          "    print('{}')\n")))
+    (condition-case nil
+        (let ((output (shell-command-to-string
+                       (format "python3 -c %s %s"
+                               (shell-quote-argument py-script)
+                               (shell-quote-argument (expand-file-name pdf-path))))))
+          (when (and output (not (string-empty-p output)))
+            (let ((json-data (json-read-from-string output)))
+              (list :title (alist-get 'title json-data)
+                    :date (alist-get 'date json-data)
+                    :dest (alist-get 'dest json-data)
+                    :keywords (append (alist-get 'keywords json-data) nil)))))
+      (error nil))))
+
+(defun my/denote-cornell-refile (&optional file)
+  "Renomeia e move (refile) uma nota PDF para subpastas em `~/Org/`.
+Identifica automaticamente campos preenchidos no PDF (se houver) e utiliza o Denote
+para gerar o nome padronizado (IDENTIFIER--TITLE__KEYWORDS.pdf).
+Pode ser chamado no Dired sobre um arquivo, ou num buffer PDF, ou a partir de `~/Org/inbox/`."
+  (interactive
+   (list
+    (cond
+     ((derived-mode-p 'dired-mode)
+      (dired-get-filename nil t))
+     ((and buffer-file-name (string-equal (file-name-extension buffer-file-name) "pdf"))
+      buffer-file-name)
+     (t
+      (let ((inbox-dir (expand-file-name "inbox/" denote-directory)))
+        (read-file-name "Selecione a nota PDF para Refile: "
+                        (if (file-directory-p inbox-dir) inbox-dir denote-directory)
+                        nil t))))))
+  (unless (and file (file-exists-p file))
+    (user-error "Nenhum arquivo PDF válido fornecido"))
+  (let* ((meta (my/denote-cornell-extract-pdf-metadata file))
+         (dest-choices '("notes" "lectures" "reviews" "dossie" "supervisions" "other"))
+         (raw-dest (plist-get meta :dest))
+         (default-dest (if (and raw-dest (member raw-dest dest-choices)) raw-dest "notes"))
+         (dest (completing-read
+                (format "Destino do refile (padrão: %s): " default-dest)
+                dest-choices nil t nil nil default-dest))
+         (default-title (or (plist-get meta :title) ""))
+         (title (read-string "Título / Tema da nota: " default-title))
+         (raw-keywords (plist-get meta :keywords))
+         (default-keywords (if raw-keywords (string-join raw-keywords ",") "meeting"))
+         (keywords (denote-keywords-prompt "Palavras-chave: " default-keywords))
+         (target-dir (file-name-as-directory (expand-file-name dest denote-directory)))
+         (date-val (let ((raw-date (plist-get meta :date)))
+                     (if (and raw-date (not (string-empty-p raw-date)))
+                         raw-date
+                       (format-time-string "%Y-%m-%d" (file-attribute-modification-time (file-attributes file))))))
+         (id (denote-get-identifier (denote-valid-date-p date-val)))
+         (new-name (denote-format-file-name target-dir id keywords title ".pdf" nil)))
+    (unless (file-directory-p target-dir)
+      (make-directory target-dir t))
+    (rename-file file new-name 1)
+    (when (derived-mode-p 'dired-mode)
+      (revert-buffer))
+    (message "[Denote] Nota movida com sucesso para: %s" new-name)
+    (when (y-or-n-p "Criar nota .org correspondente com link para esta anotação?")
+      (let* ((org-file (denote title keywords 'org target-dir date-val nil)))
+        (with-current-buffer (find-file-noselect org-file)
+          (goto-char (point-max))
+          (insert (format "\n* Anotação Manuscrita / Ata Original\n- Documento PDF: [[file:%s][%s]]\n"
+                          (file-relative-name new-name (file-name-directory org-file))
+                          (file-name-nondirectory new-name)))
+          (save-buffer))
+        (pop-to-buffer (find-file-noselect org-file))))))
+
+(map! :leader
+      :desc "Refile Cornell PDF note" "n c" #'my/denote-cornell-refile)
+
+
 (setq org-agenda-time-grid
       '((daily today require-timed)
         (630 700 730 800 830 900 930 1000 1030 1100 1130
