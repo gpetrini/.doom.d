@@ -795,6 +795,126 @@ Pode ser chamado no Dired sobre um arquivo, ou num buffer PDF, ou a partir de `~
         ("@office"  . ?o)
         ("@free"    . ?f)))
 
+;;;; Captures and typed Denote files (MyOrg#16 Catálogo de captures)
+
+(defun my/denote-files-of-type (&rest types)
+  "Return Denote files outside archive/ whose keywords include one of TYPES."
+  (denote-directory-files
+   (format "__\\(?:[[:alnum:]]+_\\)*%s[_.]" (regexp-opt types))
+   nil t "/archive/"))
+
+(defun my/denote-pick (prompt &rest types)
+  "Prompt with PROMPT for a Denote file of one of TYPES; return its path."
+  (let ((cands (mapcar (lambda (f) (cons (denote-retrieve-title-or-filename f 'org) f))
+                       (apply #'my/denote-files-of-type types))))
+    (unless cands
+      (user-error "No Denote file with keyword %s" (string-join types " or ")))
+    (cdr (assoc (completing-read prompt cands nil t) cands))))
+
+(defun my/denote-link-string (file)
+  "Return a denote: link to FILE described by its title."
+  (format "[[denote:%s][%s]]"
+          (denote-retrieve-filename-identifier file)
+          (denote-retrieve-title-or-filename file 'org)))
+
+(defun my/capture-inbox-file ()
+  "Return the single Denote inbox file."
+  (or (car (my/denote-files-of-type "inbox"))
+      (user-error "No Denote file with keyword inbox")))
+
+(defun my/capture-target-file ()
+  "Prompt for the area or project file that receives a direct capture."
+  (my/denote-pick "Area or project: " "area" "project"))
+
+(defun my/capture-goto-root ()
+  "Move to the root heading, so the capture becomes its child."
+  (goto-char (point-min))
+  (unless (org-at-heading-p) (outline-next-heading))
+  (unless (org-at-heading-p) (user-error "No root heading in %s" (buffer-name))))
+
+(defun my/capture--action (keyword head &optional tags planning props)
+  "Template for a KEYWORD action with HEAD text, TAGS, PLANNING line and PROPS lines.
+Priority and effort are prompted and omitted when left empty."
+  (let ((prio (completing-read "Priority (RET = none): " '("A" "B" "C") nil t))
+        (effort (read-string "Effort (RET = none): ")))
+    (concat "* " keyword " "
+            (if (string-empty-p prio) "" (format "[#%s] " prio))
+            head (or tags "") "\n"
+            (or planning "")
+            ":PROPERTIES:\n:CREATED: %U\n"
+            (if (string-empty-p effort) "" (format ":EFFORT: %s\n" effort))
+            (or props "")
+            ":END:\n%i")))
+
+(defun my/capture-next-template ()
+  (let ((tags (completing-read-multiple "Contexts (RET = none): "
+                                        (mapcar #'car org-tag-alist))))
+    (my/capture--action "NEXT" "%?"
+                        (when tags (format " :%s:" (string-join tags ":"))))))
+
+(defun my/capture-email-template ()
+  (my/capture--action "NEXT" "Email %^{To}: %?" " :@email:"))
+
+(defun my/capture-wait-template ()
+  (my/capture--action
+   "WAIT" "%?" nil "SCHEDULED: %^{Follow up}t\n"
+   (format ":DELEGATED_TO: %s\n"
+           (my/denote-link-string (my/denote-pick "Delegated to: " "contact")))))
+
+(after! org
+  (setq org-capture-templates
+        '(("i" "Inbox" entry (file my/capture-inbox-file)
+           "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n%i" :kill-buffer t)
+          ("l" "Inbox with link" entry (file my/capture-inbox-file)
+           "* %?\n:PROPERTIES:\n:CREATED: %U\n:END:\n%a\n%i" :kill-buffer t)
+          ("n" "NEXT action" entry
+           (file+function my/capture-target-file my/capture-goto-root)
+           (function my/capture-next-template) :kill-buffer t)
+          ("e" "Email to write" entry
+           (file+function my/capture-target-file my/capture-goto-root)
+           (function my/capture-email-template) :kill-buffer t)
+          ("w" "WAIT (delegated)" entry
+           (file+function my/capture-target-file my/capture-goto-root)
+           (function my/capture-wait-template) :kill-buffer t)
+          ("t" "Tickler" entry
+           (file+function my/capture-target-file my/capture-goto-root)
+           "* TODO %?\nSCHEDULED: %^{Tickle on}t\n:PROPERTIES:\n:CREATED: %U\n:TICKLER: t\n:END:\n%i"
+           :kill-buffer t)
+          ("d" "Commitment (timed)" entry
+           (file+function my/capture-target-file my/capture-goto-root)
+           "* TODO %?\nSCHEDULED: %^{When}T\n:PROPERTIES:\n:CREATED: %U\n:END:\n%i"
+           :kill-buffer t))))
+
+(defun my/denote-new (type)
+  "Create a Denote file of TYPE with its root heading.
+TYPE is one of area, project, ticket, contact or meeting; further
+keywords are prompted."
+  (interactive
+   (list (completing-read "Type: " '("area" "project" "ticket" "contact" "meeting") nil t)))
+  (let* ((title (denote-title-prompt))
+         (keywords (delete-dups (cons type (denote-keywords-prompt))))
+         (created (format ":CREATED: %s\n" (format-time-string (org-time-stamp-format t t))))
+         (root
+          (pcase type
+            ("area" (format "* %s\n:PROPERTIES:\n%s:END:\n" title created))
+            ("project"
+             (format "* TODO %s\n:PROPERTIES:\n%s:AREA: %s\n:END:\n" title created
+                     (my/denote-link-string (my/denote-pick "Area: " "area"))))
+            ("ticket"
+             (let ((parent (my/denote-pick "Area or project: " "area" "project")))
+               (format "* TODO %s\n:PROPERTIES:\n%s:%s: %s\n:END:\n" title created
+                       (if (member "project" (denote-extract-keywords-from-path parent))
+                           "PROJECT" "AREA")
+                       (my/denote-link-string parent))))
+            ("contact"
+             (format "* %s :contact:\n:PROPERTIES:\n%s:NICKNAME: %s\n:EMAIL:\n:END:\n"
+                     title created (read-string "Nickname: ")))
+            ("meeting" (format "* %s\n:PROPERTIES:\n%s:END:\n" title created))))
+         (denote-templates (cons (cons 'my-root root) denote-templates)))
+    (denote title keywords 'org nil nil 'my-root)))
+
+(map! :leader :desc "New typed Denote file" "n k" #'my/denote-new)
+
 (setq org-agenda-files '("~/Dropbox/GTD/" "~/Dropbox/GTD/gcal/"))
 
 ;; This affects tasks blocked by subtasks
