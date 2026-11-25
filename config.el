@@ -577,6 +577,8 @@ ${abstract}
    denote-sort-keywords t
    denote-prompts '(title keywords template)
    denote-date-prompt-use-org-read-date t
+   denote-known-keywords '("area" "project" "ticket" "contact" "inbox" "review"
+                           "organization" "legacy")
    )
   )
 
@@ -605,7 +607,7 @@ ${abstract}
                    (let ((f (denote name '("journal") 'org)))
                      (with-current-buffer (find-file-noselect f)
                        (goto-char (point-max))
-                       (insert "\n#+BEGIN: denote-backlinks :excluded-dirs-regexp nil :sort-by-component nil :reverse-sort nil :id-only nil :this-heading-only nil :include-date nil :not-regexp \"_todo\"\n#+END:\n")
+                       (insert "\n#+BEGIN: denote-backlinks :excluded-dirs-regexp nil :sort-by-component nil :reverse-sort nil :id-only nil :this-heading-only nil :include-date nil :not-regexp \"_toread\"\n#+END:\n")
                        (save-buffer)
                        (kill-buffer))
                      f))))
@@ -775,7 +777,6 @@ Pode ser chamado no Dired sobre um arquivo, ou num buffer PDF, ou a partir de `~
 (map! :leader
       :desc "Refile Cornell PDF note" "n c" #'my/denote-cornell-refile)
 
-
 (setq org-agenda-time-grid
       '((daily today require-timed)
         (630 700 730 800 830 900 930 1000 1030 1100 1130
@@ -786,39 +787,17 @@ Pode ser chamado no Dired sobre um arquivo, ou num buffer PDF, ou a partir de `~
         "......" "----------------"))
 
 (setq org-tag-alist
-      '(;; --- Location ---
-        ("@home"      . ?H)
-        ("@unicamp"   . ?u)
-        ("@santanna"  . ?s)
-        ("@MADE"      . ?M)
-        ("@server"    . ?S)
-
-        ;; --- Activity ---
+      '(("@coding"       . ?c)
         ("@writing"      . ?w)
-        ("@paper"        . ?p)
         ("@reading"      . ?r)
-        ("@coding"       . ?c)
-        ("@reviewing"    . ?v)
-        ("@grading"      . ?g)
-        ("@supervising"  . ?V)
-        ("@meetings"     . ?m)
         ("@email"        . ?e)
+        ("@meeting"      . ?m)
         ("@bureaucracy"  . ?b)
-        ("@service"      . ?i)
+        ("@home"         . ?H)
         ("@planning"     . ?n)
-        ("@teaching"     . ?t)
-        ("@lecture-prep" . ?l)
-        ("@grant"        . ?G)
         ("@learning"     . ?L)
-        ("@emacs"        . ?E)
-        ("@workflow"     . ?W)
-        ("@conference"   . ?C)
-        ("@travel"       . ?T)
         ("@presentation" . ?P)
-        ("@editing"      . ?d)
-        ("@seminar"      . ?a)
-        ("@ysi"          . ?y)
-        ("@personal"     . ?o)
+        ("@travel"       . ?T)
         ("@free"         . ?f)))
 
 (setq org-agenda-files '("~/Dropbox/GTD/" "~/Dropbox/GTD/gcal/"))
