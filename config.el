@@ -787,18 +787,13 @@ Pode ser chamado no Dired sobre um arquivo, ou num buffer PDF, ou a partir de `~
         "......" "----------------"))
 
 (setq org-tag-alist
-      '(("@coding"       . ?c)
-        ("@writing"      . ?w)
-        ("@reading"      . ?r)
-        ("@email"        . ?e)
-        ("@meeting"      . ?m)
-        ("@bureaucracy"  . ?b)
-        ("@home"         . ?H)
-        ("@planning"     . ?n)
-        ("@learning"     . ?L)
-        ("@presentation" . ?P)
-        ("@travel"       . ?T)
-        ("@free"         . ?f)))
+      '(("@deep"    . ?d)
+        ("@email"   . ?e)
+        ("@reading" . ?r)
+        ("@agenda"  . ?a)
+        ("@home"    . ?H)
+        ("@office"  . ?o)
+        ("@free"    . ?f)))
 
 (setq org-agenda-files '("~/Dropbox/GTD/" "~/Dropbox/GTD/gcal/"))
 
